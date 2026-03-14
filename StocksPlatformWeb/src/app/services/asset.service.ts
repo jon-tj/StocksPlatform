@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 const API = 'http://localhost:5156';
 export const DEFAULT_ASSET_ID = '00000000-0000-0000-0000-000000000000';
@@ -64,5 +65,12 @@ export class AssetService {
       params['timeFrom'] = timeFrom.toISOString().split('T')[0];
     }
     return this.http.get<AssetHistory>(`${API}/api/asset/${id}/history`, { params });
+  }
+
+  getDeltaAt(id: string, date: string): Observable<AssetDelta | null> {
+    return this.http.get<AssetDelta>(`${API}/api/analysis/${id}/at`, { params: { date }, observe: 'response' }).pipe(
+      map(resp => resp.status === 204 ? null : resp.body),
+      catchError(() => of(null)),
+    );
   }
 }

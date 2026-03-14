@@ -126,6 +126,24 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         return Ok(ToDto(row, asset.Name));
     }
 
+    // GET /api/analysis/{assetId}/at?date=2025-06-15
+    // Returns the stored delta snapshot for a specific historical date.
+    // Returns 204 No Content if no snapshot exists for that date (does not compute one).
+    [HttpGet("{assetId:guid}/at")]
+    public async Task<ActionResult<DeltaDto>> GetAt(Guid assetId, [FromQuery] DateTime date)
+    {
+        var asset = await db.Assets.FindAsync(assetId);
+        if (asset is null) return NotFound();
+
+        var row = await db.AssetDeltas
+            .Where(d => d.AssetId == assetId && d.Date == date.Date)
+            .FirstOrDefaultAsync();
+
+        if (row is null) return NoContent();
+
+        return Ok(ToDto(row, asset.Name));
+    }
+
     // GET /api/analysis/{assetId}/holdings
     // Returns today's delta for every child of a portfolio asset,
     // enriched with a combined score and softmax-derived target fraction.

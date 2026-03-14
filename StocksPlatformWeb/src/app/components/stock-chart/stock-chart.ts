@@ -1,4 +1,4 @@
-import { Component, ElementRef, AfterViewInit, OnDestroy, ViewChild, computed, input, signal } from '@angular/core';
+import { Component, ElementRef, AfterViewInit, OnDestroy, ViewChild, computed, input, output, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
 export interface PriceSeries {
@@ -18,6 +18,7 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#818cf8'];
 export class StockChart implements AfterViewInit, OnDestroy {
   priceSeries = input.required<PriceSeries[]>();
   title = input<string>('');
+  dateHover = output<string | null>();
 
   @ViewChild('svgWrap') svgWrapRef!: ElementRef<HTMLElement>;
 
@@ -217,10 +218,12 @@ export class StockChart implements AfterViewInit, OnDestroy {
     } else {
       this.hoverX = +((this.hoveredIndex / (len - 1)) * this.W()).toFixed(1);
     }
+    this.dateHover.emit(this.timeLabels[this.hoveredIndex] ?? null);
   }
 
   onMouseLeave(): void {
     this.hoveredIndex = null;
+    this.dateHover.emit(null);
   }
 }
 
