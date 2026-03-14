@@ -24,6 +24,19 @@
   font-variant-numeric: tabular-nums;
 }
 
+.sc-mode-select {
+  margin-left: auto;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
 /* Legend */
 .sc-legend {
   display: flex;

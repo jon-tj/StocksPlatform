@@ -27,6 +27,7 @@ export class StockChart implements AfterViewInit, OnDestroy {
 
   hoveredIndex: number | null = null;
   hoverX = 0;
+  mode: 'cumulative' | 'period' = 'cumulative';
 
   private ro!: ResizeObserver;
   private cdr = inject(ChangeDetectorRef);
@@ -59,7 +60,17 @@ export class StockChart implements AfterViewInit, OnDestroy {
   get timeTo(): string {
     const t = this.timeLabels;
     if (!t.length) return '';
-    return t[this.hoveredIndex ?? t.length - 1];
+    return t[t.length - 1];
+  }
+
+  /** Label shown next to the title — single period when hovering a bar, full range otherwise. */
+  get displayedTimeRange(): string {
+    const t = this.timeLabels;
+    if (!t.length) return '';
+    if (this.mode === 'period' && this.hoveredIndex !== null) {
+      return t[this.hoveredIndex];
+    }
+    return t.length === 1 ? t[0] : `${this.timeFrom} \u2013 ${this.timeTo}`;
   }
 
   cumulativeReturns(s: ReturnsSeries): number[] {
@@ -67,13 +78,19 @@ export class StockChart implements AfterViewInit, OnDestroy {
     return s.returns.map((v) => +(sum += v).toFixed(2));
   }
 
-  /** Cumulative return up to hovered index, or total when not hovering. */
+  /** Return value shown in legend: cumulative up to idx, or period at idx. */
   getLiveValue(s: ReturnsSeries): number {
     const idx = this.hoveredIndex ?? s.returns.length - 1;
+    if (this.mode === 'period') {
+      return +s.returns[idx].toFixed(1);
+    }
     return +(s.returns.slice(0, idx + 1).reduce((a, b) => a + b, 0)).toFixed(1);
   }
 
   private get allValues(): number[] {
+    if (this.mode === 'period') {
+      return this.returnsSeries.flatMap((s) => s.returns);
+    }
     return this.returnsSeries.flatMap((s) => this.cumulativeReturns(s));
   }
 
@@ -112,6 +129,33 @@ export class StockChart implements AfterViewInit, OnDestroy {
     return `sc-grad-${i}-${this.title.replace(/\s/g, '') || 'chart'}`;
   }
 
+  getZeroY(): number {
+    return this.toY(0);
+  }
+
+  getBarRects(s: ReturnsSeries, si: number, n: number): { x: number; y: number; w: number; h: number }[] {
+    const len = s.returns.length;
+    const groupW = this.W / len;
+    const barW = Math.max(1, (groupW * 0.72) / n);
+    const groupPad = (groupW - barW * n) / 2;
+    const zero = this.toY(0);
+    return s.returns.map((v, i) => {
+      const x = +(i * groupW + groupPad + si * barW).toFixed(1);
+      const yV = this.toY(v);
+      return {
+        x,
+        y: +Math.min(yV, zero).toFixed(1),
+        w: +barW.toFixed(1),
+        h: +Math.max(1, Math.abs(zero - yV)).toFixed(1),
+      };
+    });
+  }
+
+  onModeChange(e: Event): void {
+    this.mode = (e.target as HTMLSelectElement).value as 'cumulative' | 'period';
+    this.hoveredIndex = null;
+  }
+
   onMouseMove(e: MouseEvent): void {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const relX = e.clientX - rect.left;
@@ -119,7 +163,11 @@ export class StockChart implements AfterViewInit, OnDestroy {
     if (!len) return;
     const idx = Math.round((relX / rect.width) * (len - 1));
     this.hoveredIndex = Math.max(0, Math.min(len - 1, idx));
-    this.hoverX = +((this.hoveredIndex / (len - 1)) * this.W).toFixed(1);
+    if (this.mode === 'period') {
+      this.hoverX = +((idx + 0.5) * (this.W / len)).toFixed(1);
+    } else {
+      this.hoverX = +((this.hoveredIndex / (len - 1)) * this.W).toFixed(1);
+    }
   }
 
   onMouseLeave(): void {
