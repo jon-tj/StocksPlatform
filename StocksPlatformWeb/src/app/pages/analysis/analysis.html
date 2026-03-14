@@ -8,7 +8,7 @@
   } @else if (asset) {
     <div class="asset-header">
       <div>
-        <h1>{{ asset.name }} <span class="subtitle">Analysis</span></h1>
+        <h1>{{ asset.name }}</h1>
         <div class="asset-meta">
           <span class="badge">{{ asset.type }}</span>
           @if (asset.symbol) { <span class="meta-item">{{ asset.symbol }}</span> }
@@ -17,6 +17,12 @@
         </div>
       </div>
     </div>
+
+    @if (chartSeries.length) {
+      <section class="card">
+        <app-stock-chart [priceSeries]="chartSeries" />
+      </section>
+    }
 
     @if (delta) {
       <section class="card">

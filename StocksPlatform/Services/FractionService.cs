@@ -4,7 +4,7 @@ using StocksPlatform.Models;
 
 namespace StocksPlatform.Services;
 
-public class FractionService(AppDbContext db, PriceService priceService)
+public class FractionService(AppDbContext db, AssetPriceService priceService)
 {
     /// <summary>
     /// Returns the PortfolioAsset rows for <paramref name="portfolioId"/> with up-to-date

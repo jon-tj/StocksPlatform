@@ -4,6 +4,7 @@ import { forkJoin } from 'rxjs';
 import { DecimalPipe, TitleCasePipe, DatePipe } from '@angular/common';
 import { AssetService, AssetDetails, AssetDelta, HoldingDelta } from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
+import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
 
 export interface ChildRow {
   position: Position;
@@ -12,7 +13,7 @@ export interface ChildRow {
 
 @Component({
   selector: 'app-analysis',
-  imports: [RouterLink, DecimalPipe, TitleCasePipe, DatePipe],
+  imports: [RouterLink, DecimalPipe, TitleCasePipe, DatePipe, StockChart],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })
@@ -25,6 +26,7 @@ export class Analysis implements OnInit {
   asset: AssetDetails | null = null;
   delta: AssetDelta | null = null;
   children: ChildRow[] = [];
+  chartSeries: PriceSeries[] = [];
   loading = true;
   error: string | null = null;
 
@@ -36,14 +38,18 @@ export class Analysis implements OnInit {
       return;
     }
 
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
     forkJoin({
       asset: this.assetService.getAssetDetails(this.assetId),
       delta: this.assetService.getLatestDelta(this.assetId),
+      history: this.assetService.getHistory(this.assetId, oneYearAgo),
     }).subscribe({
-      next: ({ asset, delta }) => {
+      next: ({ asset, delta, history }) => {
         this.asset = asset;
         this.delta = delta;
-
+        this.chartSeries = [{ name: asset.name, prices: history.prices, times: history.times }];
         if (asset.type === 'Portfolio') {
           forkJoin({
             resp: this.positionsService.getPositions(),

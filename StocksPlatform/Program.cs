@@ -9,8 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSingleton<StocksPlatform.Services.PollWeekService>();
-builder.Services.AddScoped<StocksPlatform.Services.PriceService>();
 builder.Services.AddScoped<StocksPlatform.Services.FractionService>();
+builder.Services.AddHttpClient<StocksPlatform.Services.AssetPriceService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
@@ -65,7 +68,10 @@ app.UseAuthorization();
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
-    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
 

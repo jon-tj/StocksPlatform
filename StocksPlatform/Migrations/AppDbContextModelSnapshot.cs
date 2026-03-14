@@ -303,6 +303,35 @@ namespace StocksPlatform.Migrations
                         });
                 });
 
+            modelBuilder.Entity("StocksPlatform.Models.AssetDailyHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Dividend")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("Volume")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId", "Timestamp")
+                        .IsUnique();
+
+                    b.ToTable("AssetDailyHistory");
+                });
+
             modelBuilder.Entity("StocksPlatform.Models.AssetDelta", b =>
                 {
                     b.Property<int>("Id")
@@ -347,6 +376,32 @@ namespace StocksPlatform.Migrations
                     b.ToTable("AssetDeltas");
                 });
 
+            modelBuilder.Entity("StocksPlatform.Models.AssetIntradayHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("Volume")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId", "Timestamp")
+                        .IsUnique();
+
+                    b.ToTable("AssetIntradayHistory");
+                });
+
             modelBuilder.Entity("StocksPlatform.Models.AssetPrice", b =>
                 {
                     b.Property<int>("Id")
@@ -371,6 +426,26 @@ namespace StocksPlatform.Migrations
                         .IsUnique();
 
                     b.ToTable("AssetPrices");
+                });
+
+            modelBuilder.Entity("StocksPlatform.Models.AssetPriceMeta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastDailyFetchAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId")
+                        .IsUnique();
+
+                    b.ToTable("AssetHistoryMeta");
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.Poll", b =>
@@ -575,6 +650,17 @@ namespace StocksPlatform.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("StocksPlatform.Models.AssetDailyHistory", b =>
+                {
+                    b.HasOne("StocksPlatform.Models.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+                });
+
             modelBuilder.Entity("StocksPlatform.Models.AssetDelta", b =>
                 {
                     b.HasOne("StocksPlatform.Models.Asset", "Asset")
@@ -586,7 +672,29 @@ namespace StocksPlatform.Migrations
                     b.Navigation("Asset");
                 });
 
+            modelBuilder.Entity("StocksPlatform.Models.AssetIntradayHistory", b =>
+                {
+                    b.HasOne("StocksPlatform.Models.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+                });
+
             modelBuilder.Entity("StocksPlatform.Models.AssetPrice", b =>
+                {
+                    b.HasOne("StocksPlatform.Models.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+                });
+
+            modelBuilder.Entity("StocksPlatform.Models.AssetPriceMeta", b =>
                 {
                     b.HasOne("StocksPlatform.Models.Asset", "Asset")
                         .WithMany()

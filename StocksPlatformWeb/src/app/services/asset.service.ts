@@ -34,7 +34,7 @@ export interface HoldingDelta extends AssetDelta {
 }
 
 export interface AssetHistory {
-  returns: number[];
+  prices: number[];
   times: string[];
 }
 

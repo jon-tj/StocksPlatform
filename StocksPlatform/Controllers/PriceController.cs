@@ -9,7 +9,7 @@ namespace StocksPlatform.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PriceController(AppDbContext db, PriceService priceService) : ControllerBase
+public class PriceController(AppDbContext db, AssetPriceService priceService) : ControllerBase
 {
     public record PriceDto(Guid AssetId, string Symbol, decimal Price, DateTime FetchedAt, DateTime ExpiresAt);
 

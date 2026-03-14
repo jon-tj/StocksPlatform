@@ -5,16 +5,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StocksPlatform.Data;
 using StocksPlatform.Models;
+using StocksPlatform.Services;
 
 namespace StocksPlatform.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AssetController(AppDbContext db, UserManager<AppUser> userManager) : ControllerBase
+public class AssetController(AppDbContext db, UserManager<AppUser> userManager, AssetPriceService assetPriceService) : ControllerBase
 {
     public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol);
-    public record HistoryDto(double[] Returns, string[] Times);
+    public record HistoryDto(double[] Prices, string[] Times);
 
     // GET /api/asset — returns the user's followed asset IDs (defaults to Guid.Empty)
     [HttpGet]
@@ -50,9 +51,9 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager) 
         return Ok(new AssetDto(asset.Id, asset.Name, asset.Type.ToString(), asset.Symbol, asset.Market, asset.Broker, asset.BrokerSymbol));
     }
 
-    // GET /api/asset/{id}/history?timeFrom=2025-01-01
+    // GET /api/asset/{id}/history?timeFrom=2025-01-01&intraday=false
     [HttpGet("{id:guid}/history")]
-    public IActionResult GetHistory(Guid id, [FromQuery] DateTime? timeFrom)
+    public async Task<ActionResult<HistoryDto>> GetHistory(Guid id, [FromQuery] DateTime? timeFrom, [FromQuery] bool intraday = false)
     {
         var from = timeFrom?.Date ?? DateTime.UtcNow.AddYears(-1).Date;
         var to = DateTime.UtcNow.Date;
@@ -60,36 +61,63 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager) 
         if (from > to)
             return BadRequest("timeFrom must be before today.");
 
-        var (returns, times) = GenerateMockDailyReturns(id, from, to);
-        return Ok(new HistoryDto(returns, times));
-    }
+        var asset = await db.Assets.FindAsync(id);
+        if (asset is null) return NotFound();
 
-    private static (double[] Returns, string[] Times) GenerateMockDailyReturns(Guid assetId, DateTime from, DateTime to)
-    {
-        // Seed with asset ID so the same asset always produces the same shape
-        var seed = Math.Abs(assetId.GetHashCode());
-        var rng = new Random(seed);
-
-        var returnsList = new List<double>();
-        var timesList = new List<string>();
-
-        for (var d = from; d <= to; d = d.AddDays(1))
+        var exchangeSuffix = asset.Market?.ToUpperInvariant() switch
         {
-            // Skip weekends
-            if (d.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
-                continue;
+            "OSE" => "OSE",
+            "NASDAQ" => "NAS",
+            _ => null
+        };
 
-            // Random daily return: normally distributed around 0.04% with ±1.5% std dev
-            var u1 = 1.0 - rng.NextDouble();
-            var u2 = 1.0 - rng.NextDouble();
-            var normal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
-            var dailyReturn = Math.Round(0.04 + normal * 1.5, 2);
-
-            returnsList.Add(dailyReturn);
-            timesList.Add(d.ToString("MMM d"));
+        if (exchangeSuffix is not null && asset.Symbol is { } symbol)
+        {
+            if (intraday)
+            {
+                await assetPriceService.EnsureIntradayBarsAsync(id, symbol, exchangeSuffix);
+                var bars = await db.AssetIntradayHistory
+                    .Where(b => b.AssetId == id)
+                    .OrderBy(b => b.Timestamp)
+                    .ToListAsync();
+                return Ok(PriceToHistory(bars, intraday: true));
+            }
+            else
+            {
+                await assetPriceService.EnsureDailyBarsAsync(id, symbol, exchangeSuffix);
+                var bars = await db.AssetDailyHistory
+                    .Where(b => b.AssetId == id && b.Timestamp >= from && b.Timestamp <= to)
+                    .OrderBy(b => b.Timestamp)
+                    .ToListAsync();
+                return Ok(PriceToHistory(bars, intraday: false));
+            }
         }
 
-        return (returnsList.ToArray(), timesList.ToArray());
+        // Fallback for unsupported markets: return whatever history exists in DB
+        var dailyBars = await db.AssetDailyHistory
+            .Where(b => b.AssetId == id && b.Timestamp >= from && b.Timestamp <= to)
+            .OrderBy(b => b.Timestamp)
+            .ToListAsync();
+        return Ok(PriceToHistory(dailyBars, intraday: false));
+    }
+
+    private static HistoryDto PriceToHistory(List<AssetDailyHistory> bars, bool intraday)
+    {
+        if (bars.Count < 2) return new HistoryDto([], []);
+        string timeFormat = intraday ? "MMM d HH:mm" : "MMM d";
+        return new HistoryDto(
+            bars.Select(b => (double)b.Price).ToArray(),
+            bars.Select(b => b.Timestamp.ToString(timeFormat)).ToArray()
+        );
+    }
+    private static HistoryDto PriceToHistory(List<AssetIntradayHistory> bars, bool intraday)
+    {
+        if (bars.Count < 2) return new HistoryDto([], []);
+        string timeFormat = intraday ? "MMM d HH:mm" : "MMM d";
+        return new HistoryDto(
+            bars.Select(b => (double)b.Price).ToArray(),
+            bars.Select(b => b.Timestamp.ToString(timeFormat)).ToArray()
+            );
     }
 
     private async Task<AppUser?> GetCurrentUserAsync()

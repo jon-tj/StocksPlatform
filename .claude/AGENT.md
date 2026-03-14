@@ -46,5 +46,7 @@ public record SubmitPredictionRequest(Guid QuestionId, double Probability);
 
 This keeps request contracts local to their endpoints.
 
+IMPORTANT: Database stores in NOK not in USD. Before attaching a new integration, make sure that all data going to the database or directly to user is converted to NOK.
+
 ## Principle
 Keep models simple, interpretable, and avoid unnecessary abstraction.

@@ -65,6 +65,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.sc-legend-price {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
 /* SVG area */
 .sc-svg-wrap {
   position: relative;

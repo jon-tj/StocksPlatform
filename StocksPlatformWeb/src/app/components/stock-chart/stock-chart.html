@@ -11,15 +11,16 @@
   </div>
 
   <div class="sc-legend">
-    @for (s of returnsSeries(); track $index; let i = $index) {
+    @for (s of priceSeries(); track $index; let i = $index) {
       <span class="sc-legend-item">
         <span class="sc-legend-dot" [style.background]="getColor(i)"></span>
         @if (s.name) {<span>{{ s.name }}</span>}
+        <span class="sc-legend-price">{{ getLivePrice(s) | number: '1.2-2' }}</span>
         <span
           class="sc-legend-val"
           [class.pos]="getLiveValue(s) >= 0"
           [class.neg]="getLiveValue(s) < 0"
-        >{{ getLiveValue(s) >= 0 ? '+' : '' }}{{ getLiveValue(s) | number: '1.1-1' }}%</span>
+        >{{ getLiveValue(s) >= 0 ? '+' : '' }}{{ getLiveValue(s) | number: '1.2-2' }}%</span>
       </span>
     }
   </div>
@@ -27,7 +28,7 @@
   <div class="sc-svg-wrap" #svgWrap (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
     <svg [attr.viewBox]="'0 0 ' + W() + ' ' + H" class="sc-svg">
       <defs>
-        @for (s of returnsSeries(); track $index; let i = $index) {
+        @for (s of priceSeries(); track $index; let i = $index) {
           <linearGradient [id]="gradId(i)" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" [attr.stop-color]="getColor(i)" stop-opacity="0.22" />
             <stop offset="100%" [attr.stop-color]="getColor(i)" stop-opacity="0" />
@@ -36,7 +37,7 @@
       </defs>
 
       @if (mode() === 'cumulative') {
-        @for (s of returnsSeries(); track $index; let i = $index) {
+        @for (s of priceSeries(); track $index; let i = $index) {
           @if (i === 0) {
             <path [attr.d]="getAreaPath(s)" [attr.fill]="'url(#' + gradId(i) + ')'" />
           }
@@ -53,14 +54,14 @@
 
       @if (mode() === 'period') {
         <line [attr.x1]="0" [attr.y1]="getZeroY()" [attr.x2]="W()" [attr.y2]="getZeroY()" stroke-width="1" [attr.stroke]="'var(--color-border)'" />
-        @for (s of returnsSeries(); track $index; let si = $index) {
-          @for (bar of getBarRects(s, si, returnsSeries().length); track $index; let i = $index) {
+        @for (s of priceSeries(); track $index; let si = $index) {
+          @for (bar of getBarRects(s, si, priceSeries().length); track $index; let i = $index) {
             <rect
               [attr.x]="bar.x"
               [attr.y]="bar.y"
               [attr.width]="bar.w"
               [attr.height]="bar.h"
-              [attr.fill]="s.returns[i] >= 0 ? '#10b981' : '#ef4444'"
+              [attr.fill]="s.prices[i] >= 0 ? '#10b981' : '#ef4444'"
               [attr.opacity]="hoveredIndex === null || hoveredIndex === i ? 1 : 0.35"
               rx="2"
             />
@@ -75,7 +76,7 @@
           [attr.stroke]="'var(--color-border)'" stroke-width="1" stroke-dasharray="4,3"
         />
         @if (mode() === 'cumulative') {
-          @for (s of returnsSeries(); track $index; let i = $index) {
+          @for (s of priceSeries(); track $index; let i = $index) {
             <circle
               [attr.cx]="hoverX"
               [attr.cy]="getPointY(s, hoveredIndex)"
@@ -90,12 +91,13 @@
   </div>
 
   <div class="sc-x-labels">
-    @for (tick of monthTicks(); track tick.label; let first = $first, last = $last) {
-      <span
-        [style.left.%]="tick.pct"
-        [class.sc-tick-first]="first"
-        [class.sc-tick-last]="last"
-      >{{ tick.label }}</span>
+    @for (tick of monthTicks(); track tick.pct; let first = $first, last = $last) {
+      @if (!first) {
+        <span
+          [style.left.%]="tick.pct"
+          [class.sc-tick-last]="last"
+        >{{ tick.label }}</span>
+      }
     }
   </div>
 </div>

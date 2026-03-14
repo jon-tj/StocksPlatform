@@ -236,6 +236,29 @@ namespace StocksPlatform.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AssetDailyHistory",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AssetId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Price = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Volume = table.Column<long>(type: "INTEGER", nullable: true),
+                    Dividend = table.Column<decimal>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AssetDailyHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AssetDailyHistory_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "Assets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AssetDeltas",
                 columns: table => new
                 {
@@ -257,6 +280,48 @@ namespace StocksPlatform.Migrations
                     table.PrimaryKey("PK_AssetDeltas", x => x.Id);
                     table.ForeignKey(
                         name: "FK_AssetDeltas_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "Assets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AssetHistoryMeta",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AssetId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LastDailyFetchAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AssetHistoryMeta", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AssetHistoryMeta_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "Assets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AssetIntradayHistory",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AssetId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Price = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Volume = table.Column<long>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AssetIntradayHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AssetIntradayHistory_Assets_AssetId",
                         column: x => x.AssetId,
                         principalTable: "Assets",
                         principalColumn: "Id",
@@ -377,9 +442,27 @@ namespace StocksPlatform.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_AssetDailyHistory_AssetId_Timestamp",
+                table: "AssetDailyHistory",
+                columns: new[] { "AssetId", "Timestamp" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AssetDeltas_AssetId_Date",
                 table: "AssetDeltas",
                 columns: new[] { "AssetId", "Date" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AssetHistoryMeta_AssetId",
+                table: "AssetHistoryMeta",
+                column: "AssetId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AssetIntradayHistory_AssetId_Timestamp",
+                table: "AssetIntradayHistory",
+                columns: new[] { "AssetId", "Timestamp" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -419,7 +502,16 @@ namespace StocksPlatform.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "AssetDailyHistory");
+
+            migrationBuilder.DropTable(
                 name: "AssetDeltas");
+
+            migrationBuilder.DropTable(
+                name: "AssetHistoryMeta");
+
+            migrationBuilder.DropTable(
+                name: "AssetIntradayHistory");
 
             migrationBuilder.DropTable(
                 name: "AssetPrices");

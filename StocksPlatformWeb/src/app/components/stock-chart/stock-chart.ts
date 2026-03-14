@@ -1,9 +1,9 @@
 import { Component, ElementRef, AfterViewInit, OnDestroy, ViewChild, computed, input, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
-export interface ReturnsSeries {
+export interface PriceSeries {
   name?: string;
-  returns: number[];
+  prices: number[];
   times: string[];
 }
 
@@ -16,7 +16,7 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#818cf8'];
   styleUrl: './stock-chart.css',
 })
 export class StockChart implements AfterViewInit, OnDestroy {
-  returnsSeries = input.required<ReturnsSeries[]>();
+  priceSeries = input.required<PriceSeries[]>();
   title = input<string>('');
 
   @ViewChild('svgWrap') svgWrapRef!: ElementRef<HTMLElement>;
@@ -31,17 +31,33 @@ export class StockChart implements AfterViewInit, OnDestroy {
 
   private ro!: ResizeObserver;
 
-  /** Cumulative running sums per series — recomputed only when returnsSeries changes. */
+  /**
+   * Cumulative % return from the first price: (price[i] / price[0] - 1) * 100.
+   * Used for the cumulative line/area chart.
+   */
   readonly cumulativeCache = computed(() =>
-    this.returnsSeries().map(s => {
-      let sum = 0;
-      return s.returns.map(v => +(sum += v).toFixed(2));
+    this.priceSeries().map(s => {
+      const base = s.prices[0];
+      if (!base) return s.prices.map(() => 0);
+      return s.prices.map(p => +((p / base - 1) * 100).toFixed(2));
     })
+  );
+
+  /**
+   * Period (daily) % return: (price[i] / price[i-1] - 1) * 100.
+   * First bar is 0. Used for the bar chart.
+   */
+  readonly periodReturnsCache = computed(() =>
+    this.priceSeries().map(s =>
+      s.prices.map((p, i) =>
+        i === 0 ? 0 : +((p / s.prices[i - 1] - 1) * 100).toFixed(2)
+      )
+    )
   );
 
   /** One tick per month: label = "Jan", pct = left offset as 0–100. */
   readonly monthTicks = computed(() => {
-    const times = this.returnsSeries()[0]?.times ?? [];
+    const times = this.priceSeries()[0]?.times ?? [];
     if (!times.length) return [];
     const ticks: { label: string; pct: number }[] = [];
     let lastMonth = '';
@@ -57,7 +73,7 @@ export class StockChart implements AfterViewInit, OnDestroy {
 
   private readonly allValues = computed(() => {
     if (this.mode() === 'period') {
-      return this.returnsSeries().flatMap(s => s.returns);
+      return this.periodReturnsCache().flat();
     }
     return this.cumulativeCache().flat();
   });
@@ -82,7 +98,7 @@ export class StockChart implements AfterViewInit, OnDestroy {
   }
 
   get timeLabels(): string[] {
-    return this.returnsSeries()[0]?.times ?? [];
+    return this.priceSeries()[0]?.times ?? [];
   }
 
   get timeFrom(): string {
@@ -105,14 +121,22 @@ export class StockChart implements AfterViewInit, OnDestroy {
     return t.length === 1 ? t[0] : `${this.timeFrom} \u2013 ${end}`;
   }
 
-  getLiveValue(s: ReturnsSeries): number {
-    const idx = this.hoveredIndex ?? s.returns.length - 1;
+  /** % return to show in the legend (cumulative from start, or daily for period mode). */
+  getLiveValue(s: PriceSeries): number {
+    const si = this.priceSeries().indexOf(s);
+    const idx = this.hoveredIndex ?? s.prices.length - 1;
     if (this.mode() === 'period') {
-      return +s.returns[idx].toFixed(1);
+      const period = si >= 0 ? this.periodReturnsCache()[si] : [];
+      return +(period[idx] ?? 0).toFixed(2);
     }
-    const si = this.returnsSeries().indexOf(s);
     const cum = si >= 0 ? this.cumulativeCache()[si] : [];
-    return +(cum[idx] ?? 0).toFixed(1);
+    return +(cum[idx] ?? 0).toFixed(2);
+  }
+
+  /** The actual price at the hovered (or last) index. */
+  getLivePrice(s: PriceSeries): number {
+    const idx = this.hoveredIndex ?? s.prices.length - 1;
+    return s.prices[idx] ?? 0;
   }
 
   private toY(v: number): number {
@@ -124,19 +148,19 @@ export class StockChart implements AfterViewInit, OnDestroy {
     return +((i / (len - 1)) * this.W()).toFixed(1);
   }
 
-  getLinePath(s: ReturnsSeries): string {
-    const si = this.returnsSeries().indexOf(s);
+  getLinePath(s: PriceSeries): string {
+    const si = this.priceSeries().indexOf(s);
     const cum = si >= 0 ? this.cumulativeCache()[si] : [];
     const pts = cum.map((v, i) => `${this.toX(i, cum.length)},${this.toY(v)}`);
     return `M ${pts.join(' L ')}`;
   }
 
-  getAreaPath(s: ReturnsSeries): string {
+  getAreaPath(s: PriceSeries): string {
     return `${this.getLinePath(s)} L ${this.W()},${this.H} L 0,${this.H} Z`;
   }
 
-  getPointY(s: ReturnsSeries, idx: number): number {
-    const si = this.returnsSeries().indexOf(s);
+  getPointY(s: PriceSeries, idx: number): number {
+    const si = this.priceSeries().indexOf(s);
     const cum = si >= 0 ? this.cumulativeCache()[si] : [];
     return this.toY(cum[idx] ?? 0);
   }
@@ -149,13 +173,15 @@ export class StockChart implements AfterViewInit, OnDestroy {
     return this.toY(0);
   }
 
-  getBarRects(s: ReturnsSeries, si: number, n: number): { x: number; y: number; w: number; h: number }[] {
-    const len = s.returns.length;
+  getBarRects(s: PriceSeries, si: number, n: number): { x: number; y: number; w: number; h: number }[] {
+    const idx = this.priceSeries().indexOf(s);
+    const returns = idx >= 0 ? this.periodReturnsCache()[idx] : [];
+    const len = returns.length;
     const groupW = this.W() / len;
     const barW = Math.max(1, (groupW * 0.72) / n);
     const groupPad = (groupW - barW * n) / 2;
     const zero = this.toY(0);
-    return s.returns.map((v, i) => {
+    return returns.map((v, i) => {
       const x = +(i * groupW + groupPad + si * barW).toFixed(1);
       const yV = this.toY(v);
       return {
