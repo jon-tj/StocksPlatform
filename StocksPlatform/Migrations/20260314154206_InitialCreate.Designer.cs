@@ -11,8 +11,8 @@ using StocksPlatform.Data;
 namespace StocksPlatform.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260314102033_AddPollTables")]
-    partial class AddPollTables
+    [Migration("20260314154206_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -224,8 +224,20 @@ namespace StocksPlatform.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Broker")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BrokerSymbol")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Market")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Symbol")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Type")
@@ -241,7 +253,98 @@ namespace StocksPlatform.Migrations
                             Id = new Guid("00000000-0000-0000-0000-000000000000"),
                             Name = "Main Portfolio",
                             Type = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("8b619288-8e7f-bf57-a510-f127f297d90f"),
+                            Broker = "NordNet",
+                            BrokerSymbol = "AAPL",
+                            Market = "NASDAQ",
+                            Name = "Apple Inc.",
+                            Symbol = "AAPL",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("6f8ef50e-e781-0458-8757-dd400efdf483"),
+                            Broker = "NordNet",
+                            BrokerSymbol = "NVDA",
+                            Market = "NASDAQ",
+                            Name = "NVIDIA Corp.",
+                            Symbol = "NVDA",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("dd572689-c625-8551-a8cf-65250dfcaf54"),
+                            Broker = "NordNet",
+                            BrokerSymbol = "MSFT",
+                            Market = "NASDAQ",
+                            Name = "Microsoft Corp.",
+                            Symbol = "MSFT",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("7b917ec4-bbf1-1c5e-aaf0-304481b6e294"),
+                            Broker = "NordNet",
+                            BrokerSymbol = "META",
+                            Market = "NASDAQ",
+                            Name = "Meta Platforms",
+                            Symbol = "META",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("e83a41d0-6729-3454-9be3-88961116ab75"),
+                            Broker = "NordNet",
+                            BrokerSymbol = "AMZN",
+                            Market = "NASDAQ",
+                            Name = "Amazon.com Inc.",
+                            Symbol = "AMZN",
+                            Type = 1
                         });
+                });
+
+            modelBuilder.Entity("StocksPlatform.Models.AssetDelta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("FundamentalDelta")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("InstitutionalOrderFlowDelta")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("MarketDelta")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("MemberSentimentDelta")
+                        .HasColumnType("REAL");
+
+                    b.Property<Guid?>("PairAssetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("PairDelta")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("PublicSentimentDelta")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("AssetDeltas");
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.Poll", b =>
@@ -307,6 +410,74 @@ namespace StocksPlatform.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PollResponses");
+                });
+
+            modelBuilder.Entity("StocksPlatform.Models.PortfolioAsset", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("Fraction")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime?>("FractionExpiry")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PortfolioId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<uint>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
+
+                    b.HasIndex("PortfolioId", "AssetId")
+                        .IsUnique();
+
+                    b.ToTable("PortfolioAssets");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AssetId = new Guid("8b619288-8e7f-bf57-a510-f127f297d90f"),
+                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Quantity = 12u
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AssetId = new Guid("6f8ef50e-e781-0458-8757-dd400efdf483"),
+                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Quantity = 5u
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AssetId = new Guid("dd572689-c625-8551-a8cf-65250dfcaf54"),
+                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Quantity = 8u
+                        },
+                        new
+                        {
+                            Id = 4,
+                            AssetId = new Guid("7b917ec4-bbf1-1c5e-aaf0-304481b6e294"),
+                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Quantity = 3u
+                        },
+                        new
+                        {
+                            Id = 5,
+                            AssetId = new Guid("e83a41d0-6729-3454-9be3-88961116ab75"),
+                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Quantity = 6u
+                        });
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.UserPortfolio", b =>
@@ -376,6 +547,36 @@ namespace StocksPlatform.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("StocksPlatform.Models.AssetDelta", b =>
+                {
+                    b.HasOne("StocksPlatform.Models.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+                });
+
+            modelBuilder.Entity("StocksPlatform.Models.PortfolioAsset", b =>
+                {
+                    b.HasOne("StocksPlatform.Models.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StocksPlatform.Models.Asset", "Portfolio")
+                        .WithMany()
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+
+                    b.Navigation("Portfolio");
                 });
 #pragma warning restore 612, 618
         }

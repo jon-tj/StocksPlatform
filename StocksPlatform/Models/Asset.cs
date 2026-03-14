@@ -13,6 +13,49 @@ public class Asset
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public AssetType Type { get; set; }
+
+    /// <summary>Internal ticker symbol, e.g. "AAPL". Null for portfolios.</summary>
+    public string? Symbol { get; set; }
+
+    /// <summary>Exchange/market, e.g. "NYSE". Null for portfolios.</summary>
+    public string? Market { get; set; }
+
+    /// <summary>Broker through which this asset is held, e.g. "NordNet".</summary>
+    public string? Broker { get; set; }
+
+    /// <summary>Symbol as it appears in the broker's system, e.g. "AAPL".</summary>
+    public string? BrokerSymbol { get; set; }
+}
+
+/// <summary>
+/// Links a portfolio asset to its constituent assets.
+/// The parent (PortfolioId) must be of type Portfolio.
+/// The child (AssetId) can be any non-Portfolio asset type.
+/// </summary>
+public class PortfolioAsset
+{
+    public int Id { get; set; }
+
+    public Guid PortfolioId { get; set; }
+    public Asset Portfolio { get; set; } = null!;
+
+    public Guid AssetId { get; set; }
+    public Asset Asset { get; set; } = null!;
+
+    /// <summary>Number of units/shares held.</summary>
+    public uint Quantity { get; set; }
+
+    /// <summary>
+    /// Precomputed value fraction of this asset within the portfolio (0–1).
+    /// Null until first computation.
+    /// </summary>
+    public double? Fraction { get; set; }
+
+    /// <summary>
+    /// UTC timestamp after which Fraction should be recomputed.
+    /// Null means it has never been computed.
+    /// </summary>
+    public DateTime? FractionExpiry { get; set; }
 }
 
 public class UserPortfolio
