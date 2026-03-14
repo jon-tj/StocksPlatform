@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddSingleton<StocksPlatform.Services.PollWeekService>();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

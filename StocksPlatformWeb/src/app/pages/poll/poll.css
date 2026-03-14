@@ -1,21 +1,169 @@
 .poll-page {
   min-height: 100vh;
   display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: #f87171;
+  font-size: 0.875rem;
+}
+
+.submitted-state {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: var(--color-text-primary);
-  font-family: inherit;
+  text-align: center;
 }
-h1 {
+
+.submitted-state h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.poll-container {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.poll-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.poll-header h1 {
   font-size: 1.5rem;
   font-weight: 700;
 }
-p {
-  color: var(--color-text-muted);
-}
+
+.poll-header a,
 a {
   color: #818cf8;
   font-size: 0.875rem;
+  text-decoration: none;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.question-text {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+/* Binary yes/no */
+.binary-options {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.binary-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.binary-btn:hover {
+  border-color: #818cf8;
+  color: var(--color-text-primary);
+}
+
+.binary-btn.selected {
+  background: #818cf8;
+  border-color: #818cf8;
+  color: #fff;
+}
+
+/* Probability slider */
+.probability-input {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.probability-input input[type="range"] {
+  flex: 1;
+  accent-color: #818cf8;
+  cursor: pointer;
+}
+
+.probability-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #818cf8;
+  min-width: 3ch;
+  text-align: right;
+}
+
+/* Submit */
+.submit-btn {
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  background: #818cf8;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: opacity 0.15s;
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit-btn:not(:disabled):hover {
+  opacity: 0.85;
 }

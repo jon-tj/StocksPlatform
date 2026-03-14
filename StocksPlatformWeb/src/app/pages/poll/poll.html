@@ -1,5 +1,62 @@
 <div class="poll-page">
-  <h1>Weekly Poll</h1>
-  <p>Coming soon.</p>
-  <a routerLink="/dashboard">← Back to Dashboard</a>
+  @if (loading) {
+    <p class="muted">Loading poll…</p>
+  } @else if (submitted) {
+    <div class="submitted-state">
+      <h1>Thank you!</h1>
+      <p class="muted">Your responses have been recorded. Your real positions are now unlocked.</p>
+      <a routerLink="/dashboard">← Back to Dashboard</a>
+    </div>
+  } @else if (poll && poll.questions.length === 0) {
+    <div class="submitted-state">
+      <h1>Weekly Poll</h1>
+      <p class="muted">No questions available this week.</p>
+      <a routerLink="/dashboard">← Back to Dashboard</a>
+    </div>
+  } @else {
+    <div class="poll-container">
+      <div class="poll-header">
+        <h1>Weekly Poll</h1>
+        <a routerLink="/dashboard">← Dashboard</a>
+      </div>
+
+      <form (ngSubmit)="submit()">
+        @for (section of sections; track section.name) {
+          <div class="section">
+            <h2 class="section-title">{{ section.name }}</h2>
+            @for (q of section.questions; track q.id) {
+              <div class="question">
+                <p class="question-text">{{ q.text }}</p>
+                @if (q.pollType === 0) {
+                  <div class="binary-options">
+                    <button type="button" class="binary-btn"
+                      [class.selected]="answers[q.id] === 'yes'"
+                      (click)="setAnswer(q.id, 'yes')">Yes</button>
+                    <button type="button" class="binary-btn"
+                      [class.selected]="answers[q.id] === 'no'"
+                      (click)="setAnswer(q.id, 'no')">No</button>
+                  </div>
+                } @else {
+                  <div class="probability-input">
+                    <input type="range" min="0" max="100" step="1"
+                      [value]="sliderValue(q.id)"
+                      (input)="onSliderChange(q.id, $event)" />
+                    <span class="probability-value">{{ sliderValue(q.id) }}%</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (error) {
+          <p class="error">{{ error }}</p>
+        }
+
+        <button type="submit" class="submit-btn" [disabled]="!allAnswered || submitting">
+          {{ submitting ? 'Submitting…' : 'Submit Poll' }}
+        </button>
+      </form>
+    </div>
+  }
 </div>
