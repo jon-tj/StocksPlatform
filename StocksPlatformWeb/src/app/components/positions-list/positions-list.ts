@@ -1,15 +1,11 @@
 import { Component, Input, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-
-export interface Position {
-  symbol: string;
-  sharesFraction: number;
-  returnPercent: number;
-}
+import { Position } from '../../services/positions.service';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-positions-list',
-  imports: [RouterLink],
+  imports: [RouterLink, DecimalPipe],
   templateUrl: './positions-list.html',
   styleUrl: './positions-list.css',
 })

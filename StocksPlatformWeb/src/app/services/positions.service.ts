@@ -6,7 +6,7 @@ const API = 'http://localhost:5156';
 
 export interface Position {
   symbol: string;
-  sharesFraction: number;
+  fraction: number;
   returnPercent: number;
 }
 

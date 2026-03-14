@@ -1,9 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { StockChart, ReturnsSeries } from '../../components/stock-chart/stock-chart';
-import { PositionsList, Position } from '../../components/positions-list/positions-list';
+import { PositionsList } from '../../components/positions-list/positions-list';
 import { AssetService, DEFAULT_ASSET_ID } from '../../services/asset.service';
-import { PositionsService } from '../../services/positions.service';
+import { Position, PositionsService } from '../../services/positions.service';
 
 @Component({
   selector: 'app-dashboard',
