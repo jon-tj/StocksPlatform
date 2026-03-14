@@ -1,0 +1,54 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">S</div>
+      <h1>StocksPlatform</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <form (ngSubmit)="submit()">
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          [disabled]="loading"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          [disabled]="loading"
+          required
+        />
+      </div>
+
+      @if (error) {
+        <div class="error">{{ error }}</div>
+      }
+
+      <button type="submit" class="btn-primary" [disabled]="loading || !email || !password">
+        @if (loading) {
+          <span class="spinner"></span>
+          Signing in…
+        } @else {
+          Sign In
+        }
+      </button>
+    </form>
+
+    <p class="footer-link">Don't have an account? <a routerLink="/register">Create one</a></p>
+  </div>
+</div>

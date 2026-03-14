@@ -1,0 +1,68 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">S</div>
+      <h1>StocksPlatform</h1>
+      <p>Create your account</p>
+    </div>
+
+    <form (ngSubmit)="submit()">
+      <div class="field">
+        <label for="displayName">Display Name</label>
+        <input
+          id="displayName"
+          type="text"
+          [(ngModel)]="displayName"
+          name="displayName"
+          placeholder="Jane Smith"
+          autocomplete="name"
+          [disabled]="loading"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          [disabled]="loading"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Password <span class="hint">(min. 8 characters)</span></label>
+        <input
+          id="password"
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="new-password"
+          [disabled]="loading"
+          required
+        />
+      </div>
+
+      @if (error) {
+        <div class="error">{{ error }}</div>
+      }
+
+      <button type="submit" class="btn-primary" [disabled]="loading || !canSubmit">
+        @if (loading) {
+          <span class="spinner"></span>
+          Creating account…
+        } @else {
+          Create Account
+        }
+      </button>
+    </form>
+
+    <p class="footer-link">Already have an account? <a routerLink="/login">Sign in</a></p>
+  </div>
+</div>
