@@ -1,0 +1,95 @@
+<div class="sc-root">
+  @if (title || hasLegend) {
+    <div class="sc-header">
+      @if (title) {
+        <span class="sc-title">{{ title }}</span>
+      }
+      @if (hasLegend) {
+        <div class="sc-legend">
+          @for (s of returnsSeries; track $index; let i = $index) {
+            <span class="sc-legend-item">
+              <span class="sc-legend-dot" [style.background]="getColor(i)"></span>
+              {{ s.name }}
+            </span>
+          }
+        </div>
+      }
+      <span
+        class="sc-total"
+        [class.pos]="totalReturn >= 0"
+        [class.neg]="totalReturn < 0"
+      >{{ totalReturn >= 0 ? '+' : '' }}{{ totalReturn | number: '1.1-1' }}% YTD</span>
+    </div>
+  }
+
+  <div class="sc-svg-wrap" (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
+    <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" preserveAspectRatio="none" class="sc-svg">
+      <defs>
+        @for (s of returnsSeries; track $index; let i = $index) {
+          <linearGradient [id]="gradId(i)" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" [attr.stop-color]="getColor(i)" stop-opacity="0.22" />
+            <stop offset="100%" [attr.stop-color]="getColor(i)" stop-opacity="0" />
+          </linearGradient>
+        }
+      </defs>
+
+      @for (s of returnsSeries; track $index; let i = $index) {
+        @if (i === 0) {
+          <path [attr.d]="getAreaPath(s)" [attr.fill]="'url(#' + gradId(i) + ')'" />
+        }
+        <path
+          [attr.d]="getLinePath(s)"
+          fill="none"
+          [attr.stroke]="getColor(i)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      }
+
+      @if (hoveredIndex !== null) {
+        <line
+          [attr.x1]="hoverX" [attr.y1]="padY"
+          [attr.x2]="hoverX" [attr.y2]="H - padY"
+          stroke="#334155" stroke-width="1" stroke-dasharray="4,3"
+        />
+        @for (s of returnsSeries; track $index; let i = $index) {
+          <circle
+            [attr.cx]="hoverX"
+            [attr.cy]="getPointY(s, hoveredIndex)"
+            r="4"
+            [attr.fill]="getColor(i)"
+            stroke="#0a0e1a"
+            stroke-width="2"
+          />
+        }
+      }
+    </svg>
+
+    @if (hoveredIndex !== null) {
+      <div class="sc-tooltip" [style.left.px]="tooltipLeft">
+        <div class="sc-tooltip-time">{{ timeLabels[hoveredIndex] }}</div>
+        @for (s of returnsSeries; track $index; let i = $index) {
+          <div class="sc-tooltip-row">
+            <span class="sc-tooltip-dot" [style.background]="getColor(i)"></span>
+            <span class="sc-tooltip-name">{{ s.name ?? 'Value' }}</span>
+            <span
+              class="sc-tooltip-val"
+              [class.pos]="s.returns[hoveredIndex] >= 0"
+              [class.neg]="s.returns[hoveredIndex] < 0"
+            >
+              {{ s.returns[hoveredIndex] >= 0 ? '+' : '' }}{{ s.returns[hoveredIndex] | number: '1.1-1' }}%
+            </span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="sc-x-labels">
+    @for (t of timeLabels; track t) {
+      <span>{{ t }}</span>
+    }
+  </div>
+</div>
+
