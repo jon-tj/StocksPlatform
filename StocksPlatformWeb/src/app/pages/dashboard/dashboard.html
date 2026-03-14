@@ -12,8 +12,16 @@
 
     <!-- Top Holdings (gated behind poll) -->
     <section class="card holdings-card">
-      <h2>Top Positions</h2>
-      <app-positions-list [positions]="positions" [authorized]="pollCompleted" />
+      <div class="holdings-header">
+        <h2>Top Positions</h2>
+        <input
+          class="search-input"
+          type="search"
+          placeholder="Search…"
+          [(ngModel)]="searchQuery"
+        />
+      </div>
+      <app-positions-list [positions]="positions" [authorized]="pollCompleted" [filter]="searchQuery" />
     </section>
 
   </div>

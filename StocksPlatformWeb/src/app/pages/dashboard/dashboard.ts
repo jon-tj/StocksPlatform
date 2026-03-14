@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
 import { PositionsList } from '../../components/positions-list/positions-list';
 import { AssetService, DEFAULT_ASSET_ID } from '../../services/asset.service';
@@ -7,7 +8,7 @@ import { Position, PositionsService } from '../../services/positions.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [StockChart, PositionsList],
+  imports: [StockChart, PositionsList, FormsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -20,6 +21,7 @@ export class Dashboard implements OnInit {
   chartTitle = '';
   chartLoading = true;
   positions: Position[] = [];
+  searchQuery = '';
 
   ngOnInit() {
     const oneYearAgo = new Date();
