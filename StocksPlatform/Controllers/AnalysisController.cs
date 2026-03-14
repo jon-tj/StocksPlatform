@@ -42,8 +42,9 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
     );
 
     // GET /api/analysis/{assetId}
-    // Returns up to 365 daily delta snapshots for the given asset.
-    // Missing dates are computed and inserted; expired rows are recomputed in-place.
+    // Returns stored daily delta snapshots for the given asset (up to 365 days).
+    // Only refreshes rows that already exist but have expired — never backfills missing dates.
+    // Today's snapshot is the only one ever auto-created (see /latest).
     [HttpGet("{assetId:guid}")]
     public async Task<ActionResult<DeltaDto[]>> GetDeltas(Guid assetId)
     {
@@ -67,18 +68,10 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
             .Where(d => d.AssetId == assetId && d.Date >= cutoff)
             .ToListAsync();
 
-        var existingDates = existing.Select(d => d.Date.Date).ToHashSet();
-        var missingDates = Enumerable
-            .Range(0, 365)
-            .Select(i => cutoff.AddDays(i).Date)
-            .Where(d => d <= now.Date && !existingDates.Contains(d))
-            .ToList();
-
+        // Only refresh rows that are already stored but have expired
         var expiredRows = existing.Where(d => d.ExpiresAt is null || d.ExpiresAt <= now).ToList();
-
-        if (missingDates.Count > 0 || expiredRows.Count > 0)
+        if (expiredRows.Count > 0)
         {
-            // Seed cache with already-fresh rows so children don't get re-queried
             var cache = new Dictionary<(Guid, DateTime), AssetDelta>(
                 existing.Where(d => d.ExpiresAt > now)
                         .Select(d => KeyValuePair.Create((d.AssetId, d.Date.Date), d)));
@@ -86,12 +79,6 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
 
             foreach (var row in expiredRows)
                 await RefreshDeltaAsync(row, cache, childrenCache);
-
-            foreach (var date in missingDates)
-            {
-                var delta = await EnsureDeltaAsync(assetId, date, cache, childrenCache);
-                existing.Add(delta);
-            }
 
             await db.SaveChangesAsync();
         }
