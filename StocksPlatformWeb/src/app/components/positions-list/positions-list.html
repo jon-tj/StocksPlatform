@@ -9,7 +9,7 @@
     </thead>
     <tbody>
       @for (p of positions.slice(0, numRows); track p.symbol) {
-        <tr [class.pl-row-link]="authorized" (click)="navigateTo(p.symbol)">
+        <tr [class.pl-row-link]="authorized" (click)="navigateTo(p.assetId)">
           <td><span class="pl-ticker">{{ p.symbol }}</span></td>
           <td class="r pl-muted">{{ p.fraction | number:'1.3-3' }}%</td>
           <td class="r" [class.pos]="p.returnPercent > 0" [class.neg]="p.returnPercent < 0">
@@ -30,7 +30,7 @@
   }
 
   <div class="pl-footer">
-    <a routerLink="/analysis">See all analysis →</a>
+    <a routerLink="/analysis/00000000-0000-0000-0000-000000000000">See all analysis →</a>
   </div>
 </div>
 

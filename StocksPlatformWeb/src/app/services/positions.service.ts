@@ -5,7 +5,10 @@ import { Observable } from 'rxjs';
 const API = 'http://localhost:5156';
 
 export interface Position {
+  assetId: string;
   symbol: string;
+  name: string;
+  quantity: number;
   fraction: number;
   returnPercent: number;
 }
