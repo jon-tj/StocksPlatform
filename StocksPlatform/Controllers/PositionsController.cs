@@ -12,7 +12,7 @@ namespace StocksPlatform.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PositionsController(AppDbContext db, UserManager<AppUser> userManager, PollWeekService pollWeek, PriceService priceService) : ControllerBase
+public class PositionsController(AppDbContext db, UserManager<AppUser> userManager, PollWeekService pollWeek, FractionService fractionService) : ControllerBase
 {
     public record PositionDto(Guid AssetId, string Symbol, string Name, uint Quantity, double? Fraction, double ReturnPercent);
     public record PositionsResponse(PositionDto[] Positions, bool Mock);
@@ -64,35 +64,7 @@ public class PositionsController(AppDbContext db, UserManager<AppUser> userManag
 
     private async Task<PositionDto[]> GetRealPositions()
     {
-        var now = DateTime.UtcNow;
-
-        var rows = await db.PortfolioAssets
-            .Where(pa => pa.PortfolioId == AppDbContext.PortfolioId)
-            .Include(pa => pa.Asset)
-            .ToListAsync();
-
-        // Recompute fraction for any row whose expiry has passed or was never set
-        var stale = rows.Where(pa => pa.FractionExpiry is null || pa.FractionExpiry <= now).ToList();
-        if (stale.Count > 0)
-        {
-            var staleIds = stale.Select(pa => pa.AssetId);
-            var prices = await priceService.GetPricesAsync(staleIds);
-
-            // Total portfolio value = sum of (price × quantity) across ALL rows
-            // For rows not being refreshed we use the cached price; for stale rows we use the newly fetched price.
-            var allPrices = await priceService.GetPricesAsync(rows.Select(pa => pa.AssetId));
-            var totalValue = rows.Sum(pa => (double)allPrices[pa.AssetId] * pa.Quantity);
-            var expiry = now.Date.AddDays(1); // expires at midnight tomorrow UTC
-
-            foreach (var pa in stale)
-            {
-                var assetValue = (double)prices[pa.AssetId] * pa.Quantity;
-                pa.Fraction = totalValue > 0 ? assetValue / totalValue : 0;
-                pa.FractionExpiry = expiry;
-            }
-
-            await db.SaveChangesAsync();
-        }
+        var rows = await fractionService.GetFreshChildrenAsync(AppDbContext.PortfolioId);
 
         return rows.Select(pa => new PositionDto(
             pa.Asset.Id,

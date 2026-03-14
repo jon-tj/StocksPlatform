@@ -45,4 +45,10 @@ public class AssetDelta
 
     /// <summary>Institutional order-flow delta — derived from large-lot tape signals.</summary>
     public double InstitutionalOrderFlowDelta { get; set; }
+
+    /// <summary>
+    /// UTC timestamp after which this snapshot should be recomputed.
+    /// Null means it has never been computed (legacy rows).
+    /// </summary>
+    public DateTime? ExpiresAt { get; set; }
 }

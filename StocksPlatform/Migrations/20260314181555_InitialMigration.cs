@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StocksPlatform.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -249,13 +249,36 @@ namespace StocksPlatform.Migrations
                     PublicSentimentDelta = table.Column<double>(type: "REAL", nullable: false),
                     MemberSentimentDelta = table.Column<double>(type: "REAL", nullable: false),
                     FundamentalDelta = table.Column<double>(type: "REAL", nullable: false),
-                    InstitutionalOrderFlowDelta = table.Column<double>(type: "REAL", nullable: false)
+                    InstitutionalOrderFlowDelta = table.Column<double>(type: "REAL", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AssetDeltas", x => x.Id);
                     table.ForeignKey(
                         name: "FK_AssetDeltas_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "Assets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AssetPrices",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AssetId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Price = table.Column<decimal>(type: "TEXT", nullable: false),
+                    FetchedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AssetPrices", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AssetPrices_Assets_AssetId",
                         column: x => x.AssetId,
                         principalTable: "Assets",
                         principalColumn: "Id",
@@ -360,6 +383,12 @@ namespace StocksPlatform.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_AssetPrices_AssetId",
+                table: "AssetPrices",
+                column: "AssetId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PortfolioAssets_AssetId",
                 table: "PortfolioAssets",
                 column: "AssetId");
@@ -391,6 +420,9 @@ namespace StocksPlatform.Migrations
 
             migrationBuilder.DropTable(
                 name: "AssetDeltas");
+
+            migrationBuilder.DropTable(
+                name: "AssetPrices");
 
             migrationBuilder.DropTable(
                 name: "PollQuestions");

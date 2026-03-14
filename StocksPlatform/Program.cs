@@ -10,6 +10,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSingleton<StocksPlatform.Services.PollWeekService>();
 builder.Services.AddScoped<StocksPlatform.Services.PriceService>();
+builder.Services.AddScoped<StocksPlatform.Services.FractionService>();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

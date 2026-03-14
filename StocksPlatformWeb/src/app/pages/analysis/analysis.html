@@ -1,9 +1,100 @@
 <main class="analysis-page">
   <a class="back-link" routerLink="/dashboard">← Dashboard</a>
-  @if (asset) {
-    <h1>{{ asset }} <span class="subtitle">Analysis</span></h1>
-  } @else {
-    <h1>Portfolio <span class="subtitle">Analysis</span></h1>
+
+  @if (loading) {
+    <p class="muted">Loading…</p>
+  } @else if (error) {
+    <p class="error">{{ error }}</p>
+  } @else if (asset) {
+    <div class="asset-header">
+      <div>
+        <h1>{{ asset.name }} <span class="subtitle">Analysis</span></h1>
+        <div class="asset-meta">
+          <span class="badge">{{ asset.type }}</span>
+          @if (asset.symbol) { <span class="meta-item">{{ asset.symbol }}</span> }
+          @if (asset.market) { <span class="meta-item muted">{{ asset.market }}</span> }
+          @if (asset.broker) { <span class="meta-item muted">via {{ asset.broker }}</span> }
+        </div>
+      </div>
+    </div>
+
+    @if (delta) {
+      <section class="card">
+        <h2 class="card-title">Latest Deltas <span class="muted date-label">{{ delta.date | date:'mediumDate' }}</span></h2>
+        <div class="delta-grid">
+          <div class="delta-item">
+            <span class="delta-label">Market</span>
+            <span class="delta-value" [class.positive]="delta.marketDelta >= 1" [class.negative]="delta.marketDelta < 1">{{ delta.marketDelta | number:'1.2-2' }}</span>
+          </div>
+          <div class="delta-item">
+            <span class="delta-label">Public Sentiment</span>
+            <span class="delta-value" [class.positive]="delta.publicSentimentDelta >= 1" [class.negative]="delta.publicSentimentDelta < 1">{{ delta.publicSentimentDelta | number:'1.2-2' }}</span>
+          </div>
+          <div class="delta-item">
+            <span class="delta-label">Member Sentiment</span>
+            <span class="delta-value" [class.positive]="delta.memberSentimentDelta >= 1" [class.negative]="delta.memberSentimentDelta < 1">{{ delta.memberSentimentDelta | number:'1.2-2' }}</span>
+          </div>
+          <div class="delta-item">
+            <span class="delta-label">Fundamental</span>
+            <span class="delta-value" [class.positive]="delta.fundamentalDelta >= 1" [class.negative]="delta.fundamentalDelta < 1">{{ delta.fundamentalDelta | number:'1.2-2' }}</span>
+          </div>
+          <div class="delta-item">
+            <span class="delta-label">Inst. Order Flow</span>
+            <span class="delta-value" [class.positive]="delta.institutionalOrderFlowDelta >= 1" [class.negative]="delta.institutionalOrderFlowDelta < 1">{{ delta.institutionalOrderFlowDelta | number:'1.2-2' }}</span>
+          </div>
+          @if (delta.pairDelta !== null) {
+            <div class="delta-item">
+              <span class="delta-label">Pair</span>
+              <span class="delta-value" [class.positive]="delta.pairDelta! >= 1" [class.negative]="delta.pairDelta! < 1">{{ delta.pairDelta | number:'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (asset.type === 'Portfolio' && children.length > 0) {
+      <section class="card">
+        <h2 class="card-title">Holdings</h2>
+        <div class="table-wrap">
+          <table class="holdings-table">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th class="num-col">Market</th>
+                <th class="num-col">Fundamental</th>
+                <th class="num-col">Pub. Sentiment</th>
+                <th class="num-col">Mbr. Sentiment</th>
+                <th class="num-col">Inst. Flow</th>
+                <th class="num-col">Score</th>
+                <th class="num-col">Target %</th>
+                <th class="num-col">Current %</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of children; track row.position.assetId) {
+                <tr>
+                  <td>
+                    <span class="child-name">{{ row.position.name }}</span>
+                    <span class="child-symbol muted"> {{ row.position.symbol }}</span>
+                  </td>
+                  @if (row.holding) {
+                    <td class="num-col" [class.positive]="row.holding.marketDelta >= 1" [class.negative]="row.holding.marketDelta < 1">{{ row.holding.marketDelta | number:'1.2-2' }}</td>
+                    <td class="num-col" [class.positive]="row.holding.fundamentalDelta >= 1" [class.negative]="row.holding.fundamentalDelta < 1">{{ row.holding.fundamentalDelta | number:'1.2-2' }}</td>
+                    <td class="num-col" [class.positive]="row.holding.publicSentimentDelta >= 1" [class.negative]="row.holding.publicSentimentDelta < 1">{{ row.holding.publicSentimentDelta | number:'1.2-2' }}</td>
+                    <td class="num-col" [class.positive]="row.holding.memberSentimentDelta >= 1" [class.negative]="row.holding.memberSentimentDelta < 1">{{ row.holding.memberSentimentDelta | number:'1.2-2' }}</td>
+                    <td class="num-col" [class.positive]="row.holding.institutionalOrderFlowDelta >= 1" [class.negative]="row.holding.institutionalOrderFlowDelta < 1">{{ row.holding.institutionalOrderFlowDelta | number:'1.2-2' }}</td>
+                    <td class="num-col score-col" [class.positive]="row.holding.combinedScore >= 1" [class.negative]="row.holding.combinedScore < 1">{{ row.holding.combinedScore | number:'1.2-2' }}</td>
+                  } @else {
+                    <td class="num-col muted" colspan="6">—</td>
+                  }
+                  <td class="num-col">{{ row.holding ? (row.holding.targetFraction * 100 | number:'1.1-1') + '%' : '—' }}</td>
+                  <td class="num-col muted">{{ row.position.fraction !== null ? (row.position.fraction * 100 | number:'1.1-1') + '%' : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
   }
-  <p class="muted">Coming soon.</p>
 </main>

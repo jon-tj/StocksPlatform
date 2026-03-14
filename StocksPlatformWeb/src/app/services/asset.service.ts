@@ -9,6 +9,28 @@ export interface AssetDetails {
   id: string;
   name: string;
   type: 'Portfolio' | 'Stock' | 'Commodity' | 'Crypto';
+  symbol?: string;
+  market?: string;
+  broker?: string;
+  brokerSymbol?: string;
+}
+
+export interface AssetDelta {
+  assetId: string;
+  assetName: string;
+  date: string;
+  marketDelta: number;
+  pairDelta: number | null;
+  pairAssetId: string | null;
+  publicSentimentDelta: number;
+  memberSentimentDelta: number;
+  fundamentalDelta: number;
+  institutionalOrderFlowDelta: number;
+  combinedScore: number;
+}
+
+export interface HoldingDelta extends AssetDelta {
+  targetFraction: number;
 }
 
 export interface AssetHistory {
@@ -26,6 +48,14 @@ export class AssetService {
 
   getAssetDetails(id: string): Observable<AssetDetails> {
     return this.http.get<AssetDetails>(`${API}/api/asset/${id}`);
+  }
+
+  getLatestDelta(id: string): Observable<AssetDelta> {
+    return this.http.get<AssetDelta>(`${API}/api/analysis/${id}/latest`);
+  }
+
+  getHoldings(portfolioId: string): Observable<HoldingDelta[]> {
+    return this.http.get<HoldingDelta[]>(`${API}/api/analysis/${portfolioId}/holdings`);
   }
 
   getHistory(id: string, timeFrom?: Date): Observable<AssetHistory> {

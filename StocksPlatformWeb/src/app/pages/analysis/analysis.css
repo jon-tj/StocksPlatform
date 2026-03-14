@@ -2,7 +2,7 @@
   padding: 2rem 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   color: var(--color-text-primary);
 }
 
@@ -14,6 +14,7 @@
 h1 {
   font-size: 1.5rem;
   font-weight: 700;
+  margin: 0;
 }
 
 .subtitle {
@@ -23,5 +24,150 @@ h1 {
 
 .muted {
   color: var(--color-text-muted);
+}
+
+.error {
+  color: #f87171;
   font-size: 0.9375rem;
 }
+
+/* Asset header */
+.asset-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.asset-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  margin-top: 0.375rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(129, 140, 248, 0.15);
+  color: #818cf8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.meta-item {
+  font-size: 0.875rem;
+}
+
+/* Cards */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.date-label {
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+/* Delta grid */
+.delta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+
+.delta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.delta-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.delta-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.positive { color: #34d399; }
+.negative { color: #f87171; }
+
+/* Holdings table */
+.table-wrap {
+  overflow-x: auto;
+  margin: 0 -0.25rem;
+}
+
+.holdings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.holdings-table thead tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.holdings-table th {
+  padding: 0.375rem 0.75rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.holdings-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.holdings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.num-col {
+  text-align: right;
+}
+
+.score-col {
+  font-weight: 700;
+}
+
+.child-name {
+  font-weight: 600;
+}
+
+.child-symbol {
+  font-size: 0.8125rem;
+}
+

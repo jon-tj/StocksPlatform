@@ -11,8 +11,8 @@ using StocksPlatform.Data;
 namespace StocksPlatform.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260314161018_AddAssetPrices")]
-    partial class AddAssetPrices
+    [Migration("20260314181555_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -316,6 +316,9 @@ namespace StocksPlatform.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("TEXT");
 
                     b.Property<double>("FundamentalDelta")

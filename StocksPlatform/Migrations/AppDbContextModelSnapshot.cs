@@ -315,6 +315,9 @@ namespace StocksPlatform.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("FundamentalDelta")
                         .HasColumnType("REAL");
 
