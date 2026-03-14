@@ -18,7 +18,7 @@
             <span class="meta-item muted">{{ asset.market }}</span>
           }
           @if (asset.broker) {
-            <span class="meta-item muted">via {{ asset.broker }}</span>
+            <span class="meta-item muted">via <a [href]="brokerUrl" target="blank">{{ asset.broker }}</a></span>
           }
         </div>
       </div>

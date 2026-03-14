@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StocksPlatform.Data;
+using StocksPlatform.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,6 +72,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+    await OseTickerSeeder.SeedAsync(db);
 }
 
 app.Run();

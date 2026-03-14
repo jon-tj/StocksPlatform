@@ -25,10 +25,6 @@ main {
 }
 
 .holdings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
@@ -36,17 +32,33 @@ main {
   margin: 0;
 }
 
-.search-input {
-  flex: 0 1 160px;
-  padding: 0.3rem 0.625rem;
-  border-radius: 6px;
+.search-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  background: var(--color-surface-muted);
+  border-radius: 999px;
+}
+
+.search-card:focus-within {
+  border-color: var(--color-accent, #6366f1);
+}
+
+.search-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
   color: var(--color-text-primary);
   font-size: 0.8125rem;
   outline: none;
-}
-
-.search-input:focus {
-  border-color: var(--color-accent, #6366f1);
+  min-width: 0;
 }

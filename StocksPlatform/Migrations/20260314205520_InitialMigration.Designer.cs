@@ -11,7 +11,7 @@ using StocksPlatform.Data;
 namespace StocksPlatform.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260314193654_InitialMigration")]
+    [Migration("20260314205520_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />

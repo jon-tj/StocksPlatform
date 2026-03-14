@@ -32,6 +32,8 @@ export class Analysis implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
 
+  protected brokerUrl: string | null = null;
+
   // Maps "MMM d" label → ISO date string for the hover→delta lookup
   private timeLabelToDate = new Map<string, string>();
   hoveredDateLabel: string | null = null;
@@ -80,6 +82,9 @@ export class Analysis implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ asset, delta, history }) => {
         this.asset = asset;
+        if (asset.broker?.toLowerCase().includes('nordnet')) {
+          this.brokerUrl = `https://www.nordnet.no/aksjer/kurser/${asset.brokerSymbol}`;
+        }
         this.delta = delta;
         this.latestDelta = delta;
         this.chartSeries = [{ name: asset.name, prices: history.prices, times: history.times }];
