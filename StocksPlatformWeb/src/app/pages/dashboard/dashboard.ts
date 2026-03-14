@@ -1,11 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { StockChart, ReturnsSeries } from '../../components/stock-chart/stock-chart';
 import { PositionsList, Position } from '../../components/positions-list/positions-list';
-
-interface ReturnPoint {
-  month: string;
-  value: number;
-}
+import { AssetService, DEFAULT_ASSET_ID } from '../../services/asset.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,23 +10,11 @@ interface ReturnPoint {
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  // Stub — replace with real poll-completion check from backend
-  pollCompleted = false;
+  private assetService = inject(AssetService);
 
-  returns: ReturnPoint[] = [
-    { month: 'Apr', value: 2.1 },
-    { month: 'May', value: -0.8 },
-    { month: 'Jun', value: 3.4 },
-    { month: 'Jul', value: 1.9 },
-    { month: 'Aug', value: -1.2 },
-    { month: 'Sep', value: 4.1 },
-    { month: 'Oct', value: 2.7 },
-    { month: 'Nov', value: 5.3 },
-    { month: 'Dec', value: -0.3 },
-    { month: 'Jan', value: 3.8 },
-    { month: 'Feb', value: 1.5 },
-    { month: 'Mar', value: 4.2 },
-  ];
+  pollCompleted = false;
+  chartSeries: ReturnsSeries[] = [];
+  chartLoading = true;
 
   positions: Position[] = [
     { symbol: 'NVDA', sharesFraction: 18.4, returnPercent: 12.3 },
@@ -40,17 +24,18 @@ export class Dashboard implements OnInit {
     { symbol: 'AMZN', sharesFraction: 8.3, returnPercent: 7.4 },
   ];
 
-  get chartSeries(): ReturnsSeries[] {
-    return [
-      {
-        name: 'Portfolio',
-        returns: this.returns.map((r) => r.value),
-        times: this.returns.map((r) => r.month),
+  ngOnInit() {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    this.assetService.getHistory(DEFAULT_ASSET_ID, oneYearAgo).subscribe({
+      next: (data) => {
+        this.chartSeries = [{ name: 'Portfolio', returns: data.returns, times: data.times }];
+        this.chartLoading = false;
       },
-    ];
+      error: () => {
+        this.chartLoading = false;
+      },
+    });
   }
-
-  ngOnInit() {}
-
-  // placeholder for future data loading
 }

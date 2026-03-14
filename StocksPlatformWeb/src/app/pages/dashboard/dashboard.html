@@ -3,7 +3,11 @@
 
     <!-- Portfolio Returns (always visible) -->
     <section class="card returns-card">
-      <app-stock-chart [returnsSeries]="chartSeries" title="Portfolio Returns" />
+      @if (chartLoading) {
+        <div class="chart-loading">Loading…</div>
+      } @else {
+        <app-stock-chart [returnsSeries]="chartSeries" title="Portfolio Returns" />
+      }
     </section>
 
     <!-- Top Holdings (gated behind poll) -->

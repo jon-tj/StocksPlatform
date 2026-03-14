@@ -88,12 +88,18 @@
 
 /* X labels */
 .sc-x-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.1rem;
+  position: relative;
+  height: 1rem;
+  margin-top: 0.25rem;
 }
 
 .sc-x-labels span {
+  position: absolute;
   font-size: 0.6875rem;
   color: var(--color-text-muted);
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
+
+.sc-x-labels span.sc-tick-first { transform: translateX(0); }
+.sc-x-labels span.sc-tick-last  { transform: translateX(-100%); }
