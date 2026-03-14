@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, Input, OnDestroy, AfterViewInit, ViewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
 export interface ReturnsSeries {
@@ -15,45 +15,74 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#818cf8'];
   templateUrl: './stock-chart.html',
   styleUrl: './stock-chart.css',
 })
-export class StockChart {
+export class StockChart implements AfterViewInit, OnDestroy {
   @Input({ required: true }) returnsSeries: ReturnsSeries[] = [];
   @Input() title = '';
 
-  readonly W = 500;
+  @ViewChild('svgWrap') svgWrapRef!: ElementRef<HTMLElement>;
+
+  W = 500;
   readonly H = 140;
   readonly padY = 14;
 
   hoveredIndex: number | null = null;
   hoverX = 0;
-  tooltipLeft = 0;
+
+  private ro!: ResizeObserver;
+  private cdr = inject(ChangeDetectorRef);
+
+  ngAfterViewInit(): void {
+    this.ro = new ResizeObserver((entries) => {
+      this.W = entries[0].contentRect.width;
+      this.cdr.markForCheck();
+    });
+    this.ro.observe(this.svgWrapRef.nativeElement);
+    this.W = this.svgWrapRef.nativeElement.clientWidth;
+  }
+
+  ngOnDestroy(): void {
+    this.ro?.disconnect();
+  }
 
   getColor(i: number): string {
     return COLORS[i % COLORS.length];
-  }
-
-  get hasLegend(): boolean {
-    return this.returnsSeries.length > 1 || this.returnsSeries.some((s) => s.name);
-  }
-
-  get totalReturn(): number {
-    const all = this.returnsSeries[0]?.returns ?? [];
-    return +all.reduce((s, v) => s + v, 0).toFixed(1);
   }
 
   get timeLabels(): string[] {
     return this.returnsSeries[0]?.times ?? [];
   }
 
+  get timeFrom(): string {
+    return this.timeLabels[0] ?? '';
+  }
+
+  get timeTo(): string {
+    const t = this.timeLabels;
+    if (!t.length) return '';
+    return t[this.hoveredIndex ?? t.length - 1];
+  }
+
+  cumulativeReturns(s: ReturnsSeries): number[] {
+    let sum = 0;
+    return s.returns.map((v) => +(sum += v).toFixed(2));
+  }
+
+  /** Cumulative return up to hovered index, or total when not hovering. */
+  getLiveValue(s: ReturnsSeries): number {
+    const idx = this.hoveredIndex ?? s.returns.length - 1;
+    return +(s.returns.slice(0, idx + 1).reduce((a, b) => a + b, 0)).toFixed(1);
+  }
+
   private get allValues(): number[] {
-    return this.returnsSeries.flatMap((s) => s.returns);
+    return this.returnsSeries.flatMap((s) => this.cumulativeReturns(s));
   }
 
   private get yMin(): number {
-    return Math.min(...this.allValues);
+    return Math.min(0, ...this.allValues);
   }
 
   private get yMax(): number {
-    return Math.max(...this.allValues);
+    return Math.max(0, ...this.allValues);
   }
 
   private toY(v: number): number {
@@ -66,7 +95,8 @@ export class StockChart {
   }
 
   getLinePath(s: ReturnsSeries): string {
-    const pts = s.returns.map((v, i) => `${this.toX(i, s.returns.length)},${this.toY(v)}`);
+    const cum = this.cumulativeReturns(s);
+    const pts = cum.map((v, i) => `${this.toX(i, cum.length)},${this.toY(v)}`);
     return `M ${pts.join(' L ')}`;
   }
 
@@ -75,7 +105,7 @@ export class StockChart {
   }
 
   getPointY(s: ReturnsSeries, idx: number): number {
-    return this.toY(s.returns[idx]);
+    return this.toY(this.cumulativeReturns(s)[idx]);
   }
 
   gradId(i: number): string {
@@ -90,8 +120,6 @@ export class StockChart {
     const idx = Math.round((relX / rect.width) * (len - 1));
     this.hoveredIndex = Math.max(0, Math.min(len - 1, idx));
     this.hoverX = +((this.hoveredIndex / (len - 1)) * this.W).toFixed(1);
-    const tooltipW = 150;
-    this.tooltipLeft = relX + tooltipW > rect.width ? relX - tooltipW - 8 : relX + 12;
   }
 
   onMouseLeave(): void {
