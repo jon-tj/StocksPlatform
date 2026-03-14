@@ -17,16 +17,16 @@
 .pl-table th {
   font-size: 0.6875rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--color-text-muted);
   text-align: left;
   padding: 0 0.5rem 0.5rem;
-  border-bottom: 1px solid #1f2937;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .pl-table td {
   padding: 0.7rem 0.5rem;
-  color: #cbd5e1;
-  border-bottom: 1px solid #0d1117;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .pl-table tbody tr:last-child td {
@@ -38,25 +38,18 @@
 }
 
 .pl-ticker {
-  background: #1e293b;
+  background: var(--color-surface-muted);
   color: #818cf8;
   font-size: 0.6875rem;
   font-weight: 700;
   font-family: monospace;
   padding: 0.2rem 0.45rem;
   border-radius: 4px;
+  border: 1px solid var(--color-border);
 }
 
 .pl-muted {
-  color: #475569;
-}
-
-.pos {
-  color: #10b981;
-}
-
-.neg {
-  color: #ef4444;
+  color: var(--color-text-muted);
 }
 
 .pl-overlay {
@@ -108,52 +101,6 @@
   background: #4f46e5;
 }
 
-
-.pl-table th {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: #475569;
-  text-align: left;
-  padding: 0 0.5rem 0.5rem;
-  border-bottom: 1px solid #1f2937;
-}
-
-.pl-table td {
-  padding: 0.7rem 0.5rem;
-  color: #cbd5e1;
-  border-bottom: 1px solid #0d1117;
-}
-
 .pl-table tbody tr:last-child td {
   border-bottom: none;
-}
-
-.r {
-  text-align: right;
-}
-
-.pl-ticker {
-  background: #1e293b;
-  color: #818cf8;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  font-family: monospace;
-  padding: 0.2rem 0.45rem;
-  border-radius: 4px;
-}
-
-.pl-name {
-  color: var(--color-text-muted);
-}
-
-.pl-muted {
-  color: #475569;
-}
-
-.pos {
-  color: #10b981;
-}
-
-.neg {
-  color: #ef4444;
 }

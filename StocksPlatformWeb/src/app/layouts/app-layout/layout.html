@@ -2,10 +2,16 @@
   <nav>
     <span class="brand" routerLink="/dashboard">StocksPlatform</span>
     <div class="nav-right">
-      <span class="nav-user">{{ displayName }}</span>
+      @if (showLogout) {
+        <span class="nav-user">{{ displayName }}</span>
+      }
       <button class="btn-theme" (click)="toggleTheme()" [title]="isDark ? 'Switch to day mode' : 'Switch to night mode'">{{ isDark ? '☀️' : '🌙' }}</button>
-      <button class="btn-ghost" (click)="logout()">Log out</button>
+      @if (showLogout) {
+        <button class="btn-ghost" (click)="logout()">Log out</button>
+      }
     </div>
   </nav>
-  <router-outlet />
+  <div class="app-content">
+    <router-outlet />
+  </div>
 </div>

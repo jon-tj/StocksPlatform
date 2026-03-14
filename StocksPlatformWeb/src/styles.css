@@ -27,3 +27,14 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+.pos { color: #10b981 !important; }
+.neg { color: #ef4444 !important; }
+
+/* Routed component hosts must fill the .app-content flex column */
+.app-content > *:not(router-outlet) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}

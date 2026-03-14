@@ -65,14 +65,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sc-legend-val.pos {
-  color: #10b981;
-}
-
-.sc-legend-val.neg {
-  color: #ef4444;
-}
-
 /* SVG area */
 .sc-svg-wrap {
   position: relative;

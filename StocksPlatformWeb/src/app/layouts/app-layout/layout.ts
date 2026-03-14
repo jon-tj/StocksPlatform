@@ -1,7 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
@@ -16,10 +17,22 @@ export class AppLayout implements OnInit {
 
   displayName = '';
   isDark = true;
+  showLogout = false;
 
   ngOnInit() {
     this.displayName = this.auth.getUser()?.displayName ?? '';
     this.isDark = this.themeService.theme === 'dark';
+    this.showLogout = this.isAppPage();
+
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+      this.showLogout = this.isAppPage();
+      this.displayName = this.auth.getUser()?.displayName ?? '';
+    });
+  }
+
+  private isAppPage(): boolean {
+    const url = this.router.url.split('?')[0];
+    return url !== '/login' && url !== '/register';
   }
 
   toggleTheme() {

@@ -42,9 +42,25 @@ public class PositionsController(AppDbContext db, UserManager<AppUser> userManag
 
         if (poll is null)
         {
-            // Create the poll so the user can discover and complete it
+            // Create the poll and seed two sample questions
             poll = new Poll { Id = pollId, GeneratedDate = DateTime.UtcNow };
             db.Polls.Add(poll);
+            db.PollQuestions.AddRange(
+                new PollQuestion
+                {
+                    PollId = pollId,
+                    Section = "Market Outlook",
+                    Text = "Do you expect the S&P 500 to close higher this week than last week?",
+                    PollType = PollQuestionType.Binary,
+                },
+                new PollQuestion
+                {
+                    PollId = pollId,
+                    Section = "Market Outlook",
+                    Text = "What probability do you assign to the Federal Reserve raising interest rates this month?",
+                    PollType = PollQuestionType.Probability,
+                }
+            );
             await db.SaveChangesAsync();
 
             return Ok(new PositionsResponse(MockPositions(), true));
