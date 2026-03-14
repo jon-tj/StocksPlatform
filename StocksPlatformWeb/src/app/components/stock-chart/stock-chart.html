@@ -15,7 +15,7 @@
       <span class="sc-legend-item">
         <span class="sc-legend-dot" [style.background]="getColor(i)"></span>
         @if (s.name) {<span>{{ s.name }}</span>}
-        <span class="sc-legend-price">{{ getLivePrice(s) | number: '1.2-2' }}</span>
+        <span class="sc-legend-price" [class.pos]="mode() === 'period' && getLivePrice(s) >= 0" [class.neg]="mode() === 'period' && getLivePrice(s) < 0">{{ mode() === 'period' && getLivePrice(s) >= 0 ? '+' : '' }}{{ getLivePrice(s) | number: '1.2-2' }}</span>
         <span
           class="sc-legend-val"
           [class.pos]="getLiveValue(s) >= 0"
@@ -61,7 +61,7 @@
               [attr.y]="bar.y"
               [attr.width]="bar.w"
               [attr.height]="bar.h"
-              [attr.fill]="s.prices[i] >= 0 ? '#10b981' : '#ef4444'"
+              [attr.fill]="bar.ret >= 0 ? '#10b981' : '#ef4444'"
               [attr.opacity]="hoveredIndex === null || hoveredIndex === i ? 1 : 0.35"
               rx="2"
             />

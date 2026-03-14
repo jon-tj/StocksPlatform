@@ -134,8 +134,14 @@ export class StockChart implements AfterViewInit, OnDestroy {
   }
 
   /** The actual price at the hovered (or last) index. */
+  /** Raw price (cumulative mode) or price change from previous bar (period mode). */
   getLivePrice(s: PriceSeries): number {
     const idx = this.hoveredIndex ?? s.prices.length - 1;
+    if (this.mode() === 'period') {
+      const prev = s.prices[idx - 1];
+      const curr = s.prices[idx];
+      return prev != null && curr != null ? +(curr - prev).toFixed(2) : 0;
+    }
     return s.prices[idx] ?? 0;
   }
 
@@ -173,7 +179,7 @@ export class StockChart implements AfterViewInit, OnDestroy {
     return this.toY(0);
   }
 
-  getBarRects(s: PriceSeries, si: number, n: number): { x: number; y: number; w: number; h: number }[] {
+  getBarRects(s: PriceSeries, si: number, n: number): { x: number; y: number; w: number; h: number; ret: number }[] {
     const idx = this.priceSeries().indexOf(s);
     const returns = idx >= 0 ? this.periodReturnsCache()[idx] : [];
     const len = returns.length;
@@ -189,6 +195,7 @@ export class StockChart implements AfterViewInit, OnDestroy {
         y: +Math.min(yV, zero).toFixed(1),
         w: +barW.toFixed(1),
         h: +Math.max(1, Math.abs(zero - yV)).toFixed(1),
+        ret: v,
       };
     });
   }
