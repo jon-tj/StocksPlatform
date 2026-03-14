@@ -9,7 +9,7 @@
     </thead>
     <tbody>
       @for (p of positions; track p.symbol) {
-        <tr>
+        <tr [class.pl-row-link]="authorized" (click)="navigateTo(p.symbol)">
           <td><span class="pl-ticker">{{ p.symbol }}</span></td>
           <td class="r pl-muted">{{ p.sharesFraction }}%</td>
           <td class="r" [class.pos]="p.returnPercent > 0" [class.neg]="p.returnPercent < 0">
@@ -28,5 +28,9 @@
       <button class="pl-btn-poll" routerLink="/poll">Take the Poll &rarr;</button>
     </div>
   }
+
+  <div class="pl-footer">
+    <a routerLink="/analysis">See all analysis →</a>
+  </div>
 </div>
 

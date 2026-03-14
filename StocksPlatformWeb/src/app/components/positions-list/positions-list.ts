@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, Input, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 export interface Position {
   symbol: string;
@@ -16,4 +16,11 @@ export interface Position {
 export class PositionsList {
   @Input({ required: true }) positions!: Position[];
   @Input() authorized = true;
+
+  private router = inject(Router);
+
+  navigateTo(symbol: string) {
+    if (!this.authorized) return;
+    this.router.navigate(['/analysis', symbol]);
+  }
 }

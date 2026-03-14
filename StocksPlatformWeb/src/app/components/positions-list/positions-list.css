@@ -104,3 +104,22 @@
 .pl-table tbody tr:last-child td {
   border-bottom: none;
 }
+
+.pl-row-link {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pl-row-link:hover td {
+  background: var(--color-surface-muted);
+}
+
+.pl-footer {
+  padding: 0.75rem 0.5rem 0;
+  text-align: right;
+}
+
+.pl-footer a {
+  font-size: 0.8125rem;
+  color: #818cf8;
+}

@@ -40,6 +40,16 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./pages/poll/poll').then((m) => m.Poll),
       },
+      {
+        path: 'analysis',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/analysis/analysis').then((m) => m.Analysis),
+      },
+      {
+        path: 'analysis/:asset',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/analysis/analysis').then((m) => m.Analysis),
+      },
     ],
   },
   { path: '**', redirectTo: 'login' },
