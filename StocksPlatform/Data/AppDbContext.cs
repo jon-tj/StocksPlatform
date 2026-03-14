@@ -16,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<PollQuestion> PollQuestions => Set<PollQuestion>();
     public DbSet<PollResponse> PollResponses => Set<PollResponse>();
     public DbSet<AssetDelta> AssetDeltas => Set<AssetDelta>();
+    public DbSet<AssetPrice> AssetPrices => Set<AssetPrice>();
 
     // Stable, deterministic asset IDs derived from a fixed namespace + name.
     // Equivalent to UUID v5 (SHA-1 name-based) — same input always yields same GUID.
@@ -62,6 +63,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         builder.Entity<AssetDelta>()
             .HasIndex(d => new { d.AssetId, d.Date })
+            .IsUnique();
+
+        builder.Entity<AssetPrice>()
+            .HasIndex(p => p.AssetId)
             .IsUnique();
 
         // PortfolioAsset: unique pair, parent must navigate as Portfolio

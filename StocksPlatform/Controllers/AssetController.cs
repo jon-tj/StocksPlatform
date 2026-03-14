@@ -13,7 +13,7 @@ namespace StocksPlatform.Controllers;
 [Authorize]
 public class AssetController(AppDbContext db, UserManager<AppUser> userManager) : ControllerBase
 {
-    public record AssetDto(Guid Id, string Name, string Type);
+    public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol);
     public record HistoryDto(double[] Returns, string[] Times);
 
     // GET /api/asset — returns the user's followed asset IDs (defaults to Guid.Empty)
@@ -36,7 +36,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager) 
             .ToListAsync();
 
         // If any IDs aren't found (e.g. Guid.Empty not seeded yet), include defaults
-        return Ok(assets.Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString())).ToArray());
+        return Ok(assets.Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol)).ToArray());
     }
 
     // GET /api/asset/{id} — asset details
@@ -47,7 +47,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager) 
         if (asset is null)
             return NotFound();
 
-        return Ok(new AssetDto(asset.Id, asset.Name, asset.Type.ToString()));
+        return Ok(new AssetDto(asset.Id, asset.Name, asset.Type.ToString(), asset.Symbol, asset.Market, asset.Broker, asset.BrokerSymbol));
     }
 
     // GET /api/asset/{id}/history?timeFrom=2025-01-01
