@@ -12,6 +12,7 @@ import { DecimalPipe } from '@angular/common';
 export class PositionsList {
   @Input({ required: true }) positions!: Position[];
   @Input() authorized = true;
+  @Input() numRows = 4;
 
   private router = inject(Router);
 
