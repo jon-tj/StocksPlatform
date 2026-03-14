@@ -3,6 +3,8 @@
   --color-text-primary: #0f172a;
   --color-text-muted: #64748b;
   --color-background: #f1f5f9;
+  --color-background-rgb: 241, 245, 249;
   --color-surface: #ffffff;
   --color-surface-muted: #e2e8f0;
+  --color-border: #cbd5e1;
 }

@@ -4,6 +4,8 @@
   --color-text-primary: #e2e8f0;
   --color-text-muted: #64748b;
   --color-background: #0a0e1a;
+  --color-background-rgb: 10, 14, 26;
   --color-surface: #111827;
   --color-surface-muted: #0f172a;
+  --color-border: #1f2937;
 }
