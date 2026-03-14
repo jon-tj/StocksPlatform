@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { StockChart, ReturnsSeries } from '../../components/stock-chart/stock-chart';
 import { PositionsList, Position } from '../../components/positions-list/positions-list';
 import { AssetService, DEFAULT_ASSET_ID } from '../../services/asset.service';
@@ -14,6 +15,7 @@ export class Dashboard implements OnInit {
 
   pollCompleted = false;
   chartSeries: ReturnsSeries[] = [];
+  chartTitle = '';
   chartLoading = true;
 
   positions: Position[] = [
@@ -28,9 +30,13 @@ export class Dashboard implements OnInit {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-    this.assetService.getHistory(DEFAULT_ASSET_ID, oneYearAgo).subscribe({
-      next: (data) => {
-        this.chartSeries = [{ name: 'Portfolio', returns: data.returns, times: data.times }];
+    forkJoin({
+      details: this.assetService.getAssetDetails(DEFAULT_ASSET_ID),
+      history: this.assetService.getHistory(DEFAULT_ASSET_ID, oneYearAgo),
+    }).subscribe({
+      next: ({ details, history }) => {
+        this.chartTitle = details.name;
+        this.chartSeries = [{ name: details.name, returns: history.returns, times: history.times }];
         this.chartLoading = false;
       },
       error: () => {

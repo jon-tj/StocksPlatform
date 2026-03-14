@@ -6,7 +6,7 @@
       @if (chartLoading) {
         <div class="chart-loading">Loading…</div>
       } @else {
-        <app-stock-chart [returnsSeries]="chartSeries" title="Portfolio Returns" />
+        <app-stock-chart [returnsSeries]="chartSeries" [title]="chartTitle" />
       }
     </section>
 
