@@ -1,0 +1,21 @@
+.poll-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+p {
+  color: var(--color-text-muted);
+}
+a {
+  color: #818cf8;
+  font-size: 0.875rem;
+}

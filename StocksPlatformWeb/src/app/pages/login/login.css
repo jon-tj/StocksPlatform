@@ -7,7 +7,7 @@
 }
 
 .login-card {
-  background: #111827;
+  background: var(--color-surface);
   border: 1px solid #1f2937;
   border-radius: 16px;
   padding: 2.5rem;
@@ -43,7 +43,7 @@
 }
 
 .brand p {
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.875rem;
 }
 
@@ -61,7 +61,7 @@
 
 .field input {
   width: 100%;
-  background: #0a0e1a;
+  background: var(--color-background);
   border: 1px solid #1f2937;
   border-radius: 8px;
   color: #f1f5f9;

@@ -1,0 +1,10 @@
+<div class="app-shell">
+  <nav>
+    <span class="brand" routerLink="/dashboard">StocksPlatform</span>
+    <div class="nav-right">
+      <span class="nav-user">{{ displayName }}</span>
+      <button class="btn-ghost" (click)="logout()">Log out</button>
+    </div>
+  </nav>
+  <router-outlet />
+</div>

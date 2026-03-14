@@ -1,0 +1,54 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+  height: 56px;
+  background: var(--color-surface-muted);
+  border-bottom: 1px solid #1f2937;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #818cf8;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-user {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #1f2937;
+  color: var(--color-text-muted);
+  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.btn-ghost:hover {
+  color: var(--color-text-primary);
+  border-color: #334155;
+}

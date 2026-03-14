@@ -27,9 +27,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/register/register').then((m) => m.Register),
   },
   {
-    path: 'dashboard',
+    path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
+    loadComponent: () => import('./layouts/app-layout/layout').then((m) => m.AppLayout),
+    children: [
+      { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard) },
+      { path: 'poll', loadComponent: () => import('./pages/poll/poll').then((m) => m.Poll) },
+    ],
   },
   { path: '**', redirectTo: 'login' },
 ];

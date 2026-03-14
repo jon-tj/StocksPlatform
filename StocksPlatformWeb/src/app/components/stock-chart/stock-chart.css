@@ -15,7 +15,7 @@
 .sc-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--color-text-primary);
   flex: 1;
 }
 
@@ -45,7 +45,7 @@
   align-items: center;
   gap: 0.375rem;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .sc-legend-dot {
@@ -84,7 +84,7 @@
 
 .sc-tooltip-time {
   font-size: 0.6875rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   margin-bottom: 0.35rem;
   font-weight: 500;
 }

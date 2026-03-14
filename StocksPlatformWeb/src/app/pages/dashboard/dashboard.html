@@ -1,27 +1,17 @@
-<div class="dashboard">
-  <nav>
-    <span class="brand">StocksPlatform</span>
-    <div class="nav-right">
-      <span class="nav-user">{{ user?.displayName }}</span>
-      <button class="btn-ghost" (click)="logout()">Log out</button>
-    </div>
-  </nav>
+<main>
+  <div class="cards-grid">
 
-  <main>
-    <div class="cards-grid">
+    <!-- Portfolio Returns (always visible) -->
+    <section class="card returns-card">
+      <app-stock-chart [returnsSeries]="chartSeries" title="Portfolio Returns" />
+    </section>
 
-      <!-- Portfolio Returns (always visible) -->
-      <section class="card returns-card">
-        <app-stock-chart [returnsSeries]="chartSeries" title="Portfolio Returns" />
-      </section>
+    <!-- Top Holdings (gated behind poll) -->
+    <section class="card holdings-card">
+      <h2>Top Positions</h2>
+      <app-positions-list [positions]="positions" [authorized]="pollCompleted" />
+    </section>
 
-      <!-- Top Holdings (gated behind poll) -->
-      <section class="card holdings-card">
-        <h2>Top Positions</h2>
-        <app-positions-list [positions]="positions" [authorized]="pollCompleted" />
-      </section>
-
-    </div>
-  </main>
-</div>
+  </div>
+</main>
 

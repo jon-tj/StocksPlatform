@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 export interface Position {
   symbol: string;
@@ -8,7 +9,7 @@ export interface Position {
 
 @Component({
   selector: 'app-positions-list',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './positions-list.html',
   styleUrl: './positions-list.css',
 })

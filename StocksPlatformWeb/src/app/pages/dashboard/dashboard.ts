@@ -1,6 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { Component, OnInit } from '@angular/core';
 import { StockChart, ReturnsSeries } from '../../components/stock-chart/stock-chart';
 import { PositionsList, Position } from '../../components/positions-list/positions-list';
 
@@ -16,11 +14,6 @@ interface ReturnPoint {
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  private auth = inject(AuthService);
-  private router = inject(Router);
-
-  user: { email: string; displayName: string } | null = null;
-
   // Stub — replace with real poll-completion check from backend
   pollCompleted = false;
 
@@ -57,12 +50,7 @@ export class Dashboard implements OnInit {
     ];
   }
 
-  ngOnInit() {
-    this.user = this.auth.getUser();
-  }
+  ngOnInit() {}
 
-  logout() {
-    this.auth.logout();
-    this.router.navigate(['/login']);
-  }
+  // placeholder for future data loading
 }

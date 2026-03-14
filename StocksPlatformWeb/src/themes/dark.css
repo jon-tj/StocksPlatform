@@ -1,0 +1,9 @@
+/* Dark theme (default / night mode) */
+:root,
+:root[data-theme="dark"] {
+  --color-text-primary: #e2e8f0;
+  --color-text-muted: #64748b;
+  --color-background: #0a0e1a;
+  --color-surface: #111827;
+  --color-surface-muted: #0f172a;
+}
