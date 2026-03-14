@@ -9,6 +9,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 {
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<UserPortfolio> UserPortfolios => Set<UserPortfolio>();
+    public DbSet<Poll> Polls => Set<Poll>();
+    public DbSet<PollQuestion> PollQuestions => Set<PollQuestion>();
+    public DbSet<PollResponse> PollResponses => Set<PollResponse>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
