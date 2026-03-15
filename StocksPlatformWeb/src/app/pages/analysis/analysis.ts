@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
@@ -24,6 +25,7 @@ export class Analysis implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private assetService = inject(AssetService);
   private positionsService = inject(PositionsService);
+  private titleService = inject(Title);
 
   assetId: string | null = null;
   asset: AssetDetails | null = null;
@@ -95,6 +97,7 @@ export class Analysis implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ asset, delta, history }) => {
         this.asset = asset;
+        this.titleService.setTitle(`${asset.name} | StocksPlatform`);
         if (asset.broker?.toLowerCase().includes('nordnet') && asset.brokerSymbol) {
           this.tickerUrl = `https://www.nordnet.no/aksjer/kurser/${asset.brokerSymbol}`;
         }
