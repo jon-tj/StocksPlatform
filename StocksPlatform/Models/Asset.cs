@@ -31,6 +31,18 @@ public class Asset
     /// Used to match this asset against holdings reported by fund providers.
     /// </summary>
     public string? Isin { get; set; }
+
+    /// <summary>Broad business sector, e.g. "Technology".</summary>
+    public string? Sector { get; set; }
+
+    /// <summary>More granular industry/subsector, e.g. "Semiconductors".</summary>
+    public string? Subsector { get; set; }
+
+    /// <summary>Primary country of incorporation/listing.</summary>
+    public string? Country { get; set; }
+
+    /// <summary>Geographic region, e.g. "North America" or "Europe".</summary>
+    public string? Region { get; set; }
 }
 
 /// <summary>

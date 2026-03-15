@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using StocksPlatform.Data;
 using StocksPlatform.Models;
 
-namespace StocksPlatform.Services;
+namespace StocksPlatform.Services.Seeding;
 
 /// <summary>
 /// Idempotently seeds all known OSE-listed tickers into the Assets table.
@@ -46,13 +46,13 @@ public static class OseTickerSeeder
         ("BOUV",   "Bouvet",                              "NO0010360266"),
         ("BRG",    "Borregaard",                          "NO0010657505"),
         ("BWE",    "BW Energy Limited",                   "BMG0702P1086"),
-        ("BWLPG",  "BW LPG",                             null),           // ISIN unconfirmed – please verify
+        ("BWLPG",  "BW LPG",                             "SGXZ69436764"),
         ("BWO",    "BW Offshore Limited",                 "BMG1738J1247"),
         ("CADLR",  "Cadeler A/S",                         "DK0061412772"),
         ("CAPSL",  "Capsol Technologies ASA",             "NO0010923121"),
         ("CAVEN",  "Cavendish Hydrogen ASA",              "NO0013219535"),
         ("CLOUD",  "Cloudberry Clean Energy ASA",         "NO0010876642"),
-        ("CMBTO",  "CMB.TECH NV",                         null),           // ISIN not provided
+        ("CMBTO",  "CMB.TECH NV",                         "BE0003816338"),
         ("CONTX",  "ContextVision",                       "SE0014731154"),
         ("CRNA",   "Circio Holding ASA",                  "NO0013033795"),
         ("DELIA",  "Dellia Group",                        "NO0012697095"),
@@ -80,7 +80,7 @@ public static class OseTickerSeeder
         ("GOD",    "Goodtech",                            "NO0004913609"),
         ("GSF",    "Grieg Seafood",                       "NO0010365521"),
         ("GYL",    "Gyldendal",                           "NO0004288200"),
-        ("HAFNI",  "Hafnia Limited",                      null),           // ISIN unconfirmed – please verify
+        ("HAFNI",  "Hafnia Limited",                      "SGXZ53070850"),
         ("HAUTO",  "Høegh Autoliners ASA",                "NO0011082075"),
         ("HAVI",   "Havila Shipping",                     "NO0010257728"),
         ("HBC",    "Hofseth BioCare",                     "NO0010598683"),
@@ -103,7 +103,7 @@ public static class OseTickerSeeder
         ("KIT",    "Kitron",                              "NO0003079709"),
         ("KMCP",   "KMC Properties ASA",                  "NO0013711721"),
         ("KOA",    "Kongsberg Automotive",                "NO0003033102"),
-        ("KOG",    "Kongsberg Gruppen",                   null),           // ISIN unconfirmed – please verify
+        ("KOG",    "Kongsberg Gruppen",                   "NO0013536151"),
         ("KOMPL",  "Komplett ASA",                        "NO0011016040"),
         ("LIFE",   "Lifecare ASA",                        "NO0013355859"),
         ("LINK",   "Link Mobility Group Holding",         "NO0010894231"),
@@ -171,7 +171,7 @@ public static class OseTickerSeeder
         ("SBO",    "Selvaag Bolig",                       "NO0010612450"),
         ("SCANA",  "Scana",                               "NO0003053308"),
         ("SCATC",  "Scatec ASA",                          "NO0010715139"),
-        ("SDSD",   "S.D. Standard ETC PLC",               null),           // ISIN not provided
+        ("SDSD",   "S.D. Standard ETC PLC",               "CY0101550917"),
         ("SKUE",   "Skue Sparebank",                      "NO0006001809"),
         ("SMCRT",  "SmartCraft ASA",                      "NO0011008971"),
         ("SMOP",   "Smartoptics Group ASA",               "NO0011012502"),
@@ -182,7 +182,7 @@ public static class OseTickerSeeder
         ("SOFF",   "Solstad Offshore",                    "NO0003080608"),
         ("SOGN",   "Sogn Sparebank",                      "NO0006000603"),
         ("SOMA",   "Solstad Maritime ASA",                "NO0013135368"),
-        ("SPIR",   "Spir Group ASA",                      null),           // ISIN not provided
+        ("SPIR",   "Spir Group ASA",                      "NO0012548819"),
         ("SPOG",   "Sparebanken Øst",                     "NO0006222009"),
         ("SPOL",   "SpareBank 1 Østlandet",               "NO0010751910"),
         ("STB",    "Storebrand",                          "NO0003053605"),
@@ -212,6 +212,37 @@ public static class OseTickerSeeder
         ("ZAP",    "Zaptec ASA",                          "NO0010713936"),
         ("ZLNA",   "Zelluna",                             "NO0013524942"),
     ];
+
+    private static readonly Dictionary<string, (string Sector, string Subsector)> SectorOverrides =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["EQNR"] = ("Energy", "Integrated Oil & Gas"),
+            ["AKRBP"] = ("Energy", "Oil & Gas E&P"),
+            ["VAR"] = ("Energy", "Oil & Gas E&P"),
+            ["OKEA"] = ("Energy", "Oil & Gas E&P"),
+            ["PEN"] = ("Energy", "Oil & Gas E&P"),
+            ["DNO"] = ("Energy", "Oil & Gas E&P"),
+            ["TGS"] = ("Energy", "Oil & Gas Services"),
+            ["SUBC"] = ("Energy", "Oil & Gas Equipment & Services"),
+            ["DNB"] = ("Financial Services", "Banks"),
+            ["GJF"] = ("Financial Services", "Insurance"),
+            ["STB"] = ("Financial Services", "Asset Management"),
+            ["NHY"] = ("Basic Materials", "Aluminum"),
+            ["YAR"] = ("Basic Materials", "Agricultural Inputs"),
+            ["TEL"] = ("Communication Services", "Telecom Services"),
+            ["KOG"] = ("Industrials", "Aerospace & Defense"),
+            ["NEL"] = ("Industrials", "Electrical Equipment"),
+            ["MOWI"] = ("Consumer Defensive", "Packaged Foods"),
+            ["BAKKA"] = ("Consumer Defensive", "Packaged Foods"),
+            ["LSG"] = ("Consumer Defensive", "Packaged Foods"),
+            ["SALM"] = ("Consumer Defensive", "Packaged Foods"),
+            ["SCATC"] = ("Utilities", "Renewable Utilities"),
+            ["NOD"] = ("Technology", "Semiconductors"),
+            ["KIT"] = ("Technology", "Electronic Components"),
+            ["PHO"] = ("Health Care", "Medical Devices"),
+            ["AZT"] = ("Health Care", "Biotechnology"),
+            ["NYKD"] = ("Health Care", "Biotechnology"),
+        };
 
     // Derives the NordNet URL slug for an OSE asset.
     // Pattern: {name-as-slug}-{symbol-lower}-xosl
@@ -245,10 +276,28 @@ public static class OseTickerSeeder
 
         foreach (var t in Tickers)
         {
+            var (country, region) = InferCountryRegion(t.Isin);
+            var (sector, subsector) = InferSectorAndSubsector(t.Symbol, t.Name);
+
             if (existingBySymbol.TryGetValue(t.Symbol, out var existing))
             {
                 if (existing.Isin == null && t.Isin != null)
                     existing.Isin = t.Isin;
+
+                if (string.IsNullOrWhiteSpace(existing.Country))
+                    existing.Country = country;
+
+                if (string.IsNullOrWhiteSpace(existing.Region))
+                    existing.Region = region;
+
+                if (string.IsNullOrWhiteSpace(existing.Sector) && sector is not null)
+                    existing.Sector = sector;
+
+                if (string.IsNullOrWhiteSpace(existing.Subsector) && subsector is not null)
+                    existing.Subsector = subsector;
+
+                if (string.IsNullOrWhiteSpace(existing.BrokerSymbol))
+                    existing.BrokerSymbol = NordnetSlug(t.Name, t.Symbol);
             }
             else
             {
@@ -262,6 +311,10 @@ public static class OseTickerSeeder
                     Broker       = "NordNet",
                     BrokerSymbol = NordnetSlug(t.Name, t.Symbol),
                     Isin         = t.Isin,
+                    Sector       = sector,
+                    Subsector    = subsector,
+                    Country      = country,
+                    Region       = region,
                 });
             }
         }
@@ -270,5 +323,74 @@ public static class OseTickerSeeder
             db.Assets.AddRange(toInsert);
 
         await db.SaveChangesAsync();
+    }
+
+    private static (string Country, string Region) InferCountryRegion(string? isin)
+    {
+        if (string.IsNullOrWhiteSpace(isin) || isin.Length < 2)
+            return ("Norway", "Europe");
+
+        return isin[..2].ToUpperInvariant() switch
+        {
+            "NO" => ("Norway", "Europe"),
+            "SE" => ("Sweden", "Europe"),
+            "DK" => ("Denmark", "Europe"),
+            "FI" => ("Finland", "Europe"),
+            "FO" => ("Faroe Islands", "Europe"),
+            "NL" => ("Netherlands", "Europe"),
+            "LU" => ("Luxembourg", "Europe"),
+            "CH" => ("Switzerland", "Europe"),
+            "CY" => ("Cyprus", "Europe"),
+            "CA" => ("Canada", "North America"),
+            "US" => ("United States", "North America"),
+            "IE" => ("Ireland", "Europe"),
+            "BM" => ("Bermuda", "North America"),
+            "MH" => ("Marshall Islands", "Oceania"),
+            "GB" => ("United Kingdom", "Europe"),
+            _ => ("Norway", "Europe"),
+        };
+    }
+
+    private static (string? Sector, string? Subsector) InferSectorAndSubsector(string symbol, string name)
+    {
+        if (SectorOverrides.TryGetValue(symbol, out var manual))
+            return manual;
+
+        var n = name.ToUpperInvariant();
+
+        if (n.Contains("SPAREBANK") || n.Contains(" BANK") || n.EndsWith("BANK"))
+            return ("Financial Services", "Banks");
+
+        if (n.Contains("FORSIKRING") || n.Contains("INSURANCE"))
+            return ("Financial Services", "Insurance");
+
+        if (n.Contains("SEAFOOD") || n.Contains("SALMON") || n.Contains("FISH"))
+            return ("Consumer Defensive", "Packaged Foods");
+
+        if (n.Contains("SHIPPING") || n.Contains("TANKER") || n.Contains("CONTAINER") || n.Contains("AUTOLINERS"))
+            return ("Industrials", "Marine Transportation");
+
+        if (n.Contains("DRILLING") || n.Contains("OFFSHORE") || n.Contains("PETROL") || n.Contains("ENERGY"))
+            return ("Energy", "Oil & Gas");
+
+        if (n.Contains("BIO") || n.Contains("PHARMA") || n.Contains("THERAPEUTIC") || n.Contains("MEDI") || n.Contains("HEALTH"))
+            return ("Health Care", "Biotechnology");
+
+        if (n.Contains("TECH") || n.Contains("SOFTWARE") || n.Contains("SEMICONDUCTOR") || n.Contains("BIOMETRICS"))
+            return ("Technology", "Software");
+
+        if (n.Contains("PROPERTY") || n.Contains("BOLIG") || n.Contains("REAL ESTATE"))
+            return ("Real Estate", "Real Estate Services");
+
+        if (n.Contains("TELECOM") || n.Contains("TELENOR"))
+            return ("Communication Services", "Telecom Services");
+
+        if (n.Contains("HYDRO") || n.Contains("COMPOSITES") || n.Contains("CHEMICAL"))
+            return ("Basic Materials", "Specialty Chemicals");
+
+        if (n.Contains("POWER") || n.Contains("RENEW") || n.Contains("CLEAN"))
+            return ("Utilities", "Renewable Utilities");
+
+        return (null, null);
     }
 }
