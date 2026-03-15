@@ -77,15 +77,15 @@ public class YahooPriceService(AppDbContext db, HttpClient http, ILogger<YahooPr
         var meta = await db.AssetHistoryMeta.FirstOrDefaultAsync(m => m.AssetId == assetId);
         var now = DateTime.UtcNow;
 
-        // Full 5-year pull on first fetch or when stale; incremental 1-year otherwise
+        // Full 10-year pull on first fetch or when stale; incremental 1-month otherwise
         var isIncremental = meta?.LastDailyFetchAt is { } last && (now - last) <= IncrementalThreshold;
         var period1 = isIncremental
-            ? DateTimeOffset.UtcNow.AddYears(-1).ToUnixTimeSeconds()
-            : DateTimeOffset.UtcNow.AddYears(-5).ToUnixTimeSeconds();
+            ? DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeSeconds()
+            : DateTimeOffset.UtcNow.AddYears(-10).ToUnixTimeSeconds();
         var period2 = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         logger.LogInformation("EnsureDailyBarsAsync: fetching {Mode} bars for {Ticker} (assetId={AssetId})",
-            isIncremental ? "incremental 1yr" : "full 5yr", ticker, assetId);
+            isIncremental ? "incremental 1mo" : "full 10yr", ticker, assetId);
 
         var points = await FetchDailyAsync(ticker, period1, period2);
         if (points is null || points.Length == 0)
