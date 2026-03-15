@@ -20,6 +20,11 @@ builder.Services.AddScoped<StocksPlatform.Services.PriceServices.E24PriceService
 builder.Services.AddScoped<StocksPlatform.Services.PriceServices.IAssetPriceProvider>(
     sp => sp.GetRequiredService<StocksPlatform.Services.PriceServices.E24PriceService>());
 builder.Services.AddScoped<AssetPriceService>();
+builder.Services.AddHttpClient<StocksPlatform.Services.PriceServices.YahooPriceService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddScoped<StocksPlatform.Services.PriceServices.YahooPriceService>();
 builder.Services.AddHttpClient<StocksPlatform.Services.FundServices.SpareBank1FundService>();
 builder.Services.AddHttpClient<StocksPlatform.Services.FundServices.HanEtfFundService>(client =>
 {

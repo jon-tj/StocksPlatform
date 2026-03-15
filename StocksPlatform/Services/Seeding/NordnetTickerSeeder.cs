@@ -353,6 +353,7 @@ public static class NordnetTickerSeeder
                 if (string.IsNullOrWhiteSpace(existing.Region))   existing.Region  = region;
                 if (string.IsNullOrWhiteSpace(existing.Market))   existing.Market  = market;
                 if (string.IsNullOrWhiteSpace(existing.IconUrl) && row.IconUrl != null) existing.IconUrl = row.IconUrl;
+                if (string.IsNullOrWhiteSpace(existing.NnxId) && row.NnxId != null)     existing.NnxId    = row.NnxId;
                 if (string.IsNullOrWhiteSpace(existing.WebsiteUrl) && row.WebsiteUrl != null)   existing.WebsiteUrl   = row.WebsiteUrl;
                 if (string.IsNullOrWhiteSpace(existing.Description) && row.Description != null) existing.Description  = row.Description;
                 if (string.IsNullOrWhiteSpace(existing.Ceo) && row.Ceo != null)                 existing.Ceo          = row.Ceo;
@@ -380,6 +381,7 @@ public static class NordnetTickerSeeder
                     Region       = region,
                     Popularity   = row.Popularity,
                     IconUrl      = row.IconUrl,
+                    NnxId        = row.NnxId,
                     WebsiteUrl   = row.WebsiteUrl,
                     Description  = row.Description,
                     Ceo          = row.Ceo,
@@ -396,7 +398,7 @@ public static class NordnetTickerSeeder
         await db.SaveChangesAsync();
     }
 
-    private record CsvRow(string BrokerSymbol, int Popularity, string Name, string Isin, string Symbol, string Country, string Region, string? IconUrl, string? WebsiteUrl, string? Description, string? Ceo, string? Address1, string? Address2, long? NumberShares, string? CsvSector, string? CsvSubsector);
+    private record CsvRow(string BrokerSymbol, int Popularity, string Name, string Isin, string Symbol, string Country, string Region, string? NnxId, string? IconUrl, string? WebsiteUrl, string? Description, string? Ceo, string? Address1, string? Address2, long? NumberShares, string? CsvSector, string? CsvSubsector);
 
     private static List<CsvRow> ReadCsv()
     {
@@ -423,6 +425,7 @@ public static class NordnetTickerSeeder
             var isin         = cols[3].Trim();
             var symbol       = cols[4].Trim();
             var country      = cols[5].Trim();
+            var nnxId        = cols.Length >= 7  ? NullIfEmpty(cols[6]) : null;
             var iconUrl      = cols.Length >= 9  ? cols[8].Trim()  : null;
             var region       = cols.Length >= 10 ? cols[9].Trim()  : "Europe";
             var websiteUrl   = cols.Length >= 11 ? NullIfEmpty(cols[10]) : null;
@@ -439,6 +442,7 @@ public static class NordnetTickerSeeder
 
             rows.Add(new CsvRow(brokerSymbol, popularity, name, isin, symbol, country,
                 string.IsNullOrWhiteSpace(region) ? "Europe" : region,
+                nnxId,
                 string.IsNullOrWhiteSpace(iconUrl) ? null : iconUrl,
                 websiteUrl, description, ceo, address1, address2, numberShares, csvSector, csvSubsector));
         }

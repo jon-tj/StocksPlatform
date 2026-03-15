@@ -50,6 +50,9 @@ public class Asset
     /// <summary>URL to the asset's logo/icon image.</summary>
     public string? IconUrl { get; set; }
 
+    /// <summary>Nordnet exchange identifier UUID (NnxId), used for price history API calls.</summary>
+    public string? NnxId { get; set; }
+
     /// <summary>Company website URL.</summary>
     public string? WebsiteUrl { get; set; }
 

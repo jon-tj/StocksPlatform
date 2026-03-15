@@ -13,7 +13,7 @@ namespace StocksPlatform.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AssetController(AppDbContext db, UserManager<AppUser> userManager, E24PriceService e24) : ControllerBase
+public class AssetController(AppDbContext db, UserManager<AppUser> userManager, E24PriceService e24, YahooPriceService yahoo) : ControllerBase
 {
     public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol, string? Country, string? Region, string? Sector, string? Subsector, string? IconUrl, string? WebsiteUrl, string? Description, string? Ceo, string? Address1, string? Address2, long? NumberShares);
     public record HistoryDto(double[] Prices, string[] Times);
@@ -89,18 +89,12 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
         var asset = await db.Assets.FindAsync(id);
         if (asset is null) return NotFound();
 
-        var exchangeSuffix = asset.Market?.ToUpperInvariant() switch
-        {
-            "XOSL" => "OSE",
-            "XNAS" => "NAS",
-            _ => null
-        };
-
-        if (exchangeSuffix is not null && asset.Symbol is { } symbol)
+        // Yahoo first: covers all mapped exchanges including XOSL/XNAS
+        if (asset.Symbol is { } yahooSymbol && YahooPriceService.BuildTicker(yahooSymbol, asset.Market) is not null)
         {
             if (intraday)
             {
-                await e24.EnsureIntradayBarsAsync(id, symbol, exchangeSuffix);
+                await yahoo.EnsureIntradayBarsAsync(id, yahooSymbol, asset.Market);
                 var bars = await db.AssetIntradayHistory
                     .Where(b => b.AssetId == id)
                     .OrderBy(b => b.Timestamp)
@@ -109,7 +103,37 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
             }
             else
             {
-                await e24.EnsureDailyBarsAsync(id, symbol, exchangeSuffix);
+                await yahoo.EnsureDailyBarsAsync(id, yahooSymbol, asset.Market);
+                var bars = await db.AssetDailyHistory
+                    .Where(b => b.AssetId == id && b.Timestamp >= from && b.Timestamp <= to)
+                    .OrderBy(b => b.Timestamp)
+                    .ToListAsync();
+                return Ok(PriceToHistory(bars, intraday: false));
+            }
+        }
+
+        // E24 fallback: XOSL / XNAS assets with no Yahoo mapping (shouldn't normally happen)
+        var exchangeSuffix = asset.Market?.ToUpperInvariant() switch
+        {
+            "XOSL" => "OSE",
+            "XNAS" => "NAS",
+            _ => null
+        };
+
+        if (exchangeSuffix is not null && asset.Symbol is { } e24Symbol)
+        {
+            if (intraday)
+            {
+                await e24.EnsureIntradayBarsAsync(id, e24Symbol, exchangeSuffix);
+                var bars = await db.AssetIntradayHistory
+                    .Where(b => b.AssetId == id)
+                    .OrderBy(b => b.Timestamp)
+                    .ToListAsync();
+                return Ok(PriceToHistory(bars, intraday: true));
+            }
+            else
+            {
+                await e24.EnsureDailyBarsAsync(id, e24Symbol, exchangeSuffix);
                 var bars = await db.AssetDailyHistory
                     .Where(b => b.AssetId == id && b.Timestamp >= from && b.Timestamp <= to)
                     .OrderBy(b => b.Timestamp)
