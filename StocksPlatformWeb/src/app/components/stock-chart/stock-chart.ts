@@ -23,7 +23,7 @@ export class StockChart implements AfterViewInit, OnDestroy {
   @ViewChild('svgWrap') svgWrapRef!: ElementRef<HTMLElement>;
 
   W = signal(500);
-  readonly H = 140;
+  readonly H = 200;
   readonly padY = 14;
 
   hoveredIndex: number | null = null;
