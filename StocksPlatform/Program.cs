@@ -18,7 +18,17 @@ builder.Services.AddHttpClient<StocksPlatform.Services.PriceServices.E24PriceSer
 builder.Services.AddScoped<StocksPlatform.Services.PriceServices.IAssetPriceProvider>(
     sp => sp.GetRequiredService<StocksPlatform.Services.PriceServices.E24PriceService>());
 builder.Services.AddScoped<StocksPlatform.Services.AssetPriceService>();
-builder.Services.AddHttpClient<StocksPlatform.Services.FundHoldingsService>();
+builder.Services.AddHttpClient<StocksPlatform.Services.FundServices.SpareBank1FundService>();
+builder.Services.AddHttpClient<StocksPlatform.Services.FundServices.HanEtfFundService>(client =>
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36");
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsProvider>(
+    sp => sp.GetRequiredService<StocksPlatform.Services.FundServices.SpareBank1FundService>());
+builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsProvider>(
+    sp => sp.GetRequiredService<StocksPlatform.Services.FundServices.HanEtfFundService>());
 builder.Services.AddScoped<StocksPlatform.Services.FundInstitutionalService>();
 
 builder.Services.AddCors(options =>
