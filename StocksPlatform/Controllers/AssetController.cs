@@ -15,7 +15,7 @@ namespace StocksPlatform.Controllers;
 [Authorize]
 public class AssetController(AppDbContext db, UserManager<AppUser> userManager, E24PriceService e24) : ControllerBase
 {
-    public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol, string? Country, string? Region, string? Sector, string? Subsector, string? IconUrl);
+    public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol, string? Country, string? Region, string? Sector, string? Subsector, string? IconUrl, string? WebsiteUrl, string? Description, string? Ceo, string? Address1, string? Address2, long? NumberShares);
     public record HistoryDto(double[] Prices, string[] Times);
 
     // GET /api/asset — returns the user's followed asset IDs (defaults to Guid.Empty)
@@ -38,7 +38,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
             .ToListAsync();
 
         // If any IDs aren't found (e.g. Guid.Empty not seeded yet), include defaults
-        return Ok(assets.Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol, a.Country, a.Region, a.Sector, a.Subsector, a.IconUrl)).ToArray());
+        return Ok(assets.Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol, a.Country, a.Region, a.Sector, a.Subsector, a.IconUrl, a.WebsiteUrl, a.Description, a.Ceo, a.Address1, a.Address2, a.NumberShares)).ToArray());
     }
 
     // GET /api/asset/search?q=query — search all assets by name or symbol
@@ -60,7 +60,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
             .OrderByDescending(a => a.Symbol?.ToUpperInvariant() == exact || a.Name.ToUpperInvariant() == exact)
             .ThenByDescending(a => (a.Market?.ToUpperInvariant() == "XOSL" ? 10000 : 0) + (a.Popularity ?? 0))
             .Take(10)
-            .Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol, a.Country, a.Region, a.Sector, a.Subsector, a.IconUrl));
+            .Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol, a.Country, a.Region, a.Sector, a.Subsector, a.IconUrl, null, null, null, null, null, null));
 
         return Ok(ordered);
     }
@@ -73,7 +73,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
         if (asset is null)
             return NotFound();
 
-        return Ok(new AssetDto(asset.Id, asset.Name, asset.Type.ToString(), asset.Symbol, asset.Market, asset.Broker, asset.BrokerSymbol, asset.Country, asset.Region, asset.Sector, asset.Subsector, asset.IconUrl));
+        return Ok(new AssetDto(asset.Id, asset.Name, asset.Type.ToString(), asset.Symbol, asset.Market, asset.Broker, asset.BrokerSymbol, asset.Country, asset.Region, asset.Sector, asset.Subsector, asset.IconUrl, asset.WebsiteUrl, asset.Description, asset.Ceo, asset.Address1, asset.Address2, asset.NumberShares));
     }
 
     // GET /api/asset/{id}/history?timeFrom=2025-01-01&intraday=false

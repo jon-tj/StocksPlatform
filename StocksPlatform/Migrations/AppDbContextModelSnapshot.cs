@@ -221,13 +221,25 @@ namespace StocksPlatform.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Address1")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Address2")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Broker")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("BrokerSymbol")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Ceo")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Country")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("IconUrl")
@@ -242,6 +254,9 @@ namespace StocksPlatform.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<long?>("NumberShares")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("Popularity")
                         .HasColumnType("INTEGER");
@@ -260,6 +275,9 @@ namespace StocksPlatform.Migrations
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 

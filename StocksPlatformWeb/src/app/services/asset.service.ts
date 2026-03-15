@@ -19,6 +19,12 @@ export interface AssetDetails {
   sector?: string;
   subsector?: string;
   iconUrl?: string;
+  websiteUrl?: string;
+  description?: string;
+  ceo?: string;
+  address1?: string;
+  address2?: string;
+  numberShares?: number;
 }
 
 export interface AssetDelta {

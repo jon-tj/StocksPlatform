@@ -49,6 +49,24 @@ public class Asset
 
     /// <summary>URL to the asset's logo/icon image.</summary>
     public string? IconUrl { get; set; }
+
+    /// <summary>Company website URL.</summary>
+    public string? WebsiteUrl { get; set; }
+
+    /// <summary>Short company description.</summary>
+    public string? Description { get; set; }
+
+    /// <summary>Chief Executive Officer name.</summary>
+    public string? Ceo { get; set; }
+
+    /// <summary>Primary address line.</summary>
+    public string? Address1 { get; set; }
+
+    /// <summary>Secondary address line.</summary>
+    public string? Address2 { get; set; }
+
+    /// <summary>Total number of shares outstanding.</summary>
+    public long? NumberShares { get; set; }
 }
 
 /// <summary>

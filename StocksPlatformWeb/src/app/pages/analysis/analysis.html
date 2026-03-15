@@ -8,68 +8,87 @@
       @if (asset.iconUrl) {
         <img class="asset-icon" [src]="asset.iconUrl" [alt]="asset.name" />
       }
-      <h1>{{ asset.name }}</h1>
+      <h1>{{ asset.name }}@if (asset.symbol) { <span class="ticker-muted">{{ asset.symbol }}</span>}</h1>
     </div>
-
-    @if (asset.symbol || asset.market || asset.broker || asset.country || asset.region || asset.sector || asset.subsector) {
-      <section class="card info-card">
-        <h2 class="card-title">{{ asset.type }} Details</h2>
-        <dl class="info-grid">
-          @if (asset.symbol) {
-            <div class="info-item">
-              <dt>Ticker</dt>
-              <dd>{{ asset.symbol }}</dd>
-            </div>
-          }
-          @if (asset.market) {
-            <div class="info-item">
-              <dt>Market</dt>
-              <dd>{{ asset.market }}</dd>
-            </div>
-          }
-          @if (asset.sector) {
-            <div class="info-item">
-              <dt>Sector</dt>
-              <dd>{{ asset.sector }}</dd>
-            </div>
-          }
-          @if (asset.subsector) {
-            <div class="info-item">
-              <dt>Subsector</dt>
-              <dd>{{ asset.subsector }}</dd>
-            </div>
-          }
-          @if (asset.country) {
-            <div class="info-item">
-              <dt>Country</dt>
-              <dd>{{ asset.country }}</dd>
-            </div>
-          }
-          @if (asset.region) {
-            <div class="info-item">
-              <dt>Region</dt>
-              <dd>{{ asset.region }}</dd>
-            </div>
-          }
-          @if (asset.broker) {
-            <div class="info-item">
-              <dt>Broker</dt>
-              <dd>
-                @if (tickerUrl) {
-                  <a class="broker-link" [href]="tickerUrl" target="blank">{{ asset.broker }}</a>
-                } @else {
-                  {{ asset.broker }}
-                }
-              </dd>
-            </div>
-          }
-        </dl>
-      </section>
-    }
 
     @if (chartSeries.length) {
       <section class="card">
         <app-stock-chart [priceSeries]="chartSeries" (dateHover)="onChartDateHover($event)" />
+      </section>
+    }
+
+    @if (asset.symbol || asset.market || asset.broker || asset.country || asset.region || asset.sector || asset.subsector) {
+      <section class="card info-card">
+        <h2 class="card-title">{{ asset.type }} Details</h2>
+        <div class="info-card-body">
+          <dl class="info-grid">
+            @if (asset.sector) {
+              <div class="info-item">
+                <dt>Sector</dt>
+                <dd>{{ asset.sector }}</dd>
+              </div>
+            }
+            @if (asset.subsector) {
+              <div class="info-item">
+                <dt>Subsector</dt>
+                <dd>{{ asset.subsector }}</dd>
+              </div>
+            }
+            @if (asset.country) {
+              <div class="info-item">
+                <dt>Country</dt>
+                <dd>{{ asset.country }}
+                  
+                </dd>
+              </div>
+            }
+            @if (asset.market) {
+              <div class="info-item">
+                <dt>Market</dt>
+                <dd>{{ asset.market }}</dd>
+              </div>
+            }
+            @if (asset.broker) {
+              <div class="info-item">
+                <dt>Broker</dt>
+                <dd>
+                  @if (tickerUrl) {
+                    <a class="broker-link" [href]="tickerUrl" target="blank">{{ asset.broker }}</a>
+                  } @else {
+                    {{ asset.broker }}
+                  }
+                </dd>
+              </div>
+            }
+            @if (asset.numberShares) {
+              <div class="info-item">
+                <dt>Shares Outstanding</dt>
+                <dd>{{ asset.numberShares | number }}</dd>
+              </div>
+            }
+            @if (asset.websiteUrl) {
+              <div class="info-item">
+                <dt>Website</dt>
+                <dd><a class="broker-link" [href]="asset.websiteUrl" target="_blank">{{ asset.websiteUrl }}</a></dd>
+              </div>
+            }
+            @if (asset.address1 || asset.address2) {
+              <div class="info-item">
+                <dt>Address</dt>
+                <dd>{{ asset.address1 }}{{ asset.address1 && asset.address2 ? ', ' : '' }}{{ asset.address2 }}</dd>
+              </div>
+            }
+            @if (asset.ceo) {
+              <div class="info-item">
+                <dt>CEO</dt>
+                <dd>{{ asset.ceo }}</dd>
+              </div>
+            }
+          </dl>
+          @if (asset.description) {
+            <p class="asset-description">{{ asset.description }}</p>
+          }
+        </div>
       </section>
     }
 
