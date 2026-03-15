@@ -25,13 +25,13 @@
             @if (asset.sector) {
               <div class="info-item">
                 <dt>Sector</dt>
-                <dd>{{ asset.sector }}</dd>
+                <dd>{{ asset.sector | sectorLabel }}</dd>
               </div>
             }
             @if (asset.subsector) {
               <div class="info-item">
                 <dt>Subsector</dt>
-                <dd>{{ asset.subsector }}</dd>
+                <dd>{{ asset.subsector | sectorLabel }}</dd>
               </div>
             }
             @if (asset.country) {

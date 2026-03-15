@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { AssetService, AssetDetails, AssetDelta, HoldingDelta } from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
+import { SectorLabelPipe } from '../../pipes/sector-label.pipe';
 
 export interface ChildRow {
   position: Position;
@@ -15,7 +16,7 @@ export interface ChildRow {
 
 @Component({
   selector: 'app-analysis',
-  imports: [RouterLink, DecimalPipe, TitleCasePipe, DatePipe, StockChart, FormsModule],
+  imports: [RouterLink, DecimalPipe, TitleCasePipe, DatePipe, StockChart, FormsModule, SectorLabelPipe],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })

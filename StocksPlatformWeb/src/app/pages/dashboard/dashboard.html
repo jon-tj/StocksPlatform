@@ -30,7 +30,7 @@
               <span class="search-item-name">{{ asset.name }}</span>
               <span class="search-item-meta">
                 @if (asset.country) { <span>{{ asset.country }}</span> }
-                @if (asset.sector) { <span>{{ asset.sector }}</span> }
+                @if (asset.sector) { <span>{{ asset.sector | sectorLabel }}</span> }
               </span>
             </li>
           }

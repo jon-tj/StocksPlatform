@@ -7,10 +7,11 @@ import { StockChart, PriceSeries } from '../../components/stock-chart/stock-char
 import { PositionsList } from '../../components/positions-list/positions-list';
 import { AssetService, AssetDetails, DEFAULT_ASSET_ID } from '../../services/asset.service';
 import { Position, PositionsService } from '../../services/positions.service';
+import { SectorLabelPipe } from '../../pipes/sector-label.pipe';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [StockChart, PositionsList, FormsModule],
+  imports: [StockChart, PositionsList, FormsModule, SectorLabelPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
