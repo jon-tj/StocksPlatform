@@ -5,8 +5,8 @@
     }
     <span class="sc-time-range">{{ displayedTimeRange }}</span>
     <select class="sc-mode-select" [value]="mode()" (change)="onModeChange($event)">
-      <option value="cumulative">Cumulative</option>
-      <option value="period">Period</option>
+      <option value="price">Price</option>
+      <option value="returns">Returns</option>
     </select>
   </div>
 
@@ -15,7 +15,7 @@
       <span class="sc-legend-item">
         <span class="sc-legend-dot" [style.background]="getColor(i)"></span>
         @if (s.name) {<span>{{ s.name }}</span>}
-        <span class="sc-legend-price" [class.pos]="mode() === 'period' && getLivePrice(s) >= 0" [class.neg]="mode() === 'period' && getLivePrice(s) < 0">{{ mode() === 'period' && getLivePrice(s) >= 0 ? '+' : '' }}{{ getLivePrice(s) | number: '1.2-2' }}</span>
+        <span class="sc-legend-price" [class.pos]="mode() === 'returns' && getLivePrice(s) >= 0" [class.neg]="mode() === 'returns' && getLivePrice(s) < 0">{{ mode() === 'returns' && getLivePrice(s) >= 0 ? '+' : '' }}{{ getLivePrice(s) | number: '1.2-2' }}</span>
         <span
           class="sc-legend-val"
           [class.pos]="getLiveValue(s) >= 0"
@@ -36,7 +36,12 @@
         }
       </defs>
 
-      @if (mode() === 'cumulative') {
+      @if (mode() === 'price') {
+        @for (tick of rightAxisTicks(); track tick.label + '-' + tick.y) {
+          <line class="sc-gridline" [attr.x1]="padLeft" [attr.y1]="tick.y" [attr.x2]="plotRight()" [attr.y2]="tick.y" />
+          <text class="sc-axis-label" [attr.x]="W() - 12" [attr.y]="tick.y" text-anchor="end" dominant-baseline="middle">{{ tick.label }}</text>
+        }
+        <line class="sc-axis-line" [attr.x1]="plotRight()" [attr.y1]="getPlotTop()" [attr.x2]="plotRight()" [attr.y2]="getPlotBottom()" />
         @for (s of priceSeries(); track $index; let i = $index) {
           @if (i === 0) {
             <path [attr.d]="getAreaPath(s)" [attr.fill]="'url(#' + gradId(i) + ')'" />
@@ -50,10 +55,14 @@
             stroke-linejoin="round"
           />
         }
+        @for (s of priceSeries(); track $index; let i = $index) {
+          <polygon class="sc-last-price-box" [attr.points]="getLastPriceCalloutPoints(s)" [attr.fill]="getColor(i)" />
+          <text class="sc-last-price-text" [attr.x]="getLastPriceLabelX(s)" [attr.y]="getPointY(s, s.prices.length - 1)" text-anchor="end" dominant-baseline="middle">{{ getLastPriceLabel(s) }}</text>
+        }
       }
 
-      @if (mode() === 'period') {
-        <line [attr.x1]="0" [attr.y1]="getZeroY()" [attr.x2]="W()" [attr.y2]="getZeroY()" stroke-width="1" [attr.stroke]="'var(--color-border)'" />
+      @if (mode() === 'returns') {
+        <line [attr.x1]="padLeft" [attr.y1]="getZeroY()" [attr.x2]="plotRight()" [attr.y2]="getZeroY()" stroke-width="1" [attr.stroke]="'var(--color-border)'" />
         @for (s of priceSeries(); track $index; let si = $index) {
           @for (bar of getBarRects(s, si, priceSeries().length); track $index; let i = $index) {
             <rect
@@ -71,11 +80,11 @@
 
       @if (hoveredIndex !== null) {
         <line
-          [attr.x1]="hoverX" [attr.y1]="padY"
-          [attr.x2]="hoverX" [attr.y2]="H - padY"
+          [attr.x1]="hoverX" [attr.y1]="getPlotTop()"
+          [attr.x2]="hoverX" [attr.y2]="getPlotBottom()"
           [attr.stroke]="'var(--color-border)'" stroke-width="1" stroke-dasharray="4,3"
         />
-        @if (mode() === 'cumulative') {
+        @if (mode() === 'price') {
           @for (s of priceSeries(); track $index; let i = $index) {
             <circle
               [attr.cx]="hoverX"

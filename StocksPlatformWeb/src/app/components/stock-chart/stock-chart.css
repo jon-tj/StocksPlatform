@@ -83,6 +83,38 @@
   overflow: visible;
 }
 
+.sc-gridline {
+  stroke: color-mix(in srgb, var(--color-border) 72%, transparent);
+  stroke-width: 0.75;
+  stroke-dasharray: 3, 4;
+}
+
+.sc-axis-line {
+  stroke: color-mix(in srgb, var(--color-border) 68%, transparent);
+  stroke-width: 0.75;
+}
+
+.sc-axis-label {
+  fill: var(--color-text-muted);
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-last-price-box {
+  filter: drop-shadow(0 3px 8px color-mix(in srgb, var(--color-text-primary) 14%, transparent));
+}
+
+.sc-last-price-text {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
 /* X labels */
 .sc-x-labels {
   position: relative;
