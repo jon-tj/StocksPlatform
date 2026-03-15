@@ -20,6 +20,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<AssetDailyHistory> AssetDailyHistory => Set<AssetDailyHistory>();
     public DbSet<AssetIntradayHistory> AssetIntradayHistory => Set<AssetIntradayHistory>();
     public DbSet<AssetPriceMeta> AssetHistoryMeta => Set<AssetPriceMeta>();
+    public DbSet<FundHoldingSnapshot> FundHoldingSnapshots => Set<FundHoldingSnapshot>();
+    public DbSet<FundPortfolioMeta> FundPortfolioMetas => Set<FundPortfolioMeta>();
 
     // Stable, deterministic asset IDs derived from a fixed namespace + name.
     // Equivalent to UUID v5 (SHA-1 name-based) — same input always yields same GUID.
@@ -82,6 +84,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         builder.Entity<AssetPriceMeta>()
             .HasIndex(m => m.AssetId)
+            .IsUnique();
+
+        builder.Entity<FundHoldingSnapshot>()
+            .HasIndex(s => new { s.AssetId, s.Date })
+            .IsUnique();
+
+        builder.Entity<FundPortfolioMeta>()
+            .HasIndex(m => m.FundIsin)
             .IsUnique();
 
         // PortfolioAsset: unique pair, parent must navigate as Portfolio

@@ -10,7 +10,7 @@ namespace StocksPlatform.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AnalysisController(AppDbContext db, FractionService fractionService) : ControllerBase
+public class AnalysisController(AppDbContext db, FractionService fractionService, FundInstitutionalService fundInstitutionalService) : ControllerBase
 {
     public record DeltaDto(
         Guid AssetId,
@@ -50,6 +50,8 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
     {
         var asset = await db.Assets.FindAsync(assetId);
         if (asset is null) return NotFound();
+
+        await fundInstitutionalService.EnsureTodaySnapshotsAsync();
 
         var now = DateTime.UtcNow;
         var cutoff = now.Date.AddDays(-364);
@@ -93,6 +95,8 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
     {
         var asset = await db.Assets.FindAsync(assetId);
         if (asset is null) return NotFound();
+
+        await fundInstitutionalService.EnsureTodaySnapshotsAsync();
 
         var now = DateTime.UtcNow;
         var today = now.Date;
@@ -144,6 +148,8 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
 
         var children = await fractionService.GetFreshChildrenAsync(assetId);
         if (children.Count == 0) return Ok(Array.Empty<HoldingDto>());
+
+        await fundInstitutionalService.EnsureTodaySnapshotsAsync();
 
         var now = DateTime.UtcNow;
         var today = now.Date;
@@ -264,7 +270,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
             return WeightedAverageOf(assetId, date, childDeltas);
         }
 
-        return Compute(assetId, date);
+        return await ComputeAsync(assetId, date);
     }
 
     private static AssetDelta WeightedAverageOf(Guid assetId, DateTime date, List<(AssetDelta Delta, double Weight)> children)
@@ -322,20 +328,25 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
     }
 
     /// <summary>
-    /// Stub leaf computation — all deltas return 1.0 until real algorithms are wired in.
-    /// Only called for assets with no children. Expires at midnight tomorrow UTC.
+    /// Leaf computation for assets with no children.
+    /// All deltas except InstitutionalOrderFlowDelta remain stub values (1.0) until
+    /// their respective algorithms are wired in. Expires at midnight tomorrow UTC.
     /// </summary>
-    private static AssetDelta Compute(Guid assetId, DateTime date) => new()
+    private async Task<AssetDelta> ComputeAsync(Guid assetId, DateTime date)
     {
-        AssetId = assetId,
-        Date = date,
-        MarketDelta = 1.0,
-        PairDelta = null,
-        PairAssetId = null,
-        PublicSentimentDelta = 1.0,
-        MemberSentimentDelta = 1.0,
-        FundamentalDelta = 1.0,
-        InstitutionalOrderFlowDelta = 1.0,
-        ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
-    };
+        var institutionalDelta = await fundInstitutionalService.GetInstitutionalDeltaAsync(assetId);
+        return new AssetDelta
+        {
+            AssetId = assetId,
+            Date = date,
+            MarketDelta = 1.0,
+            PairDelta = null,
+            PairAssetId = null,
+            PublicSentimentDelta = 1.0,
+            MemberSentimentDelta = 1.0,
+            FundamentalDelta = 1.0,
+            InstitutionalOrderFlowDelta = institutionalDelta,
+            ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
+        };
+    }
 }

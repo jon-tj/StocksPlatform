@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { DecimalPipe, TitleCasePipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AssetService, AssetDetails, AssetDelta, HoldingDelta } from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
@@ -14,7 +15,7 @@ export interface ChildRow {
 
 @Component({
   selector: 'app-analysis',
-  imports: [RouterLink, DecimalPipe, TitleCasePipe, DatePipe, StockChart],
+  imports: [RouterLink, DecimalPipe, TitleCasePipe, DatePipe, StockChart, FormsModule],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })
@@ -28,9 +29,19 @@ export class Analysis implements OnInit, OnDestroy {
   delta: AssetDelta | null = null;
   private latestDelta: AssetDelta | null = null;
   children: ChildRow[] = [];
+  holdingsFilter = '';
   chartSeries: PriceSeries[] = [];
   loading = true;
   error: string | null = null;
+
+  get filteredChildren(): ChildRow[] {
+    const q = this.holdingsFilter.trim().toLowerCase();
+    if (!q) return this.children;
+    return this.children.filter(row =>
+      row.position.symbol?.toLowerCase().includes(q) ||
+      row.position.name?.toLowerCase().includes(q)
+    );
+  }
 
   protected brokerUrl: string | null = null;
 

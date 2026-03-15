@@ -119,6 +119,48 @@ h1 {
 .negative { color: #f87171; }
 
 /* Holdings table */
+.holdings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.875rem;
+}
+
+.holdings-header .card-title {
+  margin-bottom: 0;
+}
+
+.holdings-search {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  background: var(--color-bg, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.holdings-search:focus-within {
+  border-color: var(--color-accent, #6366f1);
+}
+
+.holdings-search-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.holdings-search-input {
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  outline: none;
+  width: 12rem;
+}
+
 .table-wrap {
   overflow-x: auto;
   margin: 0 -0.25rem;

@@ -6,13 +6,14 @@ using Microsoft.EntityFrameworkCore;
 using StocksPlatform.Data;
 using StocksPlatform.Models;
 using StocksPlatform.Services;
+using StocksPlatform.Services.PriceServices;
 
 namespace StocksPlatform.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AssetController(AppDbContext db, UserManager<AppUser> userManager, AssetPriceService assetPriceService) : ControllerBase
+public class AssetController(AppDbContext db, UserManager<AppUser> userManager, IAssetPriceProvider priceProvider) : ControllerBase
 {
     public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol);
     public record HistoryDto(double[] Prices, string[] Times);
@@ -38,6 +39,23 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
 
         // If any IDs aren't found (e.g. Guid.Empty not seeded yet), include defaults
         return Ok(assets.Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol)).ToArray());
+    }
+
+    // GET /api/asset/search?q=query — search all assets by name or symbol
+    [HttpGet("search")]
+    public async Task<ActionResult<AssetDto[]>> SearchAssets([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+            return Ok(Array.Empty<AssetDto>());
+
+        var lower = q.ToLower();
+        var results = await db.Assets
+            .Where(a => a.Name.ToLower().Contains(lower) || (a.Symbol != null && a.Symbol.ToLower().Contains(lower)))
+            .Take(10)
+            .Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol))
+            .ToListAsync();
+
+        return Ok(results);
     }
 
     // GET /api/asset/{id} — asset details
@@ -75,7 +93,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
         {
             if (intraday)
             {
-                await assetPriceService.EnsureIntradayBarsAsync(id, symbol, exchangeSuffix);
+                await priceProvider.EnsureIntradayBarsAsync(id, symbol, exchangeSuffix);
                 var bars = await db.AssetIntradayHistory
                     .Where(b => b.AssetId == id)
                     .OrderBy(b => b.Timestamp)
@@ -84,7 +102,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
             }
             else
             {
-                await assetPriceService.EnsureDailyBarsAsync(id, symbol, exchangeSuffix);
+                await priceProvider.EnsureDailyBarsAsync(id, symbol, exchangeSuffix);
                 var bars = await db.AssetDailyHistory
                     .Where(b => b.AssetId == id && b.Timestamp >= from && b.Timestamp <= to)
                     .OrderBy(b => b.Timestamp)

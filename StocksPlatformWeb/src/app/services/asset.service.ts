@@ -47,6 +47,10 @@ export class AssetService {
     return this.http.get<AssetDetails[]>(`${API}/api/asset`);
   }
 
+  searchAssets(q: string): Observable<AssetDetails[]> {
+    return this.http.get<AssetDetails[]>(`${API}/api/asset/search`, { params: { q } });
+  }
+
   getAssetDetails(id: string): Observable<AssetDetails> {
     return this.http.get<AssetDetails>(`${API}/api/asset/${id}`);
   }

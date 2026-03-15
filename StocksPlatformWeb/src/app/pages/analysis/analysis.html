@@ -101,7 +101,21 @@
 
     @if (asset.type === 'Portfolio' && children.length > 0) {
       <section class="card">
-        <h2 class="card-title">Holdings</h2>
+        <div class="holdings-header">
+          <h2 class="card-title">Holdings</h2>
+          <div class="holdings-search">
+            <svg class="holdings-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+            </svg>
+            <input
+              class="holdings-search-input"
+              type="text"
+              placeholder="Filter holdings…"
+              [(ngModel)]="holdingsFilter"
+              autocomplete="off"
+            />
+          </div>
+        </div>
         <div class="table-wrap">
           <table class="holdings-table">
             <thead>
@@ -118,7 +132,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (row of children; track row.position.assetId) {
+              @for (row of filteredChildren; track row.position.assetId) {
                 <tr>
                   <td>
                     <span class="child-name">{{ row.position.name }}</span>

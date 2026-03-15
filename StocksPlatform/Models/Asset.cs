@@ -25,6 +25,12 @@ public class Asset
 
     /// <summary>Symbol as it appears in the broker's system, e.g. "AAPL".</summary>
     public string? BrokerSymbol { get; set; }
+
+    /// <summary>
+    /// International Securities Identification Number (ISIN), e.g. "US67066G1040".
+    /// Used to match this asset against holdings reported by fund providers.
+    /// </summary>
+    public string? Isin { get; set; }
 }
 
 /// <summary>

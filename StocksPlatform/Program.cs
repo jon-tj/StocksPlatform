@@ -11,10 +11,15 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSingleton<StocksPlatform.Services.PollWeekService>();
 builder.Services.AddScoped<StocksPlatform.Services.FractionService>();
-builder.Services.AddHttpClient<StocksPlatform.Services.AssetPriceService>(client =>
+builder.Services.AddHttpClient<StocksPlatform.Services.PriceServices.E24PriceService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddScoped<StocksPlatform.Services.PriceServices.IAssetPriceProvider>(
+    sp => sp.GetRequiredService<StocksPlatform.Services.PriceServices.E24PriceService>());
+builder.Services.AddScoped<StocksPlatform.Services.AssetPriceService>();
+builder.Services.AddHttpClient<StocksPlatform.Services.FundHoldingsService>();
+builder.Services.AddScoped<StocksPlatform.Services.FundInstitutionalService>();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
