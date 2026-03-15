@@ -1,4 +1,4 @@
-import { Component, ElementRef, AfterViewInit, OnDestroy, ViewChild, computed, input, output, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, ViewChild, computed, input, output, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
 export interface PriceSeries {
@@ -15,12 +15,35 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#818cf8'];
   templateUrl: './stock-chart.html',
   styleUrl: './stock-chart.css',
 })
-export class StockChart implements AfterViewInit, OnDestroy {
+export class StockChart implements OnDestroy {
   priceSeries = input.required<PriceSeries[]>();
   title = input<string>('');
   dateHover = output<string | null>();
 
-  @ViewChild('svgWrap') svgWrapRef!: ElementRef<HTMLElement>;
+  readonly hasChartData = computed(() =>
+    this.priceSeries().some((series) => {
+      const pointCount = Math.min(series.prices.length, series.times.length);
+      if (pointCount === 0) return false;
+      for (let i = 0; i < pointCount; i++) {
+        if (Number.isFinite(series.prices[i])) {
+          return true;
+        }
+      }
+      return false;
+    })
+  );
+
+  @ViewChild('svgWrap')
+  set svgWrapRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.ro?.disconnect();
+    if (!ref) return;
+
+    this.ro = new ResizeObserver((entries) => {
+      this.W.set(entries[0].contentRect.width);
+    });
+    this.ro.observe(ref.nativeElement);
+    this.W.set(ref.nativeElement.clientWidth);
+  }
 
   W = signal(500);
   readonly H = 200;
@@ -32,7 +55,7 @@ export class StockChart implements AfterViewInit, OnDestroy {
   hoverX = 0;
   mode = signal<'price' | 'returns'>('price');
 
-  private ro!: ResizeObserver;
+  private ro: ResizeObserver | null = null;
 
   /**
    * Period (daily) % return: (price[i] / price[i-1] - 1) * 100.
@@ -126,16 +149,9 @@ export class StockChart implements AfterViewInit, OnDestroy {
     return 2;
   });
 
-  ngAfterViewInit(): void {
-    this.ro = new ResizeObserver((entries) => {
-      this.W.set(entries[0].contentRect.width);
-    });
-    this.ro.observe(this.svgWrapRef.nativeElement);
-    this.W.set(this.svgWrapRef.nativeElement.clientWidth);
-  }
-
   ngOnDestroy(): void {
     this.ro?.disconnect();
+    this.ro = null;
   }
 
   getColor(i: number): string {

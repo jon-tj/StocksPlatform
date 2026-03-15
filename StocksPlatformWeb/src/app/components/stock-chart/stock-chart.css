@@ -83,6 +83,18 @@
   overflow: visible;
 }
 
+.sc-empty-state {
+  height: 200px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed color-mix(in srgb, var(--color-border) 78%, transparent);
+  border-radius: 10px;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 0.75rem;
+}
+
 .sc-gridline {
   stroke: color-mix(in srgb, var(--color-border) 72%, transparent);
   stroke-width: 0.75;

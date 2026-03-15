@@ -25,89 +25,93 @@
     }
   </div>
 
-  <div class="sc-svg-wrap" #svgWrap (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
-    <svg [attr.viewBox]="'0 0 ' + W() + ' ' + H" class="sc-svg">
-      <defs>
-        @for (s of priceSeries(); track $index; let i = $index) {
-          <linearGradient [id]="gradId(i)" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" [attr.stop-color]="getColor(i)" stop-opacity="0.22" />
-            <stop offset="100%" [attr.stop-color]="getColor(i)" stop-opacity="0" />
-          </linearGradient>
-        }
-      </defs>
-
-      @if (mode() === 'price') {
-        @for (tick of rightAxisTicks(); track tick.label + '-' + tick.y) {
-          <line class="sc-gridline" [attr.x1]="padLeft" [attr.y1]="tick.y" [attr.x2]="plotRight()" [attr.y2]="tick.y" />
-          <text class="sc-axis-label" [attr.x]="W() - 12" [attr.y]="tick.y" text-anchor="end" dominant-baseline="middle">{{ tick.label }}</text>
-        }
-        <line class="sc-axis-line" [attr.x1]="plotRight()" [attr.y1]="getPlotTop()" [attr.x2]="plotRight()" [attr.y2]="getPlotBottom()" />
-        @for (s of priceSeries(); track $index; let i = $index) {
-          @if (i === 0) {
-            <path [attr.d]="getAreaPath(s)" [attr.fill]="'url(#' + gradId(i) + ')'" />
-          }
-          <path
-            [attr.d]="getLinePath(s)"
-            fill="none"
-            [attr.stroke]="getColor(i)"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        }
-        @for (s of priceSeries(); track $index; let i = $index) {
-          <polygon class="sc-last-price-box" [attr.points]="getLastPriceCalloutPoints(s)" [attr.fill]="getColor(i)" />
-          <text class="sc-last-price-text" [attr.x]="getLastPriceLabelX(s)" [attr.y]="getPointY(s, s.prices.length - 1)" text-anchor="end" dominant-baseline="middle">{{ getLastPriceLabel(s) }}</text>
-        }
-      }
-
-      @if (mode() === 'returns') {
-        <line [attr.x1]="padLeft" [attr.y1]="getZeroY()" [attr.x2]="plotRight()" [attr.y2]="getZeroY()" stroke-width="1" [attr.stroke]="'var(--color-border)'" />
-        @for (s of priceSeries(); track $index; let si = $index) {
-          @for (bar of getBarRects(s, si, priceSeries().length); track $index; let i = $index) {
-            <rect
-              [attr.x]="bar.x"
-              [attr.y]="bar.y"
-              [attr.width]="bar.w"
-              [attr.height]="bar.h"
-              [attr.fill]="bar.ret >= 0 ? '#10b981' : '#ef4444'"
-              [attr.opacity]="hoveredIndex === null || hoveredIndex === i ? 1 : 0.35"
-              rx="2"
-            />
-          }
-        }
-      }
-
-      @if (hoveredIndex !== null) {
-        <line
-          [attr.x1]="hoverX" [attr.y1]="getPlotTop()"
-          [attr.x2]="hoverX" [attr.y2]="getPlotBottom()"
-          [attr.stroke]="'var(--color-border)'" stroke-width="1" stroke-dasharray="4,3"
-        />
-        @if (mode() === 'price') {
+  @if (hasChartData()) {
+    <div class="sc-svg-wrap" #svgWrap (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
+      <svg [attr.viewBox]="'0 0 ' + W() + ' ' + H" class="sc-svg">
+        <defs>
           @for (s of priceSeries(); track $index; let i = $index) {
-            <circle
-              [attr.cx]="hoverX"
-              [attr.cy]="getPointY(s, hoveredIndex)"
-              r="4"
-              [attr.fill]="getColor(i)"
-              style="stroke: var(--color-background); stroke-width: 2"
+            <linearGradient [id]="gradId(i)" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" [attr.stop-color]="getColor(i)" stop-opacity="0.22" />
+              <stop offset="100%" [attr.stop-color]="getColor(i)" stop-opacity="0" />
+            </linearGradient>
+          }
+        </defs>
+
+        @if (mode() === 'price') {
+          @for (tick of rightAxisTicks(); track tick.label + '-' + tick.y) {
+            <line class="sc-gridline" [attr.x1]="padLeft" [attr.y1]="tick.y" [attr.x2]="plotRight()" [attr.y2]="tick.y" />
+            <text class="sc-axis-label" [attr.x]="W() - 12" [attr.y]="tick.y" text-anchor="end" dominant-baseline="middle">{{ tick.label }}</text>
+          }
+          <line class="sc-axis-line" [attr.x1]="plotRight()" [attr.y1]="getPlotTop()" [attr.x2]="plotRight()" [attr.y2]="getPlotBottom()" />
+          @for (s of priceSeries(); track $index; let i = $index) {
+            @if (i === 0) {
+              <path [attr.d]="getAreaPath(s)" [attr.fill]="'url(#' + gradId(i) + ')'" />
+            }
+            <path
+              [attr.d]="getLinePath(s)"
+              fill="none"
+              [attr.stroke]="getColor(i)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             />
           }
+          @for (s of priceSeries(); track $index; let i = $index) {
+            <polygon class="sc-last-price-box" [attr.points]="getLastPriceCalloutPoints(s)" [attr.fill]="getColor(i)" />
+            <text class="sc-last-price-text" [attr.x]="getLastPriceLabelX(s)" [attr.y]="getPointY(s, s.prices.length - 1)" text-anchor="end" dominant-baseline="middle">{{ getLastPriceLabel(s) }}</text>
+          }
+        }
+
+        @if (mode() === 'returns') {
+          <line [attr.x1]="padLeft" [attr.y1]="getZeroY()" [attr.x2]="plotRight()" [attr.y2]="getZeroY()" stroke-width="1" [attr.stroke]="'var(--color-border)'" />
+          @for (s of priceSeries(); track $index; let si = $index) {
+            @for (bar of getBarRects(s, si, priceSeries().length); track $index; let i = $index) {
+              <rect
+                [attr.x]="bar.x"
+                [attr.y]="bar.y"
+                [attr.width]="bar.w"
+                [attr.height]="bar.h"
+                [attr.fill]="bar.ret >= 0 ? '#10b981' : '#ef4444'"
+                [attr.opacity]="hoveredIndex === null || hoveredIndex === i ? 1 : 0.35"
+                rx="2"
+              />
+            }
+          }
+        }
+
+        @if (hoveredIndex !== null) {
+          <line
+            [attr.x1]="hoverX" [attr.y1]="getPlotTop()"
+            [attr.x2]="hoverX" [attr.y2]="getPlotBottom()"
+            [attr.stroke]="'var(--color-border)'" stroke-width="1" stroke-dasharray="4,3"
+          />
+          @if (mode() === 'price') {
+            @for (s of priceSeries(); track $index; let i = $index) {
+              <circle
+                [attr.cx]="hoverX"
+                [attr.cy]="getPointY(s, hoveredIndex)"
+                r="4"
+                [attr.fill]="getColor(i)"
+                style="stroke: var(--color-background); stroke-width: 2"
+              />
+            }
+          }
+        }
+      </svg>
+    </div>
+
+    <div class="sc-x-labels">
+      @for (tick of monthTicks(); track tick.pct; let first = $first, last = $last) {
+        @if (!first) {
+          <span
+            [style.left.%]="tick.pct"
+            [class.sc-tick-last]="last"
+          >{{ tick.label }}</span>
         }
       }
-    </svg>
-  </div>
-
-  <div class="sc-x-labels">
-    @for (tick of monthTicks(); track tick.pct; let first = $first, last = $last) {
-      @if (!first) {
-        <span
-          [style.left.%]="tick.pct"
-          [class.sc-tick-last]="last"
-        >{{ tick.label }}</span>
-      }
-    }
-  </div>
+    </div>
+  } @else {
+    <div class="sc-empty-state">This is not the graph you are looking for.</div>
+  }
 </div>
 
