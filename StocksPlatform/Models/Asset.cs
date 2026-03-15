@@ -43,6 +43,9 @@ public class Asset
 
     /// <summary>Geographic region, e.g. "North America" or "Europe".</summary>
     public string? Region { get; set; }
+
+    /// <summary>Broker-reported popularity score. Higher = more popular.</summary>
+    public int? Popularity { get; set; }
 }
 
 /// <summary>

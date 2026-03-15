@@ -25,12 +25,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
     // Stable, deterministic asset IDs derived from a fixed namespace + name.
     // Equivalent to UUID v5 (SHA-1 name-based) — same input always yields same GUID.
-    public static readonly Guid PortfolioId = Guid.Empty;
-    public static readonly Guid AaplId      = AssetGuid("AAPL");
-    public static readonly Guid NvdaId      = AssetGuid("NVDA");
-    public static readonly Guid MsftId      = AssetGuid("MSFT");
-    public static readonly Guid MetaId      = AssetGuid("META");
-    public static readonly Guid AmznId      = AssetGuid("AMZN");
+    public static readonly Guid MainPortfolioId = Guid.Empty;
 
     /// <summary>
     /// Produces a deterministic GUID from a name string using SHA-1,
@@ -39,11 +34,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public static Guid AssetGuid(string name)
     {
         // Fixed namespace: 6ba7b810-9dad-11d1-80b4-00c04fd430c8 (URL namespace)
-        Span<byte> ns = stackalloc byte[]
-        {
+        Span<byte> ns =
+        [
             0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1,
             0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8,
-        };
+        ];
         var nameBytes = Encoding.UTF8.GetBytes(name);
         Span<byte> input = stackalloc byte[ns.Length + nameBytes.Length];
         ns.CopyTo(input);
@@ -113,21 +108,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         // Seed assets
         builder.Entity<Asset>().HasData(
-            new Asset { Id = PortfolioId, Name = "Main Portfolio", Type = AssetType.Portfolio },
-            new Asset { Id = AaplId, Name = "Apple Inc.",      Type = AssetType.Stock, Symbol = "AAPL", Market = "NASDAQ", Broker = "NordNet", BrokerSymbol = "AAPL" },
-            new Asset { Id = NvdaId, Name = "NVIDIA Corp.",    Type = AssetType.Stock, Symbol = "NVDA", Market = "NASDAQ", Broker = "NordNet", BrokerSymbol = "NVDA" },
-            new Asset { Id = MsftId, Name = "Microsoft Corp.", Type = AssetType.Stock, Symbol = "MSFT", Market = "NASDAQ", Broker = "NordNet", BrokerSymbol = "MSFT" },
-            new Asset { Id = MetaId, Name = "Meta Platforms",  Type = AssetType.Stock, Symbol = "META", Market = "NASDAQ", Broker = "NordNet", BrokerSymbol = "META" },
-            new Asset { Id = AmznId, Name = "Amazon.com Inc.", Type = AssetType.Stock, Symbol = "AMZN", Market = "NASDAQ", Broker = "NordNet", BrokerSymbol = "AMZN" }
-        );
-
-        // Seed portfolio membership
-        builder.Entity<PortfolioAsset>().HasData(
-            new PortfolioAsset { Id = 1, PortfolioId = PortfolioId, AssetId = AaplId, Quantity = 12 },
-            new PortfolioAsset { Id = 2, PortfolioId = PortfolioId, AssetId = NvdaId, Quantity =  5 },
-            new PortfolioAsset { Id = 3, PortfolioId = PortfolioId, AssetId = MsftId, Quantity =  8 },
-            new PortfolioAsset { Id = 4, PortfolioId = PortfolioId, AssetId = MetaId, Quantity =  3 },
-            new PortfolioAsset { Id = 5, PortfolioId = PortfolioId, AssetId = AmznId, Quantity =  6 }
+            new Asset { Id = MainPortfolioId, Name = "Main Portfolio", Type = AssetType.Portfolio }
         );
     }
 }

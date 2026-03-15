@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace StocksPlatform.Migrations
 {
     /// <inheritdoc />
@@ -64,11 +62,32 @@ namespace StocksPlatform.Migrations
                     Symbol = table.Column<string>(type: "TEXT", nullable: true),
                     Market = table.Column<string>(type: "TEXT", nullable: true),
                     Broker = table.Column<string>(type: "TEXT", nullable: true),
-                    BrokerSymbol = table.Column<string>(type: "TEXT", nullable: true)
+                    BrokerSymbol = table.Column<string>(type: "TEXT", nullable: true),
+                    Isin = table.Column<string>(type: "TEXT", nullable: true),
+                    Sector = table.Column<string>(type: "TEXT", nullable: true),
+                    Subsector = table.Column<string>(type: "TEXT", nullable: true),
+                    Country = table.Column<string>(type: "TEXT", nullable: true),
+                    Region = table.Column<string>(type: "TEXT", nullable: true),
+                    Popularity = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Assets", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FundPortfolioMetas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FundIsin = table.Column<string>(type: "TEXT", nullable: false),
+                    LastPortfolioDate = table.Column<string>(type: "TEXT", nullable: true),
+                    LastRunDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FundPortfolioMetas", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -273,6 +292,7 @@ namespace StocksPlatform.Migrations
                     MemberSentimentDelta = table.Column<double>(type: "REAL", nullable: false),
                     FundamentalDelta = table.Column<double>(type: "REAL", nullable: false),
                     InstitutionalOrderFlowDelta = table.Column<double>(type: "REAL", nullable: false),
+                    PatternDelta = table.Column<double>(type: "REAL", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -351,6 +371,29 @@ namespace StocksPlatform.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FundHoldingSnapshots",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AssetId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    MeanFundPercentage = table.Column<double>(type: "REAL", nullable: false),
+                    MedianFundPercentage = table.Column<double>(type: "REAL", nullable: false),
+                    NumFundsRepresented = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FundHoldingSnapshots", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FundHoldingSnapshots_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "Assets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PortfolioAssets",
                 columns: table => new
                 {
@@ -381,28 +424,8 @@ namespace StocksPlatform.Migrations
 
             migrationBuilder.InsertData(
                 table: "Assets",
-                columns: new[] { "Id", "Broker", "BrokerSymbol", "Market", "Name", "Symbol", "Type" },
-                values: new object[,]
-                {
-                    { new Guid("00000000-0000-0000-0000-000000000000"), null, null, null, "Main Portfolio", null, 0 },
-                    { new Guid("6f8ef50e-e781-0458-8757-dd400efdf483"), "NordNet", "NVDA", "NASDAQ", "NVIDIA Corp.", "NVDA", 1 },
-                    { new Guid("7b917ec4-bbf1-1c5e-aaf0-304481b6e294"), "NordNet", "META", "NASDAQ", "Meta Platforms", "META", 1 },
-                    { new Guid("8b619288-8e7f-bf57-a510-f127f297d90f"), "NordNet", "AAPL", "NASDAQ", "Apple Inc.", "AAPL", 1 },
-                    { new Guid("dd572689-c625-8551-a8cf-65250dfcaf54"), "NordNet", "MSFT", "NASDAQ", "Microsoft Corp.", "MSFT", 1 },
-                    { new Guid("e83a41d0-6729-3454-9be3-88961116ab75"), "NordNet", "AMZN", "NASDAQ", "Amazon.com Inc.", "AMZN", 1 }
-                });
-
-            migrationBuilder.InsertData(
-                table: "PortfolioAssets",
-                columns: new[] { "Id", "AssetId", "Fraction", "FractionExpiry", "PortfolioId", "Quantity" },
-                values: new object[,]
-                {
-                    { 1, new Guid("8b619288-8e7f-bf57-a510-f127f297d90f"), null, null, new Guid("00000000-0000-0000-0000-000000000000"), 12u },
-                    { 2, new Guid("6f8ef50e-e781-0458-8757-dd400efdf483"), null, null, new Guid("00000000-0000-0000-0000-000000000000"), 5u },
-                    { 3, new Guid("dd572689-c625-8551-a8cf-65250dfcaf54"), null, null, new Guid("00000000-0000-0000-0000-000000000000"), 8u },
-                    { 4, new Guid("7b917ec4-bbf1-1c5e-aaf0-304481b6e294"), null, null, new Guid("00000000-0000-0000-0000-000000000000"), 3u },
-                    { 5, new Guid("e83a41d0-6729-3454-9be3-88961116ab75"), null, null, new Guid("00000000-0000-0000-0000-000000000000"), 6u }
-                });
+                columns: new[] { "Id", "Broker", "BrokerSymbol", "Country", "Isin", "Market", "Name", "Popularity", "Region", "Sector", "Subsector", "Symbol", "Type" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000000"), null, null, null, null, null, "Main Portfolio", null, null, null, null, null, 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -472,6 +495,18 @@ namespace StocksPlatform.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_FundHoldingSnapshots_AssetId_Date",
+                table: "FundHoldingSnapshots",
+                columns: new[] { "AssetId", "Date" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FundPortfolioMetas_FundIsin",
+                table: "FundPortfolioMetas",
+                column: "FundIsin",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PortfolioAssets_AssetId",
                 table: "PortfolioAssets",
                 column: "AssetId");
@@ -515,6 +550,12 @@ namespace StocksPlatform.Migrations
 
             migrationBuilder.DropTable(
                 name: "AssetPrices");
+
+            migrationBuilder.DropTable(
+                name: "FundHoldingSnapshots");
+
+            migrationBuilder.DropTable(
+                name: "FundPortfolioMetas");
 
             migrationBuilder.DropTable(
                 name: "PollQuestions");

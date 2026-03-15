@@ -23,6 +23,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         double MemberSentimentDelta,
         double FundamentalDelta,
         double InstitutionalOrderFlowDelta,
+        double PatternDelta,
         double CombinedScore
     );
 
@@ -37,6 +38,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         double MemberSentimentDelta,
         double FundamentalDelta,
         double InstitutionalOrderFlowDelta,
+        double PatternDelta,
         double CombinedScore,
         double TargetFraction
     );
@@ -232,6 +234,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         row.MemberSentimentDelta = fresh.MemberSentimentDelta;
         row.FundamentalDelta = fresh.FundamentalDelta;
         row.InstitutionalOrderFlowDelta = fresh.InstitutionalOrderFlowDelta;
+        row.PatternDelta = fresh.PatternDelta;
         row.ExpiresAt = fresh.ExpiresAt;
         cache[(row.AssetId, row.Date.Date)] = row;
     }
@@ -297,6 +300,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
             MemberSentimentDelta = Wavg(d => d.MemberSentimentDelta),
             FundamentalDelta = Wavg(d => d.FundamentalDelta),
             InstitutionalOrderFlowDelta = Wavg(d => d.InstitutionalOrderFlowDelta),
+            PatternDelta = Wavg(d => d.PatternDelta),
             ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
         };
     }
@@ -306,18 +310,18 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         d.MarketDelta, d.PairDelta, d.PairAssetId,
         d.PublicSentimentDelta, d.MemberSentimentDelta,
         d.FundamentalDelta, d.InstitutionalOrderFlowDelta,
-        Score(d));
+        d.PatternDelta, Score(d));
 
     private static HoldingDto ToHoldingDto(AssetDelta d, string assetName, double score, double targetFraction) => new(
         d.AssetId, assetName, d.Date,
         d.MarketDelta, d.PairDelta, d.PairAssetId,
         d.PublicSentimentDelta, d.MemberSentimentDelta,
         d.FundamentalDelta, d.InstitutionalOrderFlowDelta,
-        score, targetFraction);
+        d.PatternDelta, score, targetFraction);
 
     private static double Score(AssetDelta d) =>
         (d.MarketDelta + d.PublicSentimentDelta + d.MemberSentimentDelta +
-         d.FundamentalDelta + d.InstitutionalOrderFlowDelta) / 5.0;
+         d.FundamentalDelta + d.InstitutionalOrderFlowDelta + d.PatternDelta) / 6.0;
 
     private static double[] Softmax(double[] scores)
     {
@@ -335,6 +339,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
     private async Task<AssetDelta> ComputeAsync(Guid assetId, DateTime date)
     {
         var institutionalDelta = await fundInstitutionalService.GetInstitutionalDeltaAsync(assetId);
+        var patternDelta = await ComputePatternDeltaAsync(assetId, date);
         return new AssetDelta
         {
             AssetId = assetId,
@@ -346,7 +351,68 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
             MemberSentimentDelta = 1.0,
             FundamentalDelta = 1.0,
             InstitutionalOrderFlowDelta = institutionalDelta,
+            PatternDelta = patternDelta,
             ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
         };
+    }
+
+    /// <summary>
+    /// Scores how closely the last 30 days of daily price history matches the ideal
+    /// dip-buying setup: a linear decline of ~0.1 %/day for the first ~27 days followed
+    /// by a total drop of ≥10 % from the starting price.
+    /// Returns 1.0 (neutral) when data is insufficient or no pattern is present,
+    /// up to 2.0 for a perfect match. Recent days carry exponentially more weight.
+    /// </summary>
+    private async Task<double> ComputePatternDeltaAsync(Guid assetId, DateTime date)
+    {
+        const int windowDays = 30;
+        const int dropDays = 3;
+        const double idealDailyDecline = -0.001;           // -0.1 % per day
+        const double idealTotalLogDrop = -0.10536;         // ln(0.90) ≈ -10 %
+        const double weightAlpha = 3.0;                    // exponential weight steepness
+        const double rmseToleranceSq = 0.05 * 0.05;       // 5 % RMSE → half score
+
+        var since = date.Date.AddDays(-windowDays);
+
+        var prices = await db.AssetDailyHistory
+            .Where(h => h.AssetId == assetId
+                     && h.Timestamp >= since
+                     && h.Timestamp < date.Date.AddDays(1))
+            .OrderBy(h => h.Timestamp)
+            .Select(h => (double)h.Price)
+            .ToListAsync();
+
+        if (prices.Count < 5) return 1.0;
+
+        double p0 = prices[0];
+        if (p0 <= 0) return 1.0;
+
+        // Buildup phase: everything except the last `dropDays` prices (at least 2 points).
+        int builtupCount = Math.Max(prices.Count - dropDays, 2);
+
+        // --- Weighted fit of the buildup phase against the ideal linear decline ---
+        double wSum = 0.0, weightedSqErr = 0.0;
+        for (int i = 0; i < builtupCount; i++)
+        {
+            double t = (double)i / Math.Max(builtupCount - 1, 1); // 0 → 1
+            double idealLogReturn = idealDailyDecline * t * (windowDays - dropDays);
+            double actualLogReturn = Math.Log(prices[i] / p0);
+            double err = actualLogReturn - idealLogReturn;
+            double w = Math.Exp(weightAlpha * t); // heavier weight toward end of buildup
+            wSum += w;
+            weightedSqErr += w * err * err;
+        }
+
+        double wmse = wSum > 0 ? weightedSqErr / wSum : 1.0;
+        // 1.0 when RMSE = 0; decays toward 0 as deviation grows
+        double buildupFit = Math.Exp(-wmse / rmseToleranceSq);
+
+        // --- Total drop from first to last recorded price ---
+        double totalLogReturn = Math.Log(prices[^1] / p0);
+        // 0.0 = no drop, 1.0 = exactly -10 %, clamped (no credit for upward moves)
+        double dropScore = Math.Clamp(totalLogReturn / idealTotalLogDrop, 0.0, 1.0);
+
+        // Combined: 1.0 (no pattern) → 2.0 (perfect dip-buy setup)
+        return 1.0 + buildupFit * dropScore;
     }
 }

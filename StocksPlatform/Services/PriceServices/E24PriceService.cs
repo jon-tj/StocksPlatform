@@ -15,7 +15,7 @@ namespace StocksPlatform.Services.PriceServices;
 /// </summary>
 public class E24PriceService(AppDbContext db, HttpClient http) : IAssetPriceProvider
 {
-    private const string BaseUrl    = "https://api.e24.no/bors/chart";
+    private const string BaseUrl = "https://api.e24.no/bors/chart";
     private const string TickerBase = "https://api.e24.no/bors/v2/instruments";
     private static readonly TimeSpan IncrementalThreshold = TimeSpan.FromDays(28);
 
@@ -25,7 +25,7 @@ public class E24PriceService(AppDbContext db, HttpClient http) : IAssetPriceProv
     /// uses period=1months for incremental updates within the threshold.
     /// </summary>
     /// <param name="exchange">Exchange suffix used in e24 URLs, e.g. "OSE" or "NAS".</param>
-    public async Task EnsureDailyBarsAsync(Guid assetId, string symbol, string exchange = "OSE")
+    public async Task EnsureDailyBarsAsync(Guid assetId, string symbol, string? exchange = "OSE")
     {
         var meta = await db.AssetHistoryMeta.FirstOrDefaultAsync(m => m.AssetId == assetId);
         var now = DateTime.UtcNow;
@@ -124,9 +124,9 @@ public class E24PriceService(AppDbContext db, HttpClient http) : IAssetPriceProv
 
         var exchange = asset?.Market?.ToUpperInvariant() switch
         {
-            "OSE"    => "OSE",
-            "NASDAQ" => "NAS",
-            _        => null
+            "XOSL" => "OSE",
+            "XNAS" => "NAS",
+            _ => null
         };
 
         if (exchange is not null && asset?.Symbol is { } symbol)

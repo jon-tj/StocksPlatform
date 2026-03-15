@@ -11,8 +11,8 @@ using StocksPlatform.Data;
 namespace StocksPlatform.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260315100917_AddAssetClassificationFields")]
-    partial class AddAssetClassificationFields
+    [Migration("20260315114819_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -243,6 +243,9 @@ namespace StocksPlatform.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("Popularity")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Region")
                         .HasColumnType("TEXT");
 
@@ -268,56 +271,6 @@ namespace StocksPlatform.Migrations
                             Id = new Guid("00000000-0000-0000-0000-000000000000"),
                             Name = "Main Portfolio",
                             Type = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("8b619288-8e7f-bf57-a510-f127f297d90f"),
-                            Broker = "NordNet",
-                            BrokerSymbol = "AAPL",
-                            Market = "NASDAQ",
-                            Name = "Apple Inc.",
-                            Symbol = "AAPL",
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("6f8ef50e-e781-0458-8757-dd400efdf483"),
-                            Broker = "NordNet",
-                            BrokerSymbol = "NVDA",
-                            Market = "NASDAQ",
-                            Name = "NVIDIA Corp.",
-                            Symbol = "NVDA",
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("dd572689-c625-8551-a8cf-65250dfcaf54"),
-                            Broker = "NordNet",
-                            BrokerSymbol = "MSFT",
-                            Market = "NASDAQ",
-                            Name = "Microsoft Corp.",
-                            Symbol = "MSFT",
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("7b917ec4-bbf1-1c5e-aaf0-304481b6e294"),
-                            Broker = "NordNet",
-                            BrokerSymbol = "META",
-                            Market = "NASDAQ",
-                            Name = "Meta Platforms",
-                            Symbol = "META",
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("e83a41d0-6729-3454-9be3-88961116ab75"),
-                            Broker = "NordNet",
-                            BrokerSymbol = "AMZN",
-                            Market = "NASDAQ",
-                            Name = "Amazon.com Inc.",
-                            Symbol = "AMZN",
-                            Type = 1
                         });
                 });
 
@@ -381,6 +334,9 @@ namespace StocksPlatform.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<double?>("PairDelta")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("PatternDelta")
                         .HasColumnType("REAL");
 
                     b.Property<double>("PublicSentimentDelta")
@@ -613,43 +569,6 @@ namespace StocksPlatform.Migrations
                         .IsUnique();
 
                     b.ToTable("PortfolioAssets");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AssetId = new Guid("8b619288-8e7f-bf57-a510-f127f297d90f"),
-                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Quantity = 12u
-                        },
-                        new
-                        {
-                            Id = 2,
-                            AssetId = new Guid("6f8ef50e-e781-0458-8757-dd400efdf483"),
-                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Quantity = 5u
-                        },
-                        new
-                        {
-                            Id = 3,
-                            AssetId = new Guid("dd572689-c625-8551-a8cf-65250dfcaf54"),
-                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Quantity = 8u
-                        },
-                        new
-                        {
-                            Id = 4,
-                            AssetId = new Guid("7b917ec4-bbf1-1c5e-aaf0-304481b6e294"),
-                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Quantity = 3u
-                        },
-                        new
-                        {
-                            Id = 5,
-                            AssetId = new Guid("e83a41d0-6729-3454-9be3-88961116ab75"),
-                            PortfolioId = new Guid("00000000-0000-0000-0000-000000000000"),
-                            Quantity = 6u
-                        });
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.UserPortfolio", b =>

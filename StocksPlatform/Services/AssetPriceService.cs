@@ -6,9 +6,9 @@ using StocksPlatform.Services.PriceServices;
 namespace StocksPlatform.Services;
 
 /// <summary>
-/// Cache layer for asset prices. Delegates actual price fetching to an <see cref="IAssetPriceProvider"/>.
+/// Cache layer for asset prices. Delegates actual price fetching to an <see cref="E24PriceService"/>.
 /// </summary>
-public class AssetPriceService(AppDbContext db, IAssetPriceProvider priceProvider)
+public class AssetPriceService(AppDbContext db, E24PriceService e24)
 {
     /// <summary>Returns the current price for the given asset, using a 1-minute cache.</summary>
     public async Task<decimal> GetPriceAsync(Guid assetId)
@@ -19,7 +19,7 @@ public class AssetPriceService(AppDbContext db, IAssetPriceProvider priceProvide
         if (cached is not null && cached.ExpiresAt > now)
             return cached.Price;
 
-        var price = await priceProvider.FetchLivePriceAsync(assetId);
+        var price = await e24.FetchLivePriceAsync(assetId);
         UpsertCachedPrice(cached, assetId, price, now);
         await db.SaveChangesAsync();
         return price;
@@ -41,7 +41,7 @@ public class AssetPriceService(AppDbContext db, IAssetPriceProvider priceProvide
 
         foreach (var id in staleIds)
         {
-            var price = await priceProvider.FetchLivePriceAsync(id);
+            var price = await e24.FetchLivePriceAsync(id);
             cachedMap.TryGetValue(id, out var existing);
             UpsertCachedPrice(existing, id, price, now);
             result[id] = price;

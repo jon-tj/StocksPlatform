@@ -27,6 +27,7 @@ export interface AssetDelta {
   memberSentimentDelta: number;
   fundamentalDelta: number;
   institutionalOrderFlowDelta: number;
+  patternDelta: number;
   combinedScore: number;
 }
 

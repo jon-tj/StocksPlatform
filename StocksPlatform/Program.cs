@@ -10,15 +10,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
-builder.Services.AddSingleton<StocksPlatform.Services.PollWeekService>();
-builder.Services.AddScoped<StocksPlatform.Services.FractionService>();
+builder.Services.AddSingleton<PollWeekService>();
+builder.Services.AddScoped<FractionService>();
 builder.Services.AddHttpClient<StocksPlatform.Services.PriceServices.E24PriceService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddScoped<StocksPlatform.Services.PriceServices.E24PriceService>();
 builder.Services.AddScoped<StocksPlatform.Services.PriceServices.IAssetPriceProvider>(
     sp => sp.GetRequiredService<StocksPlatform.Services.PriceServices.E24PriceService>());
-builder.Services.AddScoped<StocksPlatform.Services.AssetPriceService>();
+builder.Services.AddScoped<AssetPriceService>();
 builder.Services.AddHttpClient<StocksPlatform.Services.FundServices.SpareBank1FundService>();
 builder.Services.AddHttpClient<StocksPlatform.Services.FundServices.HanEtfFundService>(client =>
 {
@@ -30,7 +31,7 @@ builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsPro
     sp => sp.GetRequiredService<StocksPlatform.Services.FundServices.SpareBank1FundService>());
 builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsProvider>(
     sp => sp.GetRequiredService<StocksPlatform.Services.FundServices.HanEtfFundService>());
-builder.Services.AddScoped<StocksPlatform.Services.FundInstitutionalService>();
+builder.Services.AddScoped<FundInstitutionalService>();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
@@ -88,8 +89,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
-    await OseTickerSeeder.SeedAsync(db);
-    await UsTickerSeeder.SeedAsync(db);
+    await NordnetTickerSeeder.SeedAsync(db);
 }
 
 app.Run();

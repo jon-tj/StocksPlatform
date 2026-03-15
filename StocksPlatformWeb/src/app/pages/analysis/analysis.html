@@ -85,6 +85,15 @@
             >{{ delta ? (delta.institutionalOrderFlowDelta | number: '1.2-2') : 'N/A' }}</span
           >
         </div>
+        <div class="delta-item">
+          <span class="delta-label">Pattern</span>
+          <span
+            class="delta-value"
+            [class.positive]="delta && delta.patternDelta >= 1"
+            [class.negative]="delta && delta.patternDelta < 1"
+            >{{ delta ? (delta.patternDelta | number: '1.2-2') : 'N/A' }}</span
+          >
+        </div>
         @if (delta && delta.pairDelta !== null) {
           <div class="delta-item">
             <span class="delta-label">Pair</span>
@@ -126,6 +135,7 @@
                 <th class="num-col">Pub. Sentiment</th>
                 <th class="num-col">Mbr. Sentiment</th>
                 <th class="num-col">Inst. Flow</th>
+                <th class="num-col">Pattern</th>
                 <th class="num-col">Score</th>
                 <th class="num-col">Target %</th>
                 <th class="num-col">Current %</th>
@@ -175,6 +185,13 @@
                       {{ row.holding.institutionalOrderFlowDelta | number: '1.2-2' }}
                     </td>
                     <td
+                      class="num-col"
+                      [class.positive]="row.holding.patternDelta >= 1"
+                      [class.negative]="row.holding.patternDelta < 1"
+                    >
+                      {{ row.holding.patternDelta | number: '1.2-2' }}
+                    </td>
+                    <td
                       class="num-col score-col"
                       [class.positive]="row.holding.combinedScore >= 1"
                       [class.negative]="row.holding.combinedScore < 1"
@@ -182,7 +199,7 @@
                       {{ row.holding.combinedScore | number: '1.2-2' }}
                     </td>
                   } @else {
-                    <td class="num-col muted" colspan="6">—</td>
+                    <td class="num-col muted" colspan="7">—</td>
                   }
                   <td class="num-col">
                     {{

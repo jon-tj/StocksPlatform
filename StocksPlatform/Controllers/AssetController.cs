@@ -13,7 +13,7 @@ namespace StocksPlatform.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AssetController(AppDbContext db, UserManager<AppUser> userManager, IAssetPriceProvider priceProvider) : ControllerBase
+public class AssetController(AppDbContext db, UserManager<AppUser> userManager, E24PriceService e24) : ControllerBase
 {
     public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol);
     public record HistoryDto(double[] Prices, string[] Times);
@@ -51,11 +51,18 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
         var lower = q.ToLower();
         var results = await db.Assets
             .Where(a => a.Name.ToLower().Contains(lower) || (a.Symbol != null && a.Symbol.ToLower().Contains(lower)))
-            .Take(10)
-            .Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol))
+            .Take(50)
+            .Select(a => new { a.Id, a.Name, a.Type, a.Symbol, a.Market, a.Broker, a.BrokerSymbol, a.Popularity })
             .ToListAsync();
 
-        return Ok(results);
+        var exact = q.ToUpperInvariant();
+        var ordered = results
+            .OrderByDescending(a => a.Symbol?.ToUpperInvariant() == exact || a.Name.ToUpperInvariant() == exact)
+            .ThenByDescending(a => (a.Market?.ToUpperInvariant() == "XOSL" ? 10000 : 0) + (a.Popularity ?? 0))
+            .Take(10)
+            .Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol));
+
+        return Ok(ordered);
     }
 
     // GET /api/asset/{id} — asset details
@@ -84,8 +91,8 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
 
         var exchangeSuffix = asset.Market?.ToUpperInvariant() switch
         {
-            "OSE" => "OSE",
-            "NASDAQ" => "NAS",
+            "XOSL" => "OSE",
+            "XNAS" => "NAS",
             _ => null
         };
 
@@ -93,7 +100,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
         {
             if (intraday)
             {
-                await priceProvider.EnsureIntradayBarsAsync(id, symbol, exchangeSuffix);
+                await e24.EnsureIntradayBarsAsync(id, symbol, exchangeSuffix);
                 var bars = await db.AssetIntradayHistory
                     .Where(b => b.AssetId == id)
                     .OrderBy(b => b.Timestamp)
@@ -102,7 +109,7 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
             }
             else
             {
-                await priceProvider.EnsureDailyBarsAsync(id, symbol, exchangeSuffix);
+                await e24.EnsureDailyBarsAsync(id, symbol, exchangeSuffix);
                 var bars = await db.AssetDailyHistory
                     .Where(b => b.AssetId == id && b.Timestamp >= from && b.Timestamp <= to)
                     .OrderBy(b => b.Timestamp)

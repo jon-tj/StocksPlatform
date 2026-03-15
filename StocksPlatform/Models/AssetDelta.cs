@@ -47,6 +47,14 @@ public class AssetDelta
     public double InstitutionalOrderFlowDelta { get; set; }
 
     /// <summary>
+    /// Pattern delta — measures how closely the last 30 days of price history resembles
+    /// the ideal dip-buying setup: a gradual linear decline of ~0.1%/day for the first
+    /// 27 days followed by a total drop of ≥10% by the most recent price.
+    /// Range: 1.0 (no pattern) → 2.0 (perfect match). Recent days are weighted more heavily.
+    /// </summary>
+    public double PatternDelta { get; set; } = 1.0;
+
+    /// <summary>
     /// UTC timestamp after which this snapshot should be recomputed.
     /// Null means it has never been computed (legacy rows).
     /// </summary>

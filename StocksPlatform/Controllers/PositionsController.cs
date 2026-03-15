@@ -64,7 +64,7 @@ public class PositionsController(AppDbContext db, UserManager<AppUser> userManag
 
     private async Task<PositionDto[]> GetRealPositions()
     {
-        var rows = await fractionService.GetFreshChildrenAsync(AppDbContext.PortfolioId);
+        var rows = await fractionService.GetFreshChildrenAsync(AppDbContext.MainPortfolioId);
 
         return rows.Select(pa => new PositionDto(
             pa.Asset.Id,
