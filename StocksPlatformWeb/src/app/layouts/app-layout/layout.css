@@ -66,13 +66,19 @@ nav {
   background: transparent;
   border: none;
   padding: 0.25rem;
-  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   border-radius: 6px;
-  transition: opacity 0.2s;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
 }
 
 .btn-theme:hover {
-  opacity: 0.75;
+  color: var(--color-text-primary);
+}
+
+.btn-theme .material-icons {
+  font-size: 20px;
 }

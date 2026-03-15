@@ -352,6 +352,7 @@ public static class NordnetTickerSeeder
                 if (string.IsNullOrWhiteSpace(existing.Country))  existing.Country = country;
                 if (string.IsNullOrWhiteSpace(existing.Region))   existing.Region  = region;
                 if (string.IsNullOrWhiteSpace(existing.Market))   existing.Market  = market;
+                if (string.IsNullOrWhiteSpace(existing.IconUrl) && row.IconUrl != null) existing.IconUrl = row.IconUrl;
                 existing.Broker     = "NordNet";
                 existing.Popularity = row.Popularity;
             }
@@ -372,6 +373,7 @@ public static class NordnetTickerSeeder
                     Country      = country,
                     Region       = region,
                     Popularity   = row.Popularity,
+                    IconUrl      = row.IconUrl,
                 });
             }
         }
@@ -382,7 +384,7 @@ public static class NordnetTickerSeeder
         await db.SaveChangesAsync();
     }
 
-    private record CsvRow(string BrokerSymbol, int Popularity, string Name, string Isin, string Symbol, string Country, string Region);
+    private record CsvRow(string BrokerSymbol, int Popularity, string Name, string Isin, string Symbol, string Country, string Region, string? IconUrl);
 
     private static List<CsvRow> ReadCsv()
     {
@@ -409,12 +411,13 @@ public static class NordnetTickerSeeder
             var isin         = cols[3].Trim();
             var symbol       = cols[4].Trim();
             var country      = cols[5].Trim();
+            var iconUrl      = cols.Length >= 9 ? cols[8].Trim() : null;
             var region       = cols.Length >= 10 ? cols[9].Trim() : "Europe";
 
             if (string.IsNullOrWhiteSpace(brokerSymbol) || string.IsNullOrWhiteSpace(isin))
                 continue;
 
-            rows.Add(new CsvRow(brokerSymbol, popularity, name, isin, symbol, country, region));
+            rows.Add(new CsvRow(brokerSymbol, popularity, name, isin, symbol, country, region, string.IsNullOrWhiteSpace(iconUrl) ? null : iconUrl));
         }
 
         return rows;

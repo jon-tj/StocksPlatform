@@ -14,6 +14,11 @@ export interface AssetDetails {
   market?: string;
   broker?: string;
   brokerSymbol?: string;
+  country?: string;
+  region?: string;
+  sector?: string;
+  subsector?: string;
+  iconUrl?: string;
 }
 
 export interface AssetDelta {
@@ -58,6 +63,10 @@ export class AssetService {
 
   getLatestDelta(id: string): Observable<AssetDelta> {
     return this.http.get<AssetDelta>(`${API}/api/analysis/${id}/latest`);
+  }
+
+  refreshLatestDelta(id: string): Observable<AssetDelta> {
+    return this.http.get<AssetDelta>(`${API}/api/analysis/${id}/latest`, { params: { skipCache: 'true' } });
   }
 
   getHoldings(portfolioId: string): Observable<HoldingDelta[]> {

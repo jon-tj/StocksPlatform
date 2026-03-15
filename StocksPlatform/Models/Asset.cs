@@ -46,6 +46,9 @@ public class Asset
 
     /// <summary>Broker-reported popularity score. Higher = more popular.</summary>
     public int? Popularity { get; set; }
+
+    /// <summary>URL to the asset's logo/icon image.</summary>
+    public string? IconUrl { get; set; }
 }
 
 /// <summary>

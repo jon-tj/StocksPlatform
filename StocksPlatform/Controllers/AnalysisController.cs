@@ -1,16 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using StocksPlatform.Data;
 using StocksPlatform.Models;
-using StocksPlatform.Services;
+using StocksPlatform.Services.Analysis;
 
 namespace StocksPlatform.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AnalysisController(AppDbContext db, FractionService fractionService, FundInstitutionalService fundInstitutionalService) : ControllerBase
+public class AnalysisController(AppDbContext db, AnalysisService analysisService) : ControllerBase
 {
     public record DeltaDto(
         Guid AssetId,
@@ -53,70 +52,21 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         var asset = await db.Assets.FindAsync(assetId);
         if (asset is null) return NotFound();
 
-        await fundInstitutionalService.EnsureTodaySnapshotsAsync();
-
-        var now = DateTime.UtcNow;
-        var cutoff = now.Date.AddDays(-364);
-
-        // Remove entries older than one year
-        var tooOld = await db.AssetDeltas
-            .Where(d => d.AssetId == assetId && d.Date < cutoff)
-            .ToListAsync();
-        if (tooOld.Count > 0)
-        {
-            db.AssetDeltas.RemoveRange(tooOld);
-            await db.SaveChangesAsync();
-        }
-
-        var existing = await db.AssetDeltas
-            .Where(d => d.AssetId == assetId && d.Date >= cutoff)
-            .ToListAsync();
-
-        // Only refresh rows that are already stored but have expired
-        var expiredRows = existing.Where(d => d.ExpiresAt is null || d.ExpiresAt <= now).ToList();
-        if (expiredRows.Count > 0)
-        {
-            var cache = new Dictionary<(Guid, DateTime), AssetDelta>(
-                existing.Where(d => d.ExpiresAt > now)
-                        .Select(d => KeyValuePair.Create((d.AssetId, d.Date.Date), d)));
-            var childrenCache = new Dictionary<Guid, List<Guid>>();
-
-            foreach (var row in expiredRows)
-                await RefreshDeltaAsync(row, cache, childrenCache);
-
-            await db.SaveChangesAsync();
-        }
-
-        return Ok(existing.OrderBy(d => d.Date).Select(d => ToDto(d, asset.Name)).ToArray());
+        var deltas = await analysisService.GetHistoryAsync(assetId);
+        return Ok(deltas.Select(d => ToDto(d, asset.Name)).ToArray());
     }
 
-    // GET /api/analysis/{assetId}/latest
+    // GET /api/analysis/{assetId}/latest[?skipCache=true]
     // Returns today's delta snapshot, recomputing if missing or expired.
+    // Pass skipCache=true to force a fresh computation regardless of expiry.
     [HttpGet("{assetId:guid}/latest")]
-    public async Task<ActionResult<DeltaDto>> GetLatest(Guid assetId)
+    public async Task<ActionResult<DeltaDto>> GetLatest(Guid assetId, [FromQuery] bool skipCache = false)
     {
         var asset = await db.Assets.FindAsync(assetId);
         if (asset is null) return NotFound();
 
-        await fundInstitutionalService.EnsureTodaySnapshotsAsync();
-
-        var now = DateTime.UtcNow;
-        var today = now.Date;
-
-        var row = await db.AssetDeltas
-            .Where(d => d.AssetId == assetId && d.Date == today)
-            .FirstOrDefaultAsync();
-
-        var cache = new Dictionary<(Guid, DateTime), AssetDelta>();
-        var childrenCache = new Dictionary<Guid, List<Guid>>();
-
-        if (row is null)
-            row = await EnsureDeltaAsync(assetId, today, cache, childrenCache);
-        else if (row.ExpiresAt is null || row.ExpiresAt <= now)
-            await RefreshDeltaAsync(row, cache, childrenCache);
-
-        await db.SaveChangesAsync();
-        return Ok(ToDto(row, asset.Name));
+        var delta = await analysisService.GetLatestAsync(assetId, skipCache);
+        return Ok(ToDto(delta, asset.Name));
     }
 
     // GET /api/analysis/{assetId}/at?date=2025-06-15
@@ -128,10 +78,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         var asset = await db.Assets.FindAsync(assetId);
         if (asset is null) return NotFound();
 
-        var row = await db.AssetDeltas
-            .Where(d => d.AssetId == assetId && d.Date == date.Date)
-            .FirstOrDefaultAsync();
-
+        var row = await analysisService.GetAtAsync(assetId, date);
         if (row is null) return NoContent();
 
         return Ok(ToDto(row, asset.Name));
@@ -148,161 +95,13 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         if (asset.Type != AssetType.Portfolio)
             return BadRequest("Asset is not a portfolio.");
 
-        var children = await fractionService.GetFreshChildrenAsync(assetId);
-        if (children.Count == 0) return Ok(Array.Empty<HoldingDto>());
+        var rows = await analysisService.GetHoldingDeltasAsync(assetId);
+        if (rows.Count == 0) return Ok(Array.Empty<HoldingDto>());
 
-        await fundInstitutionalService.EnsureTodaySnapshotsAsync();
-
-        var now = DateTime.UtcNow;
-        var today = now.Date;
-        var cache = new Dictionary<(Guid, DateTime), AssetDelta>();
-        var childrenCache = new Dictionary<Guid, List<Guid>>();
-
-        var rows = new List<(string Name, AssetDelta Delta)>(children.Count);
-        foreach (var pa in children)
-        {
-            var row = await db.AssetDeltas
-                .Where(d => d.AssetId == pa.AssetId && d.Date == today)
-                .FirstOrDefaultAsync();
-
-            if (row is null)
-                row = await EnsureDeltaAsync(pa.AssetId, today, cache, childrenCache);
-            else if (row.ExpiresAt is null || row.ExpiresAt <= now)
-                await RefreshDeltaAsync(row, cache, childrenCache);
-            else
-                cache[(pa.AssetId, today)] = row;
-
-            rows.Add((pa.Asset.Name, row));
-        }
-
-        await db.SaveChangesAsync();
-
-        // Softmax over combined scores for target fractions
-        var scores = rows.Select(r => Score(r.Delta)).ToArray();
-        var fractions = Softmax(scores);
+        var scores = rows.Select(r => AnalysisService.Score(r.Delta)).ToArray();
+        var fractions = AnalysisService.Softmax(scores);
 
         return Ok(rows.Select((r, i) => ToHoldingDto(r.Delta, r.Name, scores[i], fractions[i])).ToArray());
-    }
-    /// it if not already present and fresh in the cache or DB.
-    /// </summary>
-    private async Task<AssetDelta> EnsureDeltaAsync(
-        Guid assetId, DateTime date,
-        Dictionary<(Guid, DateTime), AssetDelta> cache,
-        Dictionary<Guid, List<Guid>> childrenCache)
-    {
-        var key = (assetId, date.Date);
-        if (cache.TryGetValue(key, out var cached))
-            return cached;
-
-        var now = DateTime.UtcNow;
-
-        var existing = await db.AssetDeltas
-            .Where(d => d.AssetId == assetId && d.Date == date.Date)
-            .FirstOrDefaultAsync();
-
-        if (existing is not null)
-        {
-            if (existing.ExpiresAt > now)
-            {
-                cache[key] = existing;
-                return existing;
-            }
-            // Expired — refresh in-place
-            await RefreshDeltaAsync(existing, cache, childrenCache);
-            return existing;
-        }
-
-        var delta = await ComputeDeltaAsync(assetId, date.Date, cache, childrenCache);
-        db.AssetDeltas.Add(delta);
-        cache[key] = delta;
-        return delta;
-    }
-
-    /// <summary>
-    /// Recomputes all delta values on an existing tracked row and updates its expiry.
-    /// </summary>
-    private async Task RefreshDeltaAsync(
-        AssetDelta row,
-        Dictionary<(Guid, DateTime), AssetDelta> cache,
-        Dictionary<Guid, List<Guid>> childrenCache)
-    {
-        var fresh = await ComputeDeltaAsync(row.AssetId, row.Date, cache, childrenCache);
-        row.MarketDelta = fresh.MarketDelta;
-        row.PairDelta = fresh.PairDelta;
-        row.PairAssetId = fresh.PairAssetId;
-        row.PublicSentimentDelta = fresh.PublicSentimentDelta;
-        row.MemberSentimentDelta = fresh.MemberSentimentDelta;
-        row.FundamentalDelta = fresh.FundamentalDelta;
-        row.InstitutionalOrderFlowDelta = fresh.InstitutionalOrderFlowDelta;
-        row.PatternDelta = fresh.PatternDelta;
-        row.ExpiresAt = fresh.ExpiresAt;
-        cache[(row.AssetId, row.Date.Date)] = row;
-    }
-
-    /// <summary>
-    /// Builds a new (unsaved) AssetDelta, using weighted-average of children if the asset
-    /// is a portfolio, or the stub leaf computation otherwise.
-    /// </summary>
-    private async Task<AssetDelta> ComputeDeltaAsync(
-        Guid assetId, DateTime date,
-        Dictionary<(Guid, DateTime), AssetDelta> cache,
-        Dictionary<Guid, List<Guid>> childrenCache)
-    {
-        if (!childrenCache.TryGetValue(assetId, out var childIds))
-        {
-            childIds = await db.PortfolioAssets
-                .Where(pa => pa.PortfolioId == assetId)
-                .Select(pa => pa.AssetId)
-                .ToListAsync();
-            childrenCache[assetId] = childIds;
-        }
-
-        if (childIds.Count > 0)
-        {
-            var children = await fractionService.GetFreshChildrenAsync(assetId);
-            var fractionMap = children.ToDictionary(pa => pa.AssetId, pa => pa.Fraction ?? (1.0 / children.Count));
-
-            var childDeltas = new List<(AssetDelta Delta, double Weight)>(childIds.Count);
-            foreach (var childId in childIds)
-            {
-                var childDelta = await EnsureDeltaAsync(childId, date, cache, childrenCache);
-                var weight = fractionMap.TryGetValue(childId, out var f) ? f : 0.0;
-                childDeltas.Add((childDelta, weight));
-            }
-
-            return WeightedAverageOf(assetId, date, childDeltas);
-        }
-
-        return await ComputeAsync(assetId, date);
-    }
-
-    private static AssetDelta WeightedAverageOf(Guid assetId, DateTime date, List<(AssetDelta Delta, double Weight)> children)
-    {
-        var totalWeight = children.Sum(c => c.Weight);
-        if (totalWeight <= 0)
-        {
-            var eq = 1.0 / children.Count;
-            children = children.Select(c => (c.Delta, eq)).ToList();
-            totalWeight = 1.0;
-        }
-
-        double Wavg(Func<AssetDelta, double> selector) =>
-            children.Sum(c => selector(c.Delta) * c.Weight) / totalWeight;
-
-        return new AssetDelta
-        {
-            AssetId = assetId,
-            Date = date,
-            MarketDelta = Wavg(d => d.MarketDelta),
-            PairDelta = null,
-            PairAssetId = null,
-            PublicSentimentDelta = Wavg(d => d.PublicSentimentDelta),
-            MemberSentimentDelta = Wavg(d => d.MemberSentimentDelta),
-            FundamentalDelta = Wavg(d => d.FundamentalDelta),
-            InstitutionalOrderFlowDelta = Wavg(d => d.InstitutionalOrderFlowDelta),
-            PatternDelta = Wavg(d => d.PatternDelta),
-            ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
-        };
     }
 
     private static DeltaDto ToDto(AssetDelta d, string assetName) => new(
@@ -310,7 +109,7 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         d.MarketDelta, d.PairDelta, d.PairAssetId,
         d.PublicSentimentDelta, d.MemberSentimentDelta,
         d.FundamentalDelta, d.InstitutionalOrderFlowDelta,
-        d.PatternDelta, Score(d));
+        d.PatternDelta, AnalysisService.Score(d));
 
     private static HoldingDto ToHoldingDto(AssetDelta d, string assetName, double score, double targetFraction) => new(
         d.AssetId, assetName, d.Date,
@@ -318,101 +117,4 @@ public class AnalysisController(AppDbContext db, FractionService fractionService
         d.PublicSentimentDelta, d.MemberSentimentDelta,
         d.FundamentalDelta, d.InstitutionalOrderFlowDelta,
         d.PatternDelta, score, targetFraction);
-
-    private static double Score(AssetDelta d) =>
-        (d.MarketDelta + d.PublicSentimentDelta + d.MemberSentimentDelta +
-         d.FundamentalDelta + d.InstitutionalOrderFlowDelta + d.PatternDelta) / 6.0;
-
-    private static double[] Softmax(double[] scores)
-    {
-        var max = scores.Max();
-        var exps = scores.Select(s => Math.Exp(s - max)).ToArray();
-        var sum = exps.Sum();
-        return exps.Select(e => e / sum).ToArray();
-    }
-
-    /// <summary>
-    /// Leaf computation for assets with no children.
-    /// All deltas except InstitutionalOrderFlowDelta remain stub values (1.0) until
-    /// their respective algorithms are wired in. Expires at midnight tomorrow UTC.
-    /// </summary>
-    private async Task<AssetDelta> ComputeAsync(Guid assetId, DateTime date)
-    {
-        var institutionalDelta = await fundInstitutionalService.GetInstitutionalDeltaAsync(assetId);
-        var patternDelta = await ComputePatternDeltaAsync(assetId, date);
-        return new AssetDelta
-        {
-            AssetId = assetId,
-            Date = date,
-            MarketDelta = 1.0,
-            PairDelta = null,
-            PairAssetId = null,
-            PublicSentimentDelta = 1.0,
-            MemberSentimentDelta = 1.0,
-            FundamentalDelta = 1.0,
-            InstitutionalOrderFlowDelta = institutionalDelta,
-            PatternDelta = patternDelta,
-            ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
-        };
-    }
-
-    /// <summary>
-    /// Scores how closely the last 30 days of daily price history matches the ideal
-    /// dip-buying setup: a linear decline of ~0.1 %/day for the first ~27 days followed
-    /// by a total drop of ≥10 % from the starting price.
-    /// Returns 1.0 (neutral) when data is insufficient or no pattern is present,
-    /// up to 2.0 for a perfect match. Recent days carry exponentially more weight.
-    /// </summary>
-    private async Task<double> ComputePatternDeltaAsync(Guid assetId, DateTime date)
-    {
-        const int windowDays = 30;
-        const int dropDays = 3;
-        const double idealDailyDecline = -0.001;           // -0.1 % per day
-        const double idealTotalLogDrop = -0.10536;         // ln(0.90) ≈ -10 %
-        const double weightAlpha = 3.0;                    // exponential weight steepness
-        const double rmseToleranceSq = 0.05 * 0.05;       // 5 % RMSE → half score
-
-        var since = date.Date.AddDays(-windowDays);
-
-        var prices = await db.AssetDailyHistory
-            .Where(h => h.AssetId == assetId
-                     && h.Timestamp >= since
-                     && h.Timestamp < date.Date.AddDays(1))
-            .OrderBy(h => h.Timestamp)
-            .Select(h => (double)h.Price)
-            .ToListAsync();
-
-        if (prices.Count < 5) return 1.0;
-
-        double p0 = prices[0];
-        if (p0 <= 0) return 1.0;
-
-        // Buildup phase: everything except the last `dropDays` prices (at least 2 points).
-        int builtupCount = Math.Max(prices.Count - dropDays, 2);
-
-        // --- Weighted fit of the buildup phase against the ideal linear decline ---
-        double wSum = 0.0, weightedSqErr = 0.0;
-        for (int i = 0; i < builtupCount; i++)
-        {
-            double t = (double)i / Math.Max(builtupCount - 1, 1); // 0 → 1
-            double idealLogReturn = idealDailyDecline * t * (windowDays - dropDays);
-            double actualLogReturn = Math.Log(prices[i] / p0);
-            double err = actualLogReturn - idealLogReturn;
-            double w = Math.Exp(weightAlpha * t); // heavier weight toward end of buildup
-            wSum += w;
-            weightedSqErr += w * err * err;
-        }
-
-        double wmse = wSum > 0 ? weightedSqErr / wSum : 1.0;
-        // 1.0 when RMSE = 0; decays toward 0 as deviation grows
-        double buildupFit = Math.Exp(-wmse / rmseToleranceSq);
-
-        // --- Total drop from first to last recorded price ---
-        double totalLogReturn = Math.Log(prices[^1] / p0);
-        // 0.0 = no drop, 1.0 = exactly -10 %, clamped (no credit for upward moves)
-        double dropScore = Math.Clamp(totalLogReturn / idealTotalLogDrop, 0.0, 1.0);
-
-        // Combined: 1.0 (no pattern) → 2.0 (perfect dip-buy setup)
-        return 1.0 + buildupFit * dropScore;
-    }
 }

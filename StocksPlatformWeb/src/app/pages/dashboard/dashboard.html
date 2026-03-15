@@ -21,11 +21,17 @@
         <ul class="search-dropdown">
           @for (asset of searchResults; track asset.id) {
             <li class="search-dropdown-item" (mousedown)="selectAsset(asset)">
-              @if (asset.symbol) {
-                <span class="search-item-symbol">{{ asset.symbol }}</span>
+              @if (asset.iconUrl) {
+                <img class="search-item-icon" [src]="asset.iconUrl" [alt]="asset.name" />
+              } @else {
+                <span class="search-item-icon-placeholder"></span>
               }
+              <span class="search-item-symbol">{{ asset.symbol }}</span>
               <span class="search-item-name">{{ asset.name }}</span>
-              <span class="search-item-meta">{{ asset.type }}</span>
+              <span class="search-item-meta">
+                @if (asset.country) { <span>{{ asset.country }}</span> }
+                @if (asset.sector) { <span>{{ asset.sector }}</span> }
+              </span>
             </li>
           }
         </ul>

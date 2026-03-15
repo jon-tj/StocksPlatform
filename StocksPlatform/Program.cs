@@ -32,6 +32,8 @@ builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsPro
 builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsProvider>(
     sp => sp.GetRequiredService<StocksPlatform.Services.FundServices.HanEtfFundService>());
 builder.Services.AddScoped<FundInstitutionalService>();
+builder.Services.AddScoped<StocksPlatform.Services.Analysis.PatternDeltaService>();
+builder.Services.AddScoped<StocksPlatform.Services.Analysis.AnalysisService>();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

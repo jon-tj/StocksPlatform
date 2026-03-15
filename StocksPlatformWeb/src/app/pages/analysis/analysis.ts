@@ -32,6 +32,7 @@ export class Analysis implements OnInit, OnDestroy {
   holdingsFilter = '';
   chartSeries: PriceSeries[] = [];
   loading = true;
+  recomputing = false;
   error: string | null = null;
 
   get filteredChildren(): ChildRow[] {
@@ -43,7 +44,7 @@ export class Analysis implements OnInit, OnDestroy {
     );
   }
 
-  protected brokerUrl: string | null = null;
+  protected tickerUrl: string | null = null;
 
   // Maps "MMM d" label → ISO date string for the hover→delta lookup
   private timeLabelToDate = new Map<string, string>();
@@ -93,8 +94,8 @@ export class Analysis implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ asset, delta, history }) => {
         this.asset = asset;
-        if (asset.broker?.toLowerCase().includes('nordnet')) {
-          this.brokerUrl = `https://www.nordnet.no/aksjer/kurser/${asset.brokerSymbol}`;
+        if (asset.broker?.toLowerCase().includes('nordnet') && asset.brokerSymbol) {
+          this.tickerUrl = `https://www.nordnet.no/aksjer/kurser/${asset.brokerSymbol}`;
         }
         this.delta = delta;
         this.latestDelta = delta;
@@ -135,6 +136,19 @@ export class Analysis implements OnInit, OnDestroy {
         this.error = 'Failed to load asset data.';
         this.loading = false;
       },
+    });
+  }
+
+  onRefreshDeltas(): void {
+    if (!this.assetId || this.recomputing) return;
+    this.recomputing = true;
+    this.assetService.refreshLatestDelta(this.assetId).subscribe({
+      next: (delta) => {
+        this.delta = delta;
+        this.latestDelta = delta;
+        this.recomputing = false;
+      },
+      error: () => { this.recomputing = false; },
     });
   }
 

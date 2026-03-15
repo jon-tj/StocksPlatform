@@ -1,28 +1,71 @@
 <main class="analysis-page">
-  <a class="back-link" routerLink="/dashboard">← Dashboard</a>
-
   @if (loading) {
     <p class="muted">Loading…</p>
   } @else if (error) {
     <p class="error">{{ error }}</p>
   } @else if (asset) {
     <div class="asset-header">
-      <div>
-        <h1>{{ asset.name }}</h1>
-        <div class="asset-meta">
-          <span class="badge">{{ asset.type }}</span>
+      @if (asset.iconUrl) {
+        <img class="asset-icon" [src]="asset.iconUrl" [alt]="asset.name" />
+      }
+      <h1>{{ asset.name }}</h1>
+    </div>
+
+    @if (asset.symbol || asset.market || asset.broker || asset.country || asset.region || asset.sector || asset.subsector) {
+      <section class="card info-card">
+        <h2 class="card-title">{{ asset.type }} Details</h2>
+        <dl class="info-grid">
           @if (asset.symbol) {
-            <span class="meta-item">{{ asset.symbol }}</span>
+            <div class="info-item">
+              <dt>Ticker</dt>
+              <dd>{{ asset.symbol }}</dd>
+            </div>
           }
           @if (asset.market) {
-            <span class="meta-item muted">{{ asset.market }}</span>
+            <div class="info-item">
+              <dt>Market</dt>
+              <dd>{{ asset.market }}</dd>
+            </div>
+          }
+          @if (asset.sector) {
+            <div class="info-item">
+              <dt>Sector</dt>
+              <dd>{{ asset.sector }}</dd>
+            </div>
+          }
+          @if (asset.subsector) {
+            <div class="info-item">
+              <dt>Subsector</dt>
+              <dd>{{ asset.subsector }}</dd>
+            </div>
+          }
+          @if (asset.country) {
+            <div class="info-item">
+              <dt>Country</dt>
+              <dd>{{ asset.country }}</dd>
+            </div>
+          }
+          @if (asset.region) {
+            <div class="info-item">
+              <dt>Region</dt>
+              <dd>{{ asset.region }}</dd>
+            </div>
           }
           @if (asset.broker) {
-            <span class="meta-item muted">via <a [href]="brokerUrl" target="blank">{{ asset.broker }}</a></span>
+            <div class="info-item">
+              <dt>Broker</dt>
+              <dd>
+                @if (tickerUrl) {
+                  <a class="broker-link" [href]="tickerUrl" target="blank">{{ asset.broker }}</a>
+                } @else {
+                  {{ asset.broker }}
+                }
+              </dd>
+            </div>
           }
-        </div>
-      </div>
-    </div>
+        </dl>
+      </section>
+    }
 
     @if (chartSeries.length) {
       <section class="card">
@@ -38,6 +81,9 @@
         } @else if (hoveredDateLabel) {
           <span class="muted date-label">{{ hoveredDateLabel }}</span>
         }
+        <button class="refresh-btn" [class.spinning]="recomputing" [disabled]="recomputing" (click)="onRefreshDeltas()" title="Recompute deltas">
+          <span class="material-icons">refresh</span>
+        </button>
       </h2>
       <div class="delta-grid">
         <div class="delta-item">

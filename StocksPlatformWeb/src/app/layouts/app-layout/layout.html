@@ -5,7 +5,9 @@
       @if (showLogout) {
         <span class="nav-user">{{ displayName }}</span>
       }
-      <button class="btn-theme" (click)="toggleTheme()" [title]="isDark ? 'Switch to day mode' : 'Switch to night mode'">{{ isDark ? '☀️' : '🌙' }}</button>
+      <button class="btn-theme" (click)="toggleTheme()" [title]="isDark ? 'Switch to day mode' : 'Switch to night mode'">
+        <span class="material-icons">{{ isDark ? 'dark_mode' : 'light_mode' }}</span>
+      </button>
       @if (showLogout) {
         <button class="btn-ghost" (click)="logout()">Log out</button>
       }
