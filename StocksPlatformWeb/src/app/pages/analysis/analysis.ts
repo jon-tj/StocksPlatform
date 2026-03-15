@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { forkJoin, Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription, forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { DecimalPipe, TitleCasePipe, DatePipe } from '@angular/common';
+import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AssetService, AssetDetails, AssetDelta, HoldingDelta } from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
@@ -17,7 +17,7 @@ export interface ChildRow {
 
 @Component({
   selector: 'app-analysis',
-  imports: [RouterLink, DecimalPipe, TitleCasePipe, DatePipe, StockChart, FormsModule, SectorLabelPipe],
+  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })
@@ -69,6 +69,7 @@ export class Analysis implements OnInit, OnDestroy {
       this.delta = result;
     }
   });
+  private routeSub: Subscription | null = null;
 
   onChartDateHover(label: string | null): void {
     this.hoveredDateLabel = label;
@@ -80,20 +81,43 @@ export class Analysis implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.assetId = this.route.snapshot.paramMap.get('asset');
-    if (!this.assetId) {
-      this.error = 'No asset specified.';
-      this.loading = false;
-      return;
-    }
+    this.routeSub = this.route.paramMap.subscribe((params) => {
+      const nextAssetId = params.get('asset');
+      if (!nextAssetId) {
+        this.error = 'No asset specified.';
+        this.loading = false;
+        return;
+      }
+
+      if (nextAssetId === this.assetId) {
+        return;
+      }
+
+      this.assetId = nextAssetId;
+      this.loadAsset(this.assetId);
+    });
+  }
+
+  private loadAsset(assetId: string): void {
+    this.loading = true;
+    this.error = null;
+    this.asset = null;
+    this.delta = null;
+    this.latestDelta = null;
+    this.children = [];
+    this.chartSeries = [];
+    this.holdingsFilter = '';
+    this.tickerUrl = null;
+    this.hoveredDateLabel = null;
+    this.timeLabelToDate.clear();
 
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
     forkJoin({
-      asset: this.assetService.getAssetDetails(this.assetId),
-      delta: this.assetService.getLatestDelta(this.assetId),
-      history: this.assetService.getHistory(this.assetId, oneYearAgo),
+      asset: this.assetService.getAssetDetails(assetId),
+      delta: this.assetService.getLatestDelta(assetId),
+      history: this.assetService.getHistory(assetId, oneYearAgo),
     }).subscribe({
       next: ({ asset, delta, history }) => {
         this.asset = asset;
@@ -120,7 +144,7 @@ export class Analysis implements OnInit, OnDestroy {
         if (asset.type === 'Portfolio') {
           forkJoin({
             resp: this.positionsService.getPositions(),
-            holdings: this.assetService.getHoldings(this.assetId!),
+            holdings: this.assetService.getHoldings(assetId),
           }).subscribe({
             next: ({ resp, holdings }) => {
               const holdingMap = new Map(holdings.map((h) => [h.assetId, h]));
@@ -157,6 +181,7 @@ export class Analysis implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.routeSub?.unsubscribe();
     this.hoverSub.unsubscribe();
     this.hoverDate$.complete();
   }

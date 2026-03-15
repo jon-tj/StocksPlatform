@@ -1,6 +1,43 @@
 <div class="app-shell">
   <nav>
     <span class="brand" routerLink="/dashboard">StocksPlatform</span>
+    @if (showLogout) {
+      <div class="search-wrapper">
+        <div class="search-card">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+          </svg>
+          <input
+            class="search-input"
+            type="text"
+            placeholder="Search assets..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearchInput()"
+            (blur)="onSearchBlur()"
+            autocomplete="off"
+          />
+        </div>
+        @if (showSearchDropdown && searchResults.length > 0) {
+          <ul class="search-dropdown">
+            @for (asset of searchResults; track asset.id) {
+              <li class="search-dropdown-item" (mousedown)="selectAsset(asset)">
+                @if (asset.iconUrl) {
+                  <img class="search-item-icon" [src]="asset.iconUrl" [alt]="asset.name" />
+                } @else {
+                  <span class="search-item-icon-placeholder"></span>
+                }
+                <span class="search-item-symbol">{{ asset.symbol }}</span>
+                <span class="search-item-name">{{ asset.name }}</span>
+                <span class="search-item-meta">
+                  @if (asset.country) { <span>{{ asset.country }}</span> }
+                  @if (asset.sector) { <span>{{ asset.sector | sectorLabel }}</span> }
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
     <div class="nav-right">
       @if (showLogout) {
         <span class="nav-user">{{ displayName }}</span>
