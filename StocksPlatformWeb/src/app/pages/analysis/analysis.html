@@ -8,7 +8,12 @@
       @if (asset.iconUrl) {
         <img class="asset-icon" [src]="asset.iconUrl" [alt]="asset.name" />
       }
-      <h1>{{ asset.name }}@if (asset.symbol) { <span class="ticker-muted">{{ asset.symbol }}</span>}</h1>
+      <h1>
+        {{ asset.name }}
+        @if (asset.symbol) {
+          <span class="ticker-muted">{{ asset.symbol }}</span>
+        }
+      </h1>
     </div>
 
     @if (chartSeries.length) {
@@ -17,7 +22,102 @@
       </section>
     }
 
-    @if (asset.symbol || asset.market || asset.broker || asset.country || asset.region || asset.sector || asset.subsector) {
+    <section class="card">
+      <h2 class="card-title">
+        Computed Deltas
+        @if (delta) {
+          <span class="muted date-label">{{ delta.date | date: 'mediumDate' }}</span>
+        } @else if (hoveredDateLabel) {
+          <span class="muted date-label">{{ hoveredDateLabel }}</span>
+        }
+        <button
+          class="refresh-btn"
+          [class.spinning]="recomputing"
+          [disabled]="recomputing"
+          (click)="onRefreshDeltas()"
+          title="Recompute deltas"
+        >
+          <span class="material-icons">refresh</span>
+        </button>
+      </h2>
+      <div class="delta-grid">
+        <div class="delta-item">
+          <span class="delta-label">Market</span>
+          <span
+            class="delta-value"
+            [class.positive]="delta && delta.marketDelta >= 0"
+            [class.negative]="delta && delta.marketDelta < 0"
+            >{{ delta ? (delta.marketDelta | number: '1.2-2') : 'N/A' }}</span
+          >
+        </div>
+        <div class="delta-item">
+          <span class="delta-label">Public Sentiment</span>
+          <span
+            class="delta-value"
+            [class.positive]="delta && delta.publicSentimentDelta >= 0"
+            [class.negative]="delta && delta.publicSentimentDelta < 0"
+            >{{ delta ? (delta.publicSentimentDelta | number: '1.2-2') : 'N/A' }}</span
+          >
+        </div>
+        <div class="delta-item">
+          <span class="delta-label">Member Sentiment</span>
+          <span
+            class="delta-value"
+            [class.positive]="delta && delta.memberSentimentDelta >= 0"
+            [class.negative]="delta && delta.memberSentimentDelta < 0"
+            >{{ delta ? (delta.memberSentimentDelta | number: '1.2-2') : 'N/A' }}</span
+          >
+        </div>
+        <div class="delta-item">
+          <span class="delta-label">Fundamental</span>
+          <span
+            class="delta-value"
+            [class.positive]="delta && delta.fundamentalDelta >= 0"
+            [class.negative]="delta && delta.fundamentalDelta < 0"
+            >{{ delta ? (delta.fundamentalDelta | number: '1.2-2') : 'N/A' }}</span
+          >
+        </div>
+        <div class="delta-item">
+          <span class="delta-label">Inst. Order Flow</span>
+          <span
+            class="delta-value"
+            [class.positive]="delta && delta.institutionalOrderFlowDelta >= 0"
+            [class.negative]="delta && delta.institutionalOrderFlowDelta < 0"
+            >{{ delta ? (delta.institutionalOrderFlowDelta | number: '1.2-2') : 'N/A' }}</span
+          >
+        </div>
+        <div class="delta-item">
+          <span class="delta-label">Pattern</span>
+          <span
+            class="delta-value"
+            [class.positive]="delta && delta.patternDelta >= 0"
+            [class.negative]="delta && delta.patternDelta < 0"
+            >{{ delta ? (delta.patternDelta | number: '1.2-2') : 'N/A' }}</span
+          >
+        </div>
+        @if (delta && delta.pairDelta !== null) {
+          <div class="delta-item">
+            <span class="delta-label">Pair</span>
+            <span
+              class="delta-value"
+              [class.positive]="delta.pairDelta! >= 0"
+              [class.negative]="delta.pairDelta! < 0"
+              >{{ delta.pairDelta | number: '1.2-2' }}</span
+            >
+          </div>
+        }
+      </div>
+    </section>
+
+    @if (
+      asset.symbol ||
+      asset.market ||
+      asset.broker ||
+      asset.country ||
+      asset.region ||
+      asset.sector ||
+      asset.subsector
+    ) {
       <section class="card info-card">
         <h2 class="card-title">{{ asset.type }} Details</h2>
         <div class="info-card-body">
@@ -37,9 +137,7 @@
             @if (asset.country) {
               <div class="info-item">
                 <dt>Country</dt>
-                <dd>{{ asset.country }}
-                  
-                </dd>
+                <dd>{{ asset.country }}</dd>
               </div>
             }
             @if (asset.market) {
@@ -69,13 +167,20 @@
             @if (asset.websiteUrl) {
               <div class="info-item">
                 <dt>Website</dt>
-                <dd><a class="broker-link" [href]="asset.websiteUrl" target="_blank">{{ asset.websiteUrl }}</a></dd>
+                <dd>
+                  <a class="broker-link" [href]="asset.websiteUrl" target="_blank">{{
+                    asset.websiteUrl
+                  }}</a>
+                </dd>
               </div>
             }
             @if (asset.address1 || asset.address2) {
               <div class="info-item">
                 <dt>Address</dt>
-                <dd>{{ asset.address1 }}{{ asset.address1 && asset.address2 ? ', ' : '' }}{{ asset.address2 }}</dd>
+                <dd>
+                  {{ asset.address1 }}{{ asset.address1 && asset.address2 ? ', ' : ''
+                  }}{{ asset.address2 }}
+                </dd>
               </div>
             }
             @if (asset.ceo) {
@@ -92,94 +197,22 @@
       </section>
     }
 
-    <section class="card">
-      <h2 class="card-title">
-        Computed Deltas
-        @if (delta) {
-          <span class="muted date-label">{{ delta.date | date: 'mediumDate' }}</span>
-        } @else if (hoveredDateLabel) {
-          <span class="muted date-label">{{ hoveredDateLabel }}</span>
-        }
-        <button class="refresh-btn" [class.spinning]="recomputing" [disabled]="recomputing" (click)="onRefreshDeltas()" title="Recompute deltas">
-          <span class="material-icons">refresh</span>
-        </button>
-      </h2>
-      <div class="delta-grid">
-        <div class="delta-item">
-          <span class="delta-label">Market</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.marketDelta >= 1"
-            [class.negative]="delta && delta.marketDelta < 1"
-            >{{ delta ? (delta.marketDelta | number: '1.2-2') : 'N/A' }}</span
-          >
-        </div>
-        <div class="delta-item">
-          <span class="delta-label">Public Sentiment</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.publicSentimentDelta >= 1"
-            [class.negative]="delta && delta.publicSentimentDelta < 1"
-            >{{ delta ? (delta.publicSentimentDelta | number: '1.2-2') : 'N/A' }}</span
-          >
-        </div>
-        <div class="delta-item">
-          <span class="delta-label">Member Sentiment</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.memberSentimentDelta >= 1"
-            [class.negative]="delta && delta.memberSentimentDelta < 1"
-            >{{ delta ? (delta.memberSentimentDelta | number: '1.2-2') : 'N/A' }}</span
-          >
-        </div>
-        <div class="delta-item">
-          <span class="delta-label">Fundamental</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.fundamentalDelta >= 1"
-            [class.negative]="delta && delta.fundamentalDelta < 1"
-            >{{ delta ? (delta.fundamentalDelta | number: '1.2-2') : 'N/A' }}</span
-          >
-        </div>
-        <div class="delta-item">
-          <span class="delta-label">Inst. Order Flow</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.institutionalOrderFlowDelta >= 1"
-            [class.negative]="delta && delta.institutionalOrderFlowDelta < 1"
-            >{{ delta ? (delta.institutionalOrderFlowDelta | number: '1.2-2') : 'N/A' }}</span
-          >
-        </div>
-        <div class="delta-item">
-          <span class="delta-label">Pattern</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.patternDelta >= 1"
-            [class.negative]="delta && delta.patternDelta < 1"
-            >{{ delta ? (delta.patternDelta | number: '1.2-2') : 'N/A' }}</span
-          >
-        </div>
-        @if (delta && delta.pairDelta !== null) {
-          <div class="delta-item">
-            <span class="delta-label">Pair</span>
-            <span
-              class="delta-value"
-              [class.positive]="delta.pairDelta! >= 1"
-              [class.negative]="delta.pairDelta! < 1"
-              >{{ delta.pairDelta | number: '1.2-2' }}</span
-            >
-          </div>
-        }
-      </div>
-    </section>
-
     @if (asset.type === 'Portfolio' && children.length > 0) {
       <section class="card">
         <div class="holdings-header">
           <h2 class="card-title">Holdings</h2>
           <div class="holdings-search">
-            <svg class="holdings-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+            <svg
+              class="holdings-search-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
+                clip-rule="evenodd"
+              />
             </svg>
             <input
               class="holdings-search-input"
