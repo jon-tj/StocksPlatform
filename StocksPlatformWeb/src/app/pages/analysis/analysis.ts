@@ -5,7 +5,13 @@ import { Subscription, forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AssetService, AssetDetails, AssetDelta, HoldingDelta } from '../../services/asset.service';
+import {
+  AssetService,
+  AssetDetails,
+  AssetDelta,
+  HoldingDelta,
+  FundHoldingSnapshot,
+} from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
 import { SectorLabelPipe } from '../../pipes/sector-label.pipe';
@@ -14,6 +20,14 @@ export interface ChildRow {
   position: Position;
   holding: HoldingDelta | null;
 }
+
+export type DeltaMetricKey =
+  | 'market'
+  | 'public-sentiment'
+  | 'member-sentiment'
+  | 'fundamental'
+  | 'institutional-order-flow'
+  | 'pattern';
 
 @Component({
   selector: 'app-analysis',
@@ -38,6 +52,9 @@ export class Analysis implements OnInit, OnDestroy {
   loading = true;
   recomputing = false;
   error: string | null = null;
+  selectedMetric: DeltaMetricKey | null = null;
+  detailsLoading = false;
+  institutionalSnapshots: FundHoldingSnapshot[] = [];
 
   get filteredChildren(): ChildRow[] {
     const q = this.holdingsFilter.trim().toLowerCase();
@@ -111,6 +128,9 @@ export class Analysis implements OnInit, OnDestroy {
     this.tickerUrl = null;
     this.hoveredDateLabel = null;
     this.timeLabelToDate.clear();
+    this.selectedMetric = null;
+    this.detailsLoading = false;
+    this.institutionalSnapshots = [];
 
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -179,6 +199,45 @@ export class Analysis implements OnInit, OnDestroy {
       },
       error: () => { this.recomputing = false; },
     });
+  }
+
+  selectMetric(metric: DeltaMetricKey): void {
+    if (!this.assetId) return;
+
+    if (this.selectedMetric === metric) {
+      this.clearMetricSelection();
+      return;
+    }
+
+    this.selectedMetric = metric;
+
+    if (metric !== 'institutional-order-flow') {
+      this.detailsLoading = false;
+      this.institutionalSnapshots = [];
+      return;
+    }
+
+    this.detailsLoading = true;
+    this.assetService.getInstitutionalSnapshots(this.assetId).subscribe({
+      next: (rows) => {
+        this.institutionalSnapshots = rows;
+        this.detailsLoading = false;
+      },
+      error: () => {
+        this.institutionalSnapshots = [];
+        this.detailsLoading = false;
+      },
+    });
+  }
+
+  clearMetricSelection(): void {
+    this.selectedMetric = null;
+    this.detailsLoading = false;
+    this.institutionalSnapshots = [];
+  }
+
+  isMetricSelected(metric: DeltaMetricKey): boolean {
+    return this.selectedMetric === metric;
   }
 
   openChildAnalysis(assetId: string): void {

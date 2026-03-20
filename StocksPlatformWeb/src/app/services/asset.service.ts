@@ -46,6 +46,13 @@ export interface HoldingDelta extends AssetDelta {
   targetFraction: number;
 }
 
+export interface FundHoldingSnapshot {
+  date: string;
+  meanFundPercentage: number;
+  medianFundPercentage: number;
+  numFundsRepresented: number;
+}
+
 export interface AssetHistory {
   prices: number[];
   times: string[];
@@ -77,6 +84,10 @@ export class AssetService {
 
   getHoldings(portfolioId: string): Observable<HoldingDelta[]> {
     return this.http.get<HoldingDelta[]>(`${API}/api/analysis/${portfolioId}/holdings`);
+  }
+
+  getInstitutionalSnapshots(assetId: string): Observable<FundHoldingSnapshot[]> {
+    return this.http.get<FundHoldingSnapshot[]>(`${API}/api/analysis/${assetId}/institutional-snapshots`);
   }
 
   getHistory(id: string, timeFrom?: Date): Observable<AssetHistory> {

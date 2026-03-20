@@ -41,7 +41,7 @@
         </button>
       </h2>
       <div class="delta-grid">
-        <div class="delta-item">
+        <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('market')" (click)="selectMetric('market')" type="button">
           <span class="delta-label">Market</span>
           <span
             class="delta-value"
@@ -49,8 +49,8 @@
             [class.negative]="delta && delta.marketDelta < 0"
             >{{ delta ? (delta.marketDelta | number: '1.2-2') : 'N/A' }}</span
           >
-        </div>
-        <div class="delta-item">
+        </button>
+        <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('public-sentiment')" (click)="selectMetric('public-sentiment')" type="button">
           <span class="delta-label">Public Sentiment</span>
           <span
             class="delta-value"
@@ -58,8 +58,8 @@
             [class.negative]="delta && delta.publicSentimentDelta < 0"
             >{{ delta ? (delta.publicSentimentDelta | number: '1.2-2') : 'N/A' }}</span
           >
-        </div>
-        <div class="delta-item">
+        </button>
+        <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('member-sentiment')" (click)="selectMetric('member-sentiment')" type="button">
           <span class="delta-label">Member Sentiment</span>
           <span
             class="delta-value"
@@ -67,8 +67,8 @@
             [class.negative]="delta && delta.memberSentimentDelta < 0"
             >{{ delta ? (delta.memberSentimentDelta | number: '1.2-2') : 'N/A' }}</span
           >
-        </div>
-        <div class="delta-item">
+        </button>
+        <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('fundamental')" (click)="selectMetric('fundamental')" type="button">
           <span class="delta-label">Fundamental</span>
           <span
             class="delta-value"
@@ -76,8 +76,8 @@
             [class.negative]="delta && delta.fundamentalDelta < 0"
             >{{ delta ? (delta.fundamentalDelta | number: '1.2-2') : 'N/A' }}</span
           >
-        </div>
-        <div class="delta-item">
+        </button>
+        <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('institutional-order-flow')" (click)="selectMetric('institutional-order-flow')" type="button">
           <span class="delta-label">Inst. Order Flow</span>
           <span
             class="delta-value"
@@ -85,8 +85,8 @@
             [class.negative]="delta && delta.institutionalOrderFlowDelta < 0"
             >{{ delta ? (delta.institutionalOrderFlowDelta | number: '1.2-2') : 'N/A' }}</span
           >
-        </div>
-        <div class="delta-item">
+        </button>
+        <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('pattern')" (click)="selectMetric('pattern')" type="button">
           <span class="delta-label">Pattern</span>
           <span
             class="delta-value"
@@ -94,7 +94,7 @@
             [class.negative]="delta && delta.patternDelta < 0"
             >{{ delta ? (delta.patternDelta | number: '1.2-2') : 'N/A' }}</span
           >
-        </div>
+        </button>
         @if (delta && delta.pairDelta !== null) {
           <div class="delta-item">
             <span class="delta-label">Pair</span>
@@ -107,6 +107,65 @@
           </div>
         }
       </div>
+
+      @if (selectedMetric) {
+        <div class="delta-details">
+          @if (selectedMetric === 'institutional-order-flow') {
+            <div class="delta-details-header">
+              <h3 class="delta-details-title">Institutional Order Flow</h3>
+              <button class="delta-details-close" type="button" (click)="clearMetricSelection()" aria-label="Close details">&times;</button>
+            </div>
+            <p class="muted">
+              Computed as the normalized change in average institutional fund allocation
+              between the latest two FundHoldingSnapshots for this asset.
+            </p>
+
+            @if (detailsLoading) {
+              <p class="muted">Loading institutional snapshot data…</p>
+            } @else if (institutionalSnapshots.length === 0) {
+              <p class="muted">No data available.</p>
+            } @else {
+              <div class="table-wrap">
+                <table class="holdings-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th class="num-col">Mean %</th>
+                      <th class="num-col">Median %</th>
+                      <th class="num-col">Funds</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of institutionalSnapshots; track row.date) {
+                      <tr>
+                        <td>{{ row.date | date: 'mediumDate' }}</td>
+                        <td class="num-col">{{ row.meanFundPercentage | number: '1.2-2' }}</td>
+                        <td class="num-col">{{ row.medianFundPercentage | number: '1.2-2' }}</td>
+                        <td class="num-col">{{ row.numFundsRepresented }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          } @else if (selectedMetric === 'pattern') {
+            <div class="delta-details-header">
+              <h3 class="delta-details-title">Pattern</h3>
+              <button class="delta-details-close" type="button" (click)="clearMetricSelection()" aria-label="Close details">&times;</button>
+            </div>
+            <p class="muted">
+              Pattern delta captures how closely recent price action resembles the model's target
+              accumulation shape, with stronger scores when the latest movement aligns with the expected pattern.
+            </p>
+          } @else {
+            <div class="delta-details-header">
+              <h3 class="delta-details-title">Metric Details</h3>
+              <button class="delta-details-close" type="button" (click)="clearMetricSelection()" aria-label="Close details">&times;</button>
+            </div>
+            <p class="muted">No drilldown data available for this delta yet.</p>
+          }
+        </div>
+      }
     </section>
 
     @if (

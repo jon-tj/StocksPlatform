@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StocksPlatform.Data;
 using StocksPlatform.Models;
 using StocksPlatform.Services.Analysis;
@@ -11,6 +12,13 @@ namespace StocksPlatform.Controllers;
 [Authorize]
 public class AnalysisController(AppDbContext db, AnalysisService analysisService) : ControllerBase
 {
+    public record FundHoldingSnapshotDto(
+        DateTime Date,
+        double MeanFundPercentage,
+        double MedianFundPercentage,
+        int NumFundsRepresented
+    );
+
     public record DeltaDto(
         Guid AssetId,
         string AssetName,
@@ -102,6 +110,28 @@ public class AnalysisController(AppDbContext db, AnalysisService analysisService
         var fractions = AnalysisService.Softmax(scores);
 
         return Ok(rows.Select((r, i) => ToHoldingDto(r.Delta, r.Name, scores[i], fractions[i])).ToArray());
+    }
+
+    // GET /api/analysis/{assetId}/institutional-snapshots
+    // Returns recent institutional fund holding snapshots for the asset.
+    [HttpGet("{assetId:guid}/institutional-snapshots")]
+    public async Task<ActionResult<FundHoldingSnapshotDto[]>> GetInstitutionalSnapshots(Guid assetId)
+    {
+        var asset = await db.Assets.FindAsync(assetId);
+        if (asset is null) return NotFound();
+
+        var rows = await db.FundHoldingSnapshots
+            .Where(s => s.AssetId == assetId)
+            .OrderByDescending(s => s.Date)
+            .Take(30)
+            .Select(s => new FundHoldingSnapshotDto(
+                s.Date,
+                s.MeanFundPercentage,
+                s.MedianFundPercentage,
+                s.NumFundsRepresented))
+            .ToArrayAsync();
+
+        return Ok(rows);
     }
 
     private static DeltaDto ToDto(AssetDelta d, string assetName) => new(
