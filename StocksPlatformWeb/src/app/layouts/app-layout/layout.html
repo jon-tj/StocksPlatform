@@ -41,6 +41,17 @@
     <div class="nav-right">
       @if (showLogout) {
         <span class="nav-user">{{ displayName }}</span>
+        <label class="currency-picker" aria-label="Preferred currency">
+          <select
+            class="currency-select"
+            [(ngModel)]="selectedCurrency"
+            (ngModelChange)="onCurrencyChange($event)"
+          >
+            @for (code of availableCurrencies; track code) {
+              <option [value]="code">{{ code }}</option>
+            }
+          </select>
+        </label>
       }
       <button class="btn-theme" (click)="toggleTheme()" [title]="isDark ? 'Switch to day mode' : 'Switch to night mode'">
         <span class="material-icons">{{ isDark ? 'dark_mode' : 'light_mode' }}</span>

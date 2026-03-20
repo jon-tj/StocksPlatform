@@ -9,6 +9,7 @@ import { ThemeService } from '../../services/theme.service';
 import { DecimalPipe } from '@angular/common';
 import { AssetChip } from '../../components/asset-chip/asset-chip';
 import { ValueChip } from '../../components/value-chip/value-chip';
+import { CurrencyService } from '../../services/currency.service';
 
 interface RecentAsset {
   id: string;
@@ -35,6 +36,7 @@ export class AppLayout implements OnInit, OnDestroy {
   private router = inject(Router);
   private themeService = inject(ThemeService);
   private assetService = inject(AssetService);
+  private currencyService = inject(CurrencyService);
   private destroy$ = new Subject<void>();
   private searchInput$ = new Subject<string>();
 
@@ -47,6 +49,8 @@ export class AppLayout implements OnInit, OnDestroy {
   starredAssets: RecentAsset[] = [];
   recentAssets: RecentAsset[] = [];
   recentSortMode: RecentSortMode = 'time';
+  availableCurrencies = ['USD', 'EUR', 'NOK'];
+  selectedCurrency = 'USD';
   currentAnalysisAssetId: string | null = null;
   draggedAsset: RecentAsset | null = null;
   draggedFrom: DragList | null = null;
@@ -70,6 +74,7 @@ export class AppLayout implements OnInit, OnDestroy {
     this.displayName = this.auth.getUser()?.displayName ?? '';
     this.isDark = this.themeService.theme === 'dark';
     this.showLogout = this.isAppPage();
+    this.selectedCurrency = this.currencyService.currentPreferredCurrency;
     this.recentSortMode = this.readRecentSortMode();
     this.loadStarredAssets();
     this.recentAssets = this.readRecentAssets();
@@ -98,6 +103,12 @@ export class AppLayout implements OnInit, OnDestroy {
     this.assetService.starredChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.loadStarredAssets());
+
+    this.currencyService.preferredCurrency
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((code) => {
+        this.selectedCurrency = code;
+      });
 
     this.startSidebarLivePriceStream();
   }
@@ -145,6 +156,10 @@ export class AppLayout implements OnInit, OnDestroy {
     if (this.recentSortMode === mode) return;
     this.recentSortMode = mode;
     this.writeRecentSortMode(mode);
+  }
+
+  onCurrencyChange(code: string): void {
+    this.currencyService.setPreferredCurrency(code);
   }
 
   onAssetDragStart(asset: RecentAsset, from: DragList, event: DragEvent): void {
