@@ -146,7 +146,7 @@ public class FundInstitutionalService(AppDbContext db, IEnumerable<IFundHoldings
 
         if (snapshots.Count < 2) return 0.0;
 
-        var delta = (snapshots[0].MeanFundPercentage - snapshots[1].MeanFundPercentage) / 100.0;
+        var delta = (snapshots[0].MeanFundPercentage - snapshots[1].MeanFundPercentage) / (snapshots[0].MeanFundPercentage + snapshots[1].MeanFundPercentage) * 1000;
         return Math.Clamp(delta, -1.0, 1.0);
     }
 

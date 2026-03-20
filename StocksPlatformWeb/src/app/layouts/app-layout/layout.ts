@@ -7,6 +7,15 @@ import { AssetDetails, AssetService } from '../../services/asset.service';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 
+interface RecentAsset {
+  id: string;
+  name: string;
+  symbol?: string;
+}
+
+const RECENT_ASSETS_KEY = 'sp.recentAssets';
+const RECENT_ASSETS_LIMIT = 5;
+
 @Component({
   selector: 'app-layout',
   imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe],
@@ -27,19 +36,23 @@ export class AppLayout implements OnInit, OnDestroy {
   searchQuery = '';
   searchResults: AssetDetails[] = [];
   showSearchDropdown = false;
+  recentAssets: RecentAsset[] = [];
 
   ngOnInit() {
     this.displayName = this.auth.getUser()?.displayName ?? '';
     this.isDark = this.themeService.theme === 'dark';
     this.showLogout = this.isAppPage();
+    this.recentAssets = this.readRecentAssets();
+    this.captureRecentFromUrl(this.router.url);
 
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntil(this.destroy$),
-    ).subscribe(() => {
+    ).subscribe((event) => {
       this.showLogout = this.isAppPage();
       this.displayName = this.auth.getUser()?.displayName ?? '';
       this.showSearchDropdown = false;
+      this.captureRecentFromUrl((event as NavigationEnd).urlAfterRedirects);
     });
 
     this.searchInput$.pipe(
@@ -84,7 +97,57 @@ export class AppLayout implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.searchResults = [];
     this.showSearchDropdown = false;
+    this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol });
     this.router.navigate(['/analysis', asset.id]);
+  }
+
+  openRecentAsset(assetId: string) {
+    this.router.navigate(['/analysis', assetId]);
+  }
+
+  private captureRecentFromUrl(url: string): void {
+    const path = url.split('?')[0];
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length < 2 || parts[0] !== 'analysis') return;
+
+    const assetId = parts[1];
+    const existing = this.recentAssets.find(a => a.id === assetId);
+    if (existing) {
+      this.addRecentAsset(existing);
+      return;
+    }
+
+    this.addRecentAsset({ id: assetId, name: assetId.slice(0, 8) });
+
+    this.assetService.getAssetDetails(assetId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (asset) => this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol }),
+      error: () => { },
+    });
+  }
+
+  private addRecentAsset(asset: RecentAsset): void {
+    this.recentAssets = [asset, ...this.recentAssets.filter(a => a.id !== asset.id)]
+      .slice(0, RECENT_ASSETS_LIMIT);
+    this.writeRecentAssets(this.recentAssets);
+  }
+
+  private readRecentAssets(): RecentAsset[] {
+    const raw = localStorage.getItem(RECENT_ASSETS_KEY);
+    if (!raw) return [];
+
+    try {
+      const parsed = JSON.parse(raw) as RecentAsset[];
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter(item => !!item && typeof item.id === 'string' && typeof item.name === 'string')
+        .slice(0, RECENT_ASSETS_LIMIT);
+    } catch {
+      return [];
+    }
+  }
+
+  private writeRecentAssets(assets: RecentAsset[]): void {
+    localStorage.setItem(RECENT_ASSETS_KEY, JSON.stringify(assets));
   }
 
   logout() {

@@ -191,6 +191,32 @@ export class Analysis implements OnInit, OnDestroy {
   onRefreshDeltas(): void {
     if (!this.assetId || this.recomputing) return;
     this.recomputing = true;
+
+    if (this.asset?.type === 'Portfolio')
+    {
+      forkJoin({
+        delta: this.assetService.refreshLatestDelta(this.assetId),
+        resp: this.positionsService.getPositions(),
+        holdings: this.assetService.getHoldings(this.assetId),
+      }).subscribe({
+        next: ({ delta, resp, holdings }) => {
+          this.delta = delta;
+          this.latestDelta = delta;
+
+          var holdingMap = new Map(holdings.map((h) => [h.assetId, h]));
+          this.children = resp.positions.map((p) => ({
+            position: p,
+            holding: holdingMap.get(p.assetId) ?? null,
+          }));
+
+          this.recomputing = false;
+        },
+        error: () => { this.recomputing = false; },
+      });
+
+      return;
+    }
+
     this.assetService.refreshLatestDelta(this.assetId).subscribe({
       next: (delta) => {
         this.delta = delta;
