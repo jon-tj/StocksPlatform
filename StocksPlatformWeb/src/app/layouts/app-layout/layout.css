@@ -24,6 +24,13 @@
   margin-top: 1rem;
 }
 
+.sidebar-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .sidebar-title {
   margin: 0 0 0.55rem;
   padding: 0 0.45rem;
@@ -31,6 +38,46 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.sidebar-sort-btn {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+}
+
+.sidebar-sort-btn:hover {
+  color: var(--color-text-muted);
+  border-color: var(--color-accent, #6366f1);
+}
+
+.sidebar-sort-group {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.icon-sort-btn {
+  width: 1.9rem;
+  height: 1.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-sort-btn .material-icons {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.active-sort-btn {
+  color: var(--color-accent, #6366f1);
+  border-color: color-mix(in srgb, var(--color-accent, #6366f1) 70%, var(--color-border) 30%);
+  background: color-mix(in srgb, var(--color-accent, #6366f1) 10%, transparent 90%);
 }
 
 .sidebar-link {

@@ -87,7 +87,29 @@
         </section>
 
         <section class="sidebar-section">
-          <h3 class="sidebar-title">Recent Assets</h3>
+          <div class="sidebar-section-head">
+            <h3 class="sidebar-title">Recent Assets</h3>
+            <div class="sidebar-sort-group" role="group" aria-label="Sort recent assets">
+              <button
+                class="sidebar-sort-btn icon-sort-btn"
+                type="button"
+                [class.active-sort-btn]="recentSortMode === 'time'"
+                (click)="setRecentSortMode('time')"
+                title="Sort by recency"
+              >
+                <span class="material-icons">history</span>
+              </button>
+              <button
+                class="sidebar-sort-btn icon-sort-btn"
+                type="button"
+                [class.active-sort-btn]="recentSortMode === 'alphabet'"
+                (click)="setRecentSortMode('alphabet')"
+                title="Sort alphabetically"
+              >
+                <span class="material-icons">sort_by_alpha</span>
+              </button>
+            </div>
+          </div>
           <div
             class="sidebar-dropzone"
             [class.drop-active]="dropTarget === 'recent'"

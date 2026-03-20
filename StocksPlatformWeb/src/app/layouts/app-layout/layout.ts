@@ -14,9 +14,11 @@ interface RecentAsset {
 }
 
 type DragList = 'starred' | 'recent';
+type RecentSortMode = 'time' | 'alphabet';
 
 const RECENT_ASSETS_KEY = 'sp.recentAssets';
 const RECENT_ASSETS_LIMIT = 5;
+const RECENT_SORT_MODE_KEY = 'sp.recentSortMode';
 
 @Component({
   selector: 'app-layout',
@@ -40,6 +42,7 @@ export class AppLayout implements OnInit, OnDestroy {
   showSearchDropdown = false;
   starredAssets: RecentAsset[] = [];
   recentAssets: RecentAsset[] = [];
+  recentSortMode: RecentSortMode = 'time';
   currentAnalysisAssetId: string | null = null;
   draggedAsset: RecentAsset | null = null;
   draggedFrom: DragList | null = null;
@@ -47,13 +50,22 @@ export class AppLayout implements OnInit, OnDestroy {
 
   get recentAssetsDeduped(): RecentAsset[] {
     const starredIds = new Set(this.starredAssets.map(a => a.id));
-    return this.recentAssets.filter(a => !starredIds.has(a.id));
+    const deduped = this.recentAssets.filter(a => !starredIds.has(a.id));
+
+    if (this.recentSortMode === 'alphabet') {
+      return [...deduped].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      );
+    }
+
+    return deduped;
   }
 
   ngOnInit() {
     this.displayName = this.auth.getUser()?.displayName ?? '';
     this.isDark = this.themeService.theme === 'dark';
     this.showLogout = this.isAppPage();
+    this.recentSortMode = this.readRecentSortMode();
     this.loadStarredAssets();
     this.recentAssets = this.readRecentAssets();
     this.captureRecentFromUrl(this.router.url);
@@ -120,6 +132,12 @@ export class AppLayout implements OnInit, OnDestroy {
 
   openRecentAsset(assetId: string) {
     this.router.navigate(['/analysis', assetId]);
+  }
+
+  setRecentSortMode(mode: RecentSortMode): void {
+    if (this.recentSortMode === mode) return;
+    this.recentSortMode = mode;
+    this.writeRecentSortMode(mode);
   }
 
   onAssetDragStart(asset: RecentAsset, from: DragList, event: DragEvent): void {
@@ -249,6 +267,16 @@ export class AppLayout implements OnInit, OnDestroy {
 
   private writeRecentAssets(assets: RecentAsset[]): void {
     localStorage.setItem(RECENT_ASSETS_KEY, JSON.stringify(assets));
+  }
+
+  private readRecentSortMode(): RecentSortMode {
+    const raw = localStorage.getItem(RECENT_SORT_MODE_KEY);
+    if (raw === 'alphabet' || raw === 'time') return raw;
+    return 'time';
+  }
+
+  private writeRecentSortMode(mode: RecentSortMode): void {
+    localStorage.setItem(RECENT_SORT_MODE_KEY, mode);
   }
 
   logout() {
