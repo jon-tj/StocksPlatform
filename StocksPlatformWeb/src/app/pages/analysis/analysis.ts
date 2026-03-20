@@ -17,6 +17,7 @@ import { PositionsService, Position } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
 import { SectorLabelPipe } from '../../pipes/sector-label.pipe';
 import { AssetChip } from '../../components/asset-chip/asset-chip';
+import { ValueChip } from '../../components/value-chip/value-chip';
 
 export interface ChildRow {
   position: Position;
@@ -33,7 +34,7 @@ export type DeltaMetricKey =
 
 @Component({
   selector: 'app-analysis',
-  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip],
+  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip, ValueChip],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })

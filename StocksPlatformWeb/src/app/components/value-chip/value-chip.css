@@ -1,0 +1,37 @@
+.value-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.value-approx {
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+  letter-spacing: -0.02em;
+}
+
+.value-amount {
+  font-weight: 500;
+}
+
+.value-currency {
+  font-size: 0.78em;
+  color: var(--color-text-muted);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.value-chip-converted .value-currency {
+  color: color-mix(in srgb, var(--color-accent, #6366f1) 70%, var(--color-text-muted) 30%);
+}
+
+.value-chip-no-rates .value-currency {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.value-chip-empty {
+  color: var(--color-text-muted);
+}

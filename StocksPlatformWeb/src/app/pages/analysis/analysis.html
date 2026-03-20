@@ -16,7 +16,7 @@
       </h1>
       @if (livePrice) {
         <div class="live-badge">
-          <span class="live-price">{{ livePrice.price | number: '1.2-2' }}</span>
+          <app-value-chip [amount]="livePrice.price" currency="USD" format="1.2-2" />
           <span
             class="live-gain"
             [class.positive]="livePrice.dayGainPercent !== null && livePrice.dayGainPercent >= 0"
