@@ -1,8 +1,9 @@
 .asset-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
+  width: 100%;
 }
 
 .chip-icon {

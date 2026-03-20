@@ -82,6 +82,7 @@
 
 .sidebar-link {
   width: 100%;
+  min-width: 0;
   border: 1px solid transparent;
   background: transparent;
   color: var(--color-text-primary);
@@ -90,6 +91,7 @@
   border-radius: 0.55rem;
   cursor: pointer;
   font: inherit;
+  overflow: hidden;
 }
 
 .sidebar-link:hover {
