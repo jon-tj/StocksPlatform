@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, filter, of, switchMap, takeUntil } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, filter, interval, of, startWith, switchMap, takeUntil } from 'rxjs';
 import { SectorLabelPipe } from '../../pipes/sector-label.pipe';
-import { AssetDetails, AssetService } from '../../services/asset.service';
+import { AssetDetails, AssetService, LivePrice } from '../../services/asset.service';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { DecimalPipe } from '@angular/common';
 
 interface RecentAsset {
   id: string;
@@ -22,7 +23,7 @@ const RECENT_SORT_MODE_KEY = 'sp.recentSortMode';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe],
+  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe, DecimalPipe],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
@@ -47,6 +48,7 @@ export class AppLayout implements OnInit, OnDestroy {
   draggedAsset: RecentAsset | null = null;
   draggedFrom: DragList | null = null;
   dropTarget: DragList | null = null;
+  liveByAssetId = new Map<string, LivePrice>();
 
   get recentAssetsDeduped(): RecentAsset[] {
     const starredIds = new Set(this.starredAssets.map(a => a.id));
@@ -93,6 +95,8 @@ export class AppLayout implements OnInit, OnDestroy {
     this.assetService.starredChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.loadStarredAssets());
+
+    this.startSidebarLivePriceStream();
   }
 
   ngOnDestroy(): void {
@@ -203,6 +207,55 @@ export class AppLayout implements OnInit, OnDestroy {
 
   isActiveAsset(assetId: string): boolean {
     return this.currentAnalysisAssetId === assetId;
+  }
+
+  getSidebarLive(assetId: string): LivePrice | null {
+    return this.liveByAssetId.get(this.normalizeAssetId(assetId)) ?? null;
+  }
+
+  private startSidebarLivePriceStream(): void {
+    interval(15000).pipe(
+      startWith(0),
+      switchMap(() => {
+        const ids = this.getSidebarAssetIds();
+        if (ids.length === 0) {
+          this.liveByAssetId.clear();
+          return of([] as LivePrice[]);
+        }
+
+        return this.assetService.getLivePrices(ids);
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe({
+      next: (prices) => {
+        const next = new Map<string, LivePrice>();
+        for (const p of prices) {
+          next.set(this.normalizeAssetId(p.assetId), p);
+        }
+        this.liveByAssetId = next;
+      },
+      error: () => {
+        this.liveByAssetId.clear();
+      },
+    });
+  }
+
+  private getSidebarAssetIds(): string[] {
+    const ids = new Set<string>();
+
+    for (const asset of this.starredAssets) {
+      ids.add(this.normalizeAssetId(asset.id));
+    }
+
+    for (const asset of this.recentAssetsDeduped) {
+      ids.add(this.normalizeAssetId(asset.id));
+    }
+
+    return Array.from(ids);
+  }
+
+  private normalizeAssetId(assetId: string): string {
+    return assetId.trim().toLowerCase();
   }
 
   private captureRecentFromUrl(url: string): void {

@@ -53,6 +53,15 @@ export interface FundHoldingSnapshot {
   numFundsRepresented: number;
 }
 
+export interface LivePrice {
+  assetId: string;
+  symbol: string;
+  price: number;
+  dayGainPercent: number | null;
+  fetchedAt: string;
+  expiresAt: string;
+}
+
 export interface AssetHistory {
   prices: number[];
   times: string[];
@@ -113,6 +122,14 @@ export class AssetService {
 
   getInstitutionalSnapshots(assetId: string): Observable<FundHoldingSnapshot[]> {
     return this.http.get<FundHoldingSnapshot[]>(`${API}/api/analysis/${assetId}/institutional-snapshots`);
+  }
+
+  getLivePrice(assetId: string): Observable<LivePrice> {
+    return this.http.get<LivePrice>(`${API}/api/price/live/${assetId}`);
+  }
+
+  getLivePrices(assetIds: string[]): Observable<LivePrice[]> {
+    return this.http.get<LivePrice[]>(`${API}/api/price/live`, { params: { assetIds } });
   }
 
   getHistory(id: string, timeFrom?: Date): Observable<AssetHistory> {

@@ -14,6 +14,18 @@
           <span class="ticker-muted">{{ asset.symbol }}</span>
         }
       </h1>
+      @if (livePrice) {
+        <div class="live-badge">
+          <span class="live-price">{{ livePrice.price | number: '1.2-2' }}</span>
+          <span
+            class="live-gain"
+            [class.positive]="livePrice.dayGainPercent !== null && livePrice.dayGainPercent >= 0"
+            [class.negative]="livePrice.dayGainPercent !== null && livePrice.dayGainPercent < 0"
+          >
+            {{ livePrice.dayGainPercent !== null ? ((livePrice.dayGainPercent >= 0 ? '+' : '') + (livePrice.dayGainPercent | number: '1.2-2') + '%') : '—' }}
+          </span>
+        </div>
+      }
       <button
         class="star-btn"
         type="button"

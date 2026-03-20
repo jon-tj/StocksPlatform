@@ -155,6 +155,33 @@
   line-height: 1.2;
 }
 
+.recent-live {
+  margin-top: 0.2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.recent-price {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+.recent-day {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.recent-day-positive {
+  color: #22c55e;
+}
+
+.recent-day-negative {
+  color: #ef4444;
+}
+
 .app-content {
   flex: 1;
   min-height: 0;

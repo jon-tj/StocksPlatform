@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subscription, forkJoin, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { Subscription, forkJoin, Subject, interval } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap, startWith } from 'rxjs/operators';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -11,6 +11,7 @@ import {
   AssetDelta,
   HoldingDelta,
   FundHoldingSnapshot,
+  LivePrice,
 } from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
@@ -57,6 +58,10 @@ export class Analysis implements OnInit, OnDestroy {
   selectedMetric: DeltaMetricKey | null = null;
   detailsLoading = false;
   institutionalSnapshots: FundHoldingSnapshot[] = [];
+  livePrice: LivePrice | null = null;
+  liveByAssetId = new Map<string, LivePrice>();
+
+  private liveSub: Subscription | null = null;
 
   get filteredChildren(): ChildRow[] {
     const q = this.holdingsFilter.trim().toLowerCase();
@@ -135,6 +140,8 @@ export class Analysis implements OnInit, OnDestroy {
     this.institutionalSnapshots = [];
     this.isStarred = false;
     this.starring = false;
+    this.livePrice = null;
+    this.liveByAssetId.clear();
 
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -179,11 +186,13 @@ export class Analysis implements OnInit, OnDestroy {
                 position: p,
                 holding: holdingMap.get(p.assetId) ?? null,
               }));
+              this.startLivePriceStream(assetId, this.children.map(c => c.position.assetId));
               this.loading = false;
             },
             error: () => { this.loading = false; },
           });
         } else {
+          this.startLivePriceStream(assetId, []);
           this.loading = false;
         }
       },
@@ -211,6 +220,40 @@ export class Analysis implements OnInit, OnDestroy {
         this.starring = false;
       },
     });
+  }
+
+  getHoldingLivePrice(assetId: string): LivePrice | null {
+    return this.liveByAssetId.get(this.normalizeAssetId(assetId)) ?? null;
+  }
+
+  private startLivePriceStream(primaryAssetId: string, holdingIds: string[]): void {
+    this.liveSub?.unsubscribe();
+
+    const normalizedPrimaryId = this.normalizeAssetId(primaryAssetId);
+    const ids = [
+      normalizedPrimaryId,
+      ...holdingIds
+        .map(id => this.normalizeAssetId(id))
+        .filter(id => id !== normalizedPrimaryId),
+    ];
+    if (ids.length === 0) return;
+
+    this.liveSub = interval(15000).pipe(
+      startWith(0),
+      switchMap(() => this.assetService.getLivePrices(ids)),
+    ).subscribe({
+      next: (rows) => {
+        this.liveByAssetId = new Map(
+          rows.map(r => [this.normalizeAssetId(r.assetId), r])
+        );
+        this.livePrice = this.liveByAssetId.get(normalizedPrimaryId) ?? null;
+      },
+      error: () => { },
+    });
+  }
+
+  private normalizeAssetId(assetId: string): string {
+    return assetId.trim().toLowerCase();
   }
 
   onRefreshDeltas(): void {
@@ -297,6 +340,7 @@ export class Analysis implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
+    this.liveSub?.unsubscribe();
     this.hoverSub.unsubscribe();
     this.hoverDate$.complete();
   }
