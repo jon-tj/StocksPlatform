@@ -23,15 +23,6 @@
   text-transform: uppercase;
 }
 
-.value-chip-converted .value-currency {
-  color: color-mix(in srgb, var(--color-accent, #6366f1) 70%, var(--color-text-muted) 30%);
-}
-
-.value-chip-no-rates .value-currency {
-  color: var(--color-text-muted);
-  opacity: 0.6;
-}
-
 .value-chip-empty {
   color: var(--color-text-muted);
 }

@@ -7,10 +7,10 @@
     <span class="value-currency">{{ displayCurrency() }}</span>
   </span>
 } @else if (amount() !== null) {
-  <!-- Amount provided but rates unavailable: show original with its own currency -->
-  <span class="value-chip value-chip-no-rates" title="Exchange rate unavailable">
+  <!-- Amount provided but rates unavailable: show selected currency label with original amount -->
+  <span class="value-chip value-chip-no-rates" title="Exchange rate unavailable; showing unconverted amount">
     <span class="value-amount">{{ amount() | number: format() }}</span>
-    <span class="value-currency">{{ currency() }}</span>
+    <span class="value-currency">{{ displayCurrency() }}</span>
   </span>
 } @else {
   <span class="value-chip value-chip-empty">—</span>
