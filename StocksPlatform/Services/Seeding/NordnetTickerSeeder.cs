@@ -13,6 +13,20 @@ namespace StocksPlatform.Services.Seeding;
 /// </summary>
 public static class NordnetTickerSeeder
 {
+    private static readonly (string BrokerSymbol, uint Quantity)[] MainPortfolioSeed =
+    [
+        ("equinor-eqnr-xosl", 1),
+        ("dnb-bank-dnb-xosl", 1),
+        ("telenor-tel-xosl", 1),
+        ("norsk-hydro-nhy-xosl", 1),
+        ("kongsberg-gruppen-kog-xosl", 1),
+        ("apple-aapl-xnas", 1),
+        ("microsoft-msft-xnas", 1),
+        ("nvidia-nvda-xnas", 1),
+        ("amazon0com-amzn-xnas", 1),
+        ("alphabet-a-googl-xnas", 1),
+    ];
+
     /// <summary>ISIN → (Sector, Subsector) for well-known European stocks.</summary>
     private static readonly Dictionary<string, (string Sector, string Subsector)> KnownSectors =
         new(StringComparer.OrdinalIgnoreCase)
@@ -394,6 +408,77 @@ public static class NordnetTickerSeeder
 
         if (toInsert.Count > 0)
             db.Assets.AddRange(toInsert);
+
+        await db.SaveChangesAsync();
+        await SeedMainPortfolioAsync(db);
+    }
+
+    private static async Task SeedMainPortfolioAsync(AppDbContext db)
+    {
+        var brokerSymbols = MainPortfolioSeed
+            .Select(entry => entry.BrokerSymbol)
+            .ToArray();
+
+        var assets = await db.Assets
+            .Where(a => a.Broker == "NordNet"
+                     && a.BrokerSymbol != null
+                     && brokerSymbols.Contains(a.BrokerSymbol))
+            .ToListAsync();
+
+        var assetsByBrokerSymbol = assets
+            .Where(a => a.BrokerSymbol != null)
+            .ToDictionary(a => a.BrokerSymbol!, StringComparer.OrdinalIgnoreCase);
+
+        var missingBrokerSymbols = brokerSymbols
+            .Where(symbol => !assetsByBrokerSymbol.ContainsKey(symbol))
+            .ToArray();
+
+        if (missingBrokerSymbols.Length > 0)
+        {
+            throw new InvalidOperationException(
+                $"Unable to seed main portfolio. Missing asset rows for: {string.Join(", ", missingBrokerSymbols)}");
+        }
+
+        var existingRows = await db.PortfolioAssets
+            .Where(pa => pa.PortfolioId == AppDbContext.MainPortfolioId)
+            .ToListAsync();
+
+        var desiredAssetIds = MainPortfolioSeed
+            .Select(entry => assetsByBrokerSymbol[entry.BrokerSymbol].Id)
+            .ToHashSet();
+
+        var rowsToRemove = existingRows
+            .Where(pa => !desiredAssetIds.Contains(pa.AssetId))
+            .ToList();
+
+        if (rowsToRemove.Count > 0)
+            db.PortfolioAssets.RemoveRange(rowsToRemove);
+
+        var existingByAssetId = existingRows
+            .Where(pa => desiredAssetIds.Contains(pa.AssetId))
+            .ToDictionary(pa => pa.AssetId);
+
+        foreach (var (brokerSymbol, quantity) in MainPortfolioSeed)
+        {
+            var assetId = assetsByBrokerSymbol[brokerSymbol].Id;
+
+            if (existingByAssetId.TryGetValue(assetId, out var row))
+            {
+                row.Quantity = quantity;
+                row.Fraction = null;
+                row.FractionExpiry = null;
+                continue;
+            }
+
+            db.PortfolioAssets.Add(new PortfolioAsset
+            {
+                PortfolioId = AppDbContext.MainPortfolioId,
+                AssetId = assetId,
+                Quantity = quantity,
+                Fraction = null,
+                FractionExpiry = null,
+            });
+        }
 
         await db.SaveChangesAsync();
     }

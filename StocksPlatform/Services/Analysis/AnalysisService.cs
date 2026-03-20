@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StocksPlatform.Data;
 using StocksPlatform.Models;
+using StocksPlatform.Services.PriceServices;
 
 namespace StocksPlatform.Services.Analysis;
 
@@ -13,8 +14,12 @@ public class AnalysisService(
     AppDbContext db,
     FractionService fractionService,
     FundInstitutionalService fundInstitutionalService,
-    PatternDeltaService patternDeltaService)
+    PatternDeltaService patternDeltaService,
+    YahooPriceService yahooPriceService,
+    E24PriceService e24PriceService)
 {
+    private static DateTime TodayUtc => DateTime.UtcNow.Date;
+
     // -------------------------------------------------------------------------
     // Public API
     // -------------------------------------------------------------------------
@@ -50,9 +55,10 @@ public class AnalysisService(
                 existing.Where(d => d.ExpiresAt > now)
                         .Select(d => KeyValuePair.Create((d.AssetId, d.Date.Date), d)));
             var childrenCache = new Dictionary<Guid, List<Guid>>();
+            var parentCache = new Dictionary<Guid, List<Guid>>();
 
             foreach (var row in expiredRows)
-                await RefreshDeltaAsync(row, cache, childrenCache);
+                await RefreshDeltaAsync(row, cache, childrenCache, parentCache, propagateToParents: true, skipCache: false);
 
             await db.SaveChangesAsync();
         }
@@ -72,15 +78,16 @@ public class AnalysisService(
         var today = now.Date;
         var cache = new Dictionary<(Guid, DateTime), AssetDelta>();
         var childrenCache = new Dictionary<Guid, List<Guid>>();
+        var parentCache = new Dictionary<Guid, List<Guid>>();
 
         var row = await db.AssetDeltas
             .Where(d => d.AssetId == assetId && d.Date == today)
             .FirstOrDefaultAsync();
 
         if (row is null)
-            row = await EnsureDeltaAsync(assetId, today, cache, childrenCache);
+            row = await EnsureDeltaAsync(assetId, today, cache, childrenCache, parentCache, propagateToParents: true, skipCache: skipCache);
         else if (skipCache || row.ExpiresAt is null || row.ExpiresAt <= now)
-            await RefreshDeltaAsync(row, cache, childrenCache);
+            await RefreshDeltaAsync(row, cache, childrenCache, parentCache, propagateToParents: true, skipCache: skipCache);
 
         await db.SaveChangesAsync();
         return row;
@@ -109,6 +116,7 @@ public class AnalysisService(
         var today = now.Date;
         var cache = new Dictionary<(Guid, DateTime), AssetDelta>();
         var childrenCache = new Dictionary<Guid, List<Guid>>();
+        var parentCache = new Dictionary<Guid, List<Guid>>();
 
         var results = new List<(string Name, AssetDelta Delta)>(children.Count);
         foreach (var pa in children)
@@ -118,9 +126,9 @@ public class AnalysisService(
                 .FirstOrDefaultAsync();
 
             if (row is null)
-                row = await EnsureDeltaAsync(pa.AssetId, today, cache, childrenCache);
+                row = await EnsureDeltaAsync(pa.AssetId, today, cache, childrenCache, parentCache, propagateToParents: false, skipCache: false);
             else if (row.ExpiresAt is null || row.ExpiresAt <= now)
-                await RefreshDeltaAsync(row, cache, childrenCache);
+                await RefreshDeltaAsync(row, cache, childrenCache, parentCache, propagateToParents: false, skipCache: false);
             else
                 cache[(pa.AssetId, today)] = row;
 
@@ -154,10 +162,13 @@ public class AnalysisService(
     private async Task<AssetDelta> EnsureDeltaAsync(
         Guid assetId, DateTime date,
         Dictionary<(Guid, DateTime), AssetDelta> cache,
-        Dictionary<Guid, List<Guid>> childrenCache)
+        Dictionary<Guid, List<Guid>> childrenCache,
+        Dictionary<Guid, List<Guid>> parentCache,
+        bool propagateToParents = true,
+        bool skipCache = false)
     {
         var key = (assetId, date.Date);
-        if (cache.TryGetValue(key, out var cached))
+        if (cache.TryGetValue(key, out var cached) && !skipCache)
             return cached;
 
         var now = DateTime.UtcNow;
@@ -168,27 +179,31 @@ public class AnalysisService(
 
         if (existing is not null)
         {
-            if (existing.ExpiresAt > now)
+            if (!skipCache && existing.ExpiresAt > now)
             {
                 cache[key] = existing;
                 return existing;
             }
-            await RefreshDeltaAsync(existing, cache, childrenCache);
+            await RefreshDeltaAsync(existing, cache, childrenCache, parentCache, propagateToParents, skipCache);
             return existing;
         }
 
-        var delta = await ComputeDeltaAsync(assetId, date.Date, cache, childrenCache);
+        var delta = await ComputeDeltaAsync(assetId, date.Date, cache, childrenCache, parentCache, skipCache);
         db.AssetDeltas.Add(delta);
         cache[key] = delta;
+        await RebalanceDirectParentsIfNeededAsync(assetId, date.Date, cache, childrenCache, parentCache, propagateToParents);
         return delta;
     }
 
     private async Task RefreshDeltaAsync(
         AssetDelta row,
         Dictionary<(Guid, DateTime), AssetDelta> cache,
-        Dictionary<Guid, List<Guid>> childrenCache)
+        Dictionary<Guid, List<Guid>> childrenCache,
+        Dictionary<Guid, List<Guid>> parentCache,
+        bool propagateToParents = true,
+        bool skipCache = false)
     {
-        var fresh = await ComputeDeltaAsync(row.AssetId, row.Date, cache, childrenCache);
+        var fresh = await ComputeDeltaAsync(row.AssetId, row.Date, cache, childrenCache, parentCache, skipCache);
         row.MarketDelta = fresh.MarketDelta;
         row.PairDelta = fresh.PairDelta;
         row.PairAssetId = fresh.PairAssetId;
@@ -199,6 +214,7 @@ public class AnalysisService(
         row.PatternDelta = fresh.PatternDelta;
         row.ExpiresAt = fresh.ExpiresAt;
         cache[(row.AssetId, row.Date.Date)] = row;
+        await RebalanceDirectParentsIfNeededAsync(row.AssetId, row.Date, cache, childrenCache, parentCache, propagateToParents);
     }
 
     /// <summary>
@@ -209,7 +225,9 @@ public class AnalysisService(
     private async Task<AssetDelta> ComputeDeltaAsync(
         Guid assetId, DateTime date,
         Dictionary<(Guid, DateTime), AssetDelta> cache,
-        Dictionary<Guid, List<Guid>> childrenCache)
+        Dictionary<Guid, List<Guid>> childrenCache,
+        Dictionary<Guid, List<Guid>> parentCache,
+        bool skipCache = false)
     {
         if (!childrenCache.TryGetValue(assetId, out var childIds))
         {
@@ -228,7 +246,7 @@ public class AnalysisService(
             var childDeltas = new List<(AssetDelta Delta, double Weight)>(childIds.Count);
             foreach (var childId in childIds)
             {
-                var childDelta = await EnsureDeltaAsync(childId, date, cache, childrenCache);
+                var childDelta = await EnsureDeltaAsync(childId, date, cache, childrenCache, parentCache, propagateToParents: false, skipCache: skipCache);
                 var weight = fractionMap.TryGetValue(childId, out var f) ? f : 0.0;
                 childDeltas.Add((childDelta, weight));
             }
@@ -237,6 +255,61 @@ public class AnalysisService(
         }
 
         return await ComputeLeafAsync(assetId, date);
+    }
+
+    private async Task RebalanceDirectParentsIfNeededAsync(
+        Guid assetId,
+        DateTime date,
+        Dictionary<(Guid, DateTime), AssetDelta> cache,
+        Dictionary<Guid, List<Guid>> childrenCache,
+        Dictionary<Guid, List<Guid>> parentCache,
+        bool propagateToParents)
+    {
+        if (!propagateToParents || date.Date != TodayUtc)
+            return;
+
+        if (!parentCache.TryGetValue(assetId, out var parentIds))
+        {
+            parentIds = await db.PortfolioAssets
+                .Where(pa => pa.AssetId == assetId)
+                .Select(pa => pa.PortfolioId)
+                .Distinct()
+                .ToListAsync();
+
+            parentCache[assetId] = parentIds;
+        }
+
+        foreach (var parentId in parentIds)
+            await RebalancePortfolioAsync(parentId, date.Date, cache, childrenCache, parentCache);
+    }
+
+    private async Task RebalancePortfolioAsync(
+        Guid portfolioId,
+        DateTime date,
+        Dictionary<(Guid, DateTime), AssetDelta> cache,
+        Dictionary<Guid, List<Guid>> childrenCache,
+        Dictionary<Guid, List<Guid>> parentCache)
+    {
+        var key = (portfolioId, date.Date);
+        if (cache.TryGetValue(key, out var cached))
+        {
+            await RefreshDeltaAsync(cached, cache, childrenCache, parentCache, propagateToParents: false, skipCache: false);
+            return;
+        }
+
+        var existing = await db.AssetDeltas
+            .Where(d => d.AssetId == portfolioId && d.Date == date.Date)
+            .FirstOrDefaultAsync();
+
+        if (existing is null)
+        {
+            var delta = await ComputeDeltaAsync(portfolioId, date.Date, cache, childrenCache, parentCache, skipCache: false);
+            db.AssetDeltas.Add(delta);
+            cache[key] = delta;
+            return;
+        }
+
+        await RefreshDeltaAsync(existing, cache, childrenCache, parentCache, propagateToParents: false, skipCache: false);
     }
 
     private static AssetDelta WeightedAverageOf(
@@ -277,6 +350,7 @@ public class AnalysisService(
     /// </summary>
     private async Task<AssetDelta> ComputeLeafAsync(Guid assetId, DateTime date)
     {
+        await EnsureDailyHistoryFreshAsync(assetId);
         var institutionalDelta = await fundInstitutionalService.GetInstitutionalDeltaAsync(assetId);
         var patternDelta = await patternDeltaService.ComputeAsync(assetId, date);
 
@@ -294,5 +368,29 @@ public class AnalysisService(
             PatternDelta = patternDelta,
             ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
         };
+    }
+
+    private async Task EnsureDailyHistoryFreshAsync(Guid assetId)
+    {
+        var asset = await db.Assets.FindAsync(assetId);
+        if (asset?.Symbol is null)
+            return;
+
+        // Yahoo first for any mapped market, then fall back to E24 for XOSL/XNAS.
+        if (YahooPriceService.BuildTicker(asset.Symbol, asset.Market) is not null)
+        {
+            await yahooPriceService.EnsureDailyBarsAsync(assetId, asset.Symbol, asset.Market);
+            return;
+        }
+
+        var exchangeSuffix = asset.Market?.ToUpperInvariant() switch
+        {
+            "XOSL" => "OSE",
+            "XNAS" => "NAS",
+            _ => null
+        };
+
+        if (exchangeSuffix is not null)
+            await e24PriceService.EnsureDailyBarsAsync(assetId, asset.Symbol, exchangeSuffix);
     }
 }
