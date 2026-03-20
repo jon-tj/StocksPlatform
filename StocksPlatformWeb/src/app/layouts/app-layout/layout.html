@@ -68,7 +68,7 @@
             <ul class="recent-list">
               @for (asset of starredAssets; track asset.id) {
                 <li>
-                  <button class="sidebar-link recent-link starred-link" type="button" (click)="openRecentAsset(asset.id)">
+                  <button class="sidebar-link recent-link starred-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" type="button" (click)="openRecentAsset(asset.id)">
                     <span class="recent-name">{{ asset.name }}</span>
                     <span class="recent-meta muted">{{ asset.symbol || asset.id.slice(0, 8) }}</span>
                   </button>
@@ -86,7 +86,7 @@
             <ul class="recent-list">
               @for (asset of recentAssetsDeduped; track asset.id) {
                 <li>
-                  <button class="sidebar-link recent-link" type="button" (click)="openRecentAsset(asset.id)">
+                  <button class="sidebar-link recent-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" type="button" (click)="openRecentAsset(asset.id)">
                     <span class="recent-name">{{ asset.name }}</span>
                     <span class="recent-meta muted">{{ asset.symbol || asset.id.slice(0, 8) }}</span>
                   </button>

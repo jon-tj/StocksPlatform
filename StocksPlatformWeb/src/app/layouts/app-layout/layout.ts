@@ -38,6 +38,7 @@ export class AppLayout implements OnInit, OnDestroy {
   showSearchDropdown = false;
   starredAssets: RecentAsset[] = [];
   recentAssets: RecentAsset[] = [];
+  currentAnalysisAssetId: string | null = null;
 
   get recentAssetsDeduped(): RecentAsset[] {
     const starredIds = new Set(this.starredAssets.map(a => a.id));
@@ -116,12 +117,20 @@ export class AppLayout implements OnInit, OnDestroy {
     this.router.navigate(['/analysis', assetId]);
   }
 
+  isActiveAsset(assetId: string): boolean {
+    return this.currentAnalysisAssetId === assetId;
+  }
+
   private captureRecentFromUrl(url: string): void {
     const path = url.split('?')[0];
     const parts = path.split('/').filter(Boolean);
-    if (parts.length < 2 || parts[0] !== 'analysis') return;
+    if (parts.length < 2 || parts[0] !== 'analysis') {
+      this.currentAnalysisAssetId = null;
+      return;
+    }
 
     const assetId = parts[1];
+    this.currentAnalysisAssetId = assetId;
     const existing = this.recentAssets.find(a => a.id === assetId);
     if (existing) {
       this.addRecentAsset(existing);
