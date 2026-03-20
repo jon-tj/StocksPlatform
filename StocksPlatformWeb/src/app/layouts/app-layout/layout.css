@@ -5,6 +5,81 @@
   overflow: hidden;
 }
 
+.app-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.left-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+}
+
+.sidebar-section + .sidebar-section {
+  margin-top: 1rem;
+}
+
+.sidebar-title {
+  margin: 0 0 0.55rem;
+  padding: 0 0.45rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sidebar-link {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sidebar-link:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.sidebar-empty {
+  margin: 0;
+  padding: 0 0.45rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.recent-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.recent-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.recent-meta {
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
 .app-content {
   flex: 1;
   min-height: 0;
@@ -197,6 +272,10 @@ nav {
 }
 
 @media (max-width: 900px) {
+  .left-sidebar {
+    display: none;
+  }
+
   nav {
     padding: 0 1rem;
     gap: 0.6rem;

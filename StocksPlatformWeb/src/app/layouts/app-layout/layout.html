@@ -50,7 +50,38 @@
       }
     </div>
   </nav>
-  <div class="app-content">
-    <router-outlet />
+  <div class="app-body">
+    @if (showLogout) {
+      <aside class="left-sidebar">
+        <section class="sidebar-section">
+          <h3 class="sidebar-title">Overview</h3>
+          <button class="sidebar-link" type="button" routerLink="/dashboard">
+            Dashboard
+          </button>
+        </section>
+
+        <section class="sidebar-section">
+          <h3 class="sidebar-title">Recent Assets</h3>
+          @if (recentAssets.length === 0) {
+            <p class="sidebar-empty">No recent analysis yet.</p>
+          } @else {
+            <ul class="recent-list">
+              @for (asset of recentAssets; track asset.id) {
+                <li>
+                  <button class="sidebar-link recent-link" type="button" (click)="openRecentAsset(asset.id)">
+                    <span class="recent-name">{{ asset.name }}</span>
+                    <span class="recent-meta muted">{{ asset.symbol || asset.id.slice(0, 8) }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </aside>
+    }
+
+    <div class="app-content">
+      <router-outlet />
+    </div>
   </div>
 </div>
