@@ -241,9 +241,9 @@
             </thead>
             <tbody>
               @for (row of filteredChildren; track row.position.assetId) {
-                <tr>
+                <tr class="child-row-link" (click)="openChildAnalysis(row.position.assetId)">
                   <td>
-                    <span class="child-name">{{ row.position.name }}</span>
+                    <a class="child-name" [routerLink]="['/analysis', row.position.assetId]" (click)="$event.stopPropagation()">{{ row.position.name }}</a>
                     <span class="child-symbol muted"> {{ row.position.symbol }}</span>
                   </td>
                   @if (row.holding) {

@@ -295,6 +295,14 @@ h1 {
   border-bottom: none;
 }
 
+.child-row-link {
+  cursor: pointer;
+}
+
+.child-row-link:hover td {
+  background: color-mix(in srgb, var(--color-surface) 92%, var(--color-accent, #6366f1) 8%);
+}
+
 .num-col {
   text-align: right;
 }
@@ -305,6 +313,14 @@ h1 {
 
 .child-name {
   font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-text-muted) 70%, transparent 30%);
+  text-underline-offset: 0.12em;
+}
+
+.child-name:hover {
+  text-decoration-color: currentColor;
 }
 
 .child-symbol {

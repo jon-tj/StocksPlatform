@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { DecimalPipe, DatePipe } from '@angular/common';
@@ -17,12 +17,13 @@ export interface ChildRow {
 
 @Component({
   selector: 'app-analysis',
-  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe],
+  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })
 export class Analysis implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private assetService = inject(AssetService);
   private positionsService = inject(PositionsService);
   private titleService = inject(Title);
@@ -178,6 +179,10 @@ export class Analysis implements OnInit, OnDestroy {
       },
       error: () => { this.recomputing = false; },
     });
+  }
+
+  openChildAnalysis(assetId: string): void {
+    this.router.navigate(['/analysis', assetId]);
   }
 
   ngOnDestroy(): void {
