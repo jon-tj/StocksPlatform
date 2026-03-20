@@ -14,7 +14,7 @@ namespace StocksPlatform.Controllers;
 [Authorize]
 public class PositionsController(AppDbContext db, UserManager<AppUser> userManager, PollWeekService pollWeek, FractionService fractionService) : ControllerBase
 {
-    public record PositionDto(Guid AssetId, string Symbol, string Name, uint Quantity, double? Fraction, double ReturnPercent);
+    public record PositionDto(Guid AssetId, string Symbol, string Name, uint Quantity, double? Fraction, double ReturnPercent, string? IconUrl);
     public record PositionsResponse(PositionDto[] Positions, bool Mock);
 
     // GET /api/positions
@@ -72,7 +72,8 @@ public class PositionsController(AppDbContext db, UserManager<AppUser> userManag
             pa.Asset.Name,
             pa.Quantity,
             pa.Fraction,
-            0.0 // ReturnPercent placeholder — will come from AssetDelta
+            0.0, // ReturnPercent placeholder — will come from AssetDelta
+            pa.Asset.IconUrl
         )).ToArray();
     }
 

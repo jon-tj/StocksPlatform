@@ -76,8 +76,7 @@
               @for (asset of starredAssets; track asset.id) {
                 <li>
                   <button class="sidebar-link recent-link starred-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" [class.dragging-item]="draggedAsset?.id === asset.id" draggable="true" (dragstart)="onAssetDragStart(asset, 'starred', $event)" (dragend)="onAssetDragEnd()" type="button" (click)="openRecentAsset(asset.id)">
-                    <span class="recent-name">{{ asset.name }}</span>
-                    <span class="recent-meta muted">{{ asset.symbol || asset.id.slice(0, 8) }}</span>
+                    <app-asset-chip [name]="asset.name" [symbol]="asset.symbol ?? asset.id.slice(0, 8)" [iconUrl]="asset.iconUrl" />
                     @if (getSidebarLive(asset.id); as live) {
                       <span class="recent-live">
                         <span class="recent-price">{{ live.price | number: '1.2-2' }}</span>
@@ -136,8 +135,7 @@
               @for (asset of recentAssetsDeduped; track asset.id) {
                 <li>
                   <button class="sidebar-link recent-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" [class.dragging-item]="draggedAsset?.id === asset.id" draggable="true" (dragstart)="onAssetDragStart(asset, 'recent', $event)" (dragend)="onAssetDragEnd()" type="button" (click)="openRecentAsset(asset.id)">
-                    <span class="recent-name">{{ asset.name }}</span>
-                    <span class="recent-meta muted">{{ asset.symbol || asset.id.slice(0, 8) }}</span>
+                    <app-asset-chip [name]="asset.name" [symbol]="asset.symbol ?? asset.id.slice(0, 8)" [iconUrl]="asset.iconUrl" />
                     @if (getSidebarLive(asset.id); as live) {
                       <span class="recent-live">
                         <span class="recent-price">{{ live.price | number: '1.2-2' }}</span>

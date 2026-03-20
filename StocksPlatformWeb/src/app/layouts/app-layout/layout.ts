@@ -7,11 +7,13 @@ import { AssetDetails, AssetService, LivePrice } from '../../services/asset.serv
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { DecimalPipe } from '@angular/common';
+import { AssetChip } from '../../components/asset-chip/asset-chip';
 
 interface RecentAsset {
   id: string;
   name: string;
   symbol?: string;
+  iconUrl?: string;
 }
 
 type DragList = 'starred' | 'recent';
@@ -23,7 +25,7 @@ const RECENT_SORT_MODE_KEY = 'sp.recentSortMode';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe, DecimalPipe],
+  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe, DecimalPipe, AssetChip],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
@@ -130,7 +132,7 @@ export class AppLayout implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.searchResults = [];
     this.showSearchDropdown = false;
-    this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol });
+    this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol, iconUrl: asset.iconUrl });
     this.router.navigate(['/analysis', asset.id]);
   }
 
@@ -269,15 +271,11 @@ export class AppLayout implements OnInit, OnDestroy {
     const assetId = parts[1];
     this.currentAnalysisAssetId = assetId;
     const existing = this.recentAssets.find(a => a.id === assetId);
-    if (existing) {
-      this.addRecentAsset(existing);
-      return;
-    }
-
-    this.addRecentAsset({ id: assetId, name: assetId.slice(0, 8) });
-
+    // Immediately show whatever we have (name/symbol at minimum)
+    this.addRecentAsset(existing ?? { id: assetId, name: assetId.slice(0, 8) });
+    // Always fetch fresh to ensure iconUrl and other fields are up to date
     this.assetService.getAssetDetails(assetId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (asset) => this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol }),
+      next: (asset) => this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol, iconUrl: asset.iconUrl }),
       error: () => { },
     });
   }
@@ -295,6 +293,7 @@ export class AppLayout implements OnInit, OnDestroy {
           id: a.id,
           name: a.name,
           symbol: a.symbol,
+          iconUrl: a.iconUrl,
         }));
       },
       error: () => {

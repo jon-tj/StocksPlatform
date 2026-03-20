@@ -11,6 +11,7 @@ export interface Position {
   quantity: number;
   fraction: number;
   returnPercent: number;
+  iconUrl?: string;
 }
 
 export interface PositionsResponse {

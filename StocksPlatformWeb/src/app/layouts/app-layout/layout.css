@@ -134,10 +134,6 @@
   opacity: 0.55;
 }
 
-.starred-link .recent-name::before {
-  content: '★ ';
-  color: var(--color-accent, #6366f1);
-}
 
 .active-sidebar-link {
   border-color: color-mix(in srgb, var(--color-accent, #6366f1) 70%, var(--color-border) 30%);

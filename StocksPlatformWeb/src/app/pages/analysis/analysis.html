@@ -324,8 +324,9 @@
               @for (row of filteredChildren; track row.position.assetId) {
                 <tr class="child-row-link" (click)="openChildAnalysis(row.position.assetId)">
                   <td>
-                    <a class="child-name" [routerLink]="['/analysis', row.position.assetId]" (click)="$event.stopPropagation()">{{ row.position.name }}</a>
-                    <span class="child-symbol muted"> {{ row.position.symbol }}</span>
+                    <a class="child-asset-link" [routerLink]="['/analysis', row.position.assetId]" (click)="$event.stopPropagation()">
+                      <app-asset-chip [name]="row.position.name" [symbol]="row.position.symbol" [iconUrl]="row.position.iconUrl" />
+                    </a>
                   </td>
                   @if (row.holding) {
                     <td

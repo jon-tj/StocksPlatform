@@ -1,0 +1,11 @@
+<span class="asset-chip">
+  @if (iconUrl()) {
+    <img class="chip-icon" [src]="iconUrl()" [alt]="name()" />
+  } @else {
+    <span class="chip-icon-placeholder"></span>
+  }
+  <span class="chip-name">{{ name() }}</span>
+  @if (symbol()) {
+    <span class="chip-symbol">{{ symbol() }}</span>
+  }
+</span>

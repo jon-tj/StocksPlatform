@@ -412,19 +412,9 @@ h1 {
   font-weight: 700;
 }
 
-.child-name {
-  font-weight: 600;
+.child-asset-link {
+  text-decoration: none;
   color: inherit;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-text-muted) 70%, transparent 30%);
-  text-underline-offset: 0.12em;
-}
-
-.child-name:hover {
-  text-decoration-color: currentColor;
-}
-
-.child-symbol {
-  font-size: 0.8125rem;
+  display: inline-flex;
 }
 
