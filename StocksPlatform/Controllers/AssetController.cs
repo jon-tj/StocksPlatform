@@ -18,14 +18,14 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
     public record AssetDto(Guid Id, string Name, string Type, string? Symbol, string? Market, string? Broker, string? BrokerSymbol, string? Country, string? Region, string? Sector, string? Subsector, string? IconUrl, string? WebsiteUrl, string? Description, string? Ceo, string? Address1, string? Address2, long? NumberShares);
     public record HistoryDto(double[] Prices, string[] Times);
 
-    // GET /api/asset — returns the user's followed asset IDs (defaults to Guid.Empty)
+    // GET /api/asset — returns the user's starred asset IDs (defaults to Guid.Empty)
     [HttpGet]
     public async Task<ActionResult<AssetDto[]>> GetMyAssets()
     {
         var user = await GetCurrentUserAsync();
         if (user is null) return Unauthorized();
 
-        var assetIds = await db.UserPortfolios
+        var assetIds = await db.UserStarredAssets
             .Where(p => p.UserId == user.Id)
             .Select(p => p.AssetId)
             .ToListAsync();
@@ -39,6 +39,87 @@ public class AssetController(AppDbContext db, UserManager<AppUser> userManager, 
 
         // If any IDs aren't found (e.g. Guid.Empty not seeded yet), include defaults
         return Ok(assets.Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol, a.Country, a.Region, a.Sector, a.Subsector, a.IconUrl, a.WebsiteUrl, a.Description, a.Ceo, a.Address1, a.Address2, a.NumberShares)).ToArray());
+    }
+
+    // GET /api/asset/starred — full details for all starred assets
+    [HttpGet("starred")]
+    public async Task<ActionResult<AssetDto[]>> GetStarredAssets()
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null) return Unauthorized();
+
+        var assetIds = await db.UserStarredAssets
+            .Where(s => s.UserId == user.Id)
+            .Select(s => s.AssetId)
+            .ToListAsync();
+
+        if (assetIds.Count == 0) return Ok(Array.Empty<AssetDto>());
+
+        var assets = await db.Assets
+            .Where(a => assetIds.Contains(a.Id))
+            .ToListAsync();
+
+        return Ok(assets
+            .Select(a => new AssetDto(a.Id, a.Name, a.Type.ToString(), a.Symbol, a.Market, a.Broker, a.BrokerSymbol, a.Country, a.Region, a.Sector, a.Subsector, a.IconUrl, a.WebsiteUrl, a.Description, a.Ceo, a.Address1, a.Address2, a.NumberShares))
+            .ToArray());
+    }
+
+    // GET /api/asset/{id}/starred — whether current user starred this asset
+    [HttpGet("{id:guid}/starred")]
+    public async Task<ActionResult<bool>> IsAssetStarred(Guid id)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null) return Unauthorized();
+
+        var isStarred = await db.UserStarredAssets
+            .AnyAsync(s => s.UserId == user.Id && s.AssetId == id);
+
+        return Ok(isStarred);
+    }
+
+    // POST /api/asset/{id}/star — star an asset for current user
+    [HttpPost("{id:guid}/star")]
+    public async Task<IActionResult> StarAsset(Guid id)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null) return Unauthorized();
+
+        var assetExists = await db.Assets.AnyAsync(a => a.Id == id);
+        if (!assetExists) return NotFound();
+
+        var exists = await db.UserStarredAssets
+            .AnyAsync(s => s.UserId == user.Id && s.AssetId == id);
+        if (!exists)
+        {
+            db.UserStarredAssets.Add(new UserStarredAsset
+            {
+                UserId = user.Id,
+                AssetId = id,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        return NoContent();
+    }
+
+    // DELETE /api/asset/{id}/star — unstar an asset for current user
+    [HttpDelete("{id:guid}/star")]
+    public async Task<IActionResult> UnstarAsset(Guid id)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user is null) return Unauthorized();
+
+        var rows = await db.UserStarredAssets
+            .Where(s => s.UserId == user.Id && s.AssetId == id)
+            .ToListAsync();
+
+        if (rows.Count > 0)
+        {
+            db.UserStarredAssets.RemoveRange(rows);
+            await db.SaveChangesAsync();
+        }
+
+        return NoContent();
     }
 
     // GET /api/asset/search?q=query — search all assets by name or symbol

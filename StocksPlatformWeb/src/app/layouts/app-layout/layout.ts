@@ -36,12 +36,19 @@ export class AppLayout implements OnInit, OnDestroy {
   searchQuery = '';
   searchResults: AssetDetails[] = [];
   showSearchDropdown = false;
+  starredAssets: RecentAsset[] = [];
   recentAssets: RecentAsset[] = [];
+
+  get recentAssetsDeduped(): RecentAsset[] {
+    const starredIds = new Set(this.starredAssets.map(a => a.id));
+    return this.recentAssets.filter(a => !starredIds.has(a.id));
+  }
 
   ngOnInit() {
     this.displayName = this.auth.getUser()?.displayName ?? '';
     this.isDark = this.themeService.theme === 'dark';
     this.showLogout = this.isAppPage();
+    this.loadStarredAssets();
     this.recentAssets = this.readRecentAssets();
     this.captureRecentFromUrl(this.router.url);
 
@@ -64,6 +71,10 @@ export class AppLayout implements OnInit, OnDestroy {
       this.searchResults = results;
       this.showSearchDropdown = results.length > 0;
     });
+
+    this.assetService.starredChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.loadStarredAssets());
   }
 
   ngOnDestroy(): void {
@@ -129,6 +140,21 @@ export class AppLayout implements OnInit, OnDestroy {
     this.recentAssets = [asset, ...this.recentAssets.filter(a => a.id !== asset.id)]
       .slice(0, RECENT_ASSETS_LIMIT);
     this.writeRecentAssets(this.recentAssets);
+  }
+
+  private loadStarredAssets(): void {
+    this.assetService.getStarredAssets().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (assets) => {
+        this.starredAssets = assets.map(a => ({
+          id: a.id,
+          name: a.name,
+          symbol: a.symbol,
+        }));
+      },
+      error: () => {
+        this.starredAssets = [];
+      },
+    });
   }
 
   private readRecentAssets(): RecentAsset[] {

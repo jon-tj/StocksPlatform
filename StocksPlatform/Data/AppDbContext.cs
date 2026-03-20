@@ -11,7 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 {
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<PortfolioAsset> PortfolioAssets => Set<PortfolioAsset>();
-    public DbSet<UserPortfolio> UserPortfolios => Set<UserPortfolio>();
+    public DbSet<UserStarredAsset> UserStarredAssets => Set<UserStarredAsset>();
     public DbSet<Poll> Polls => Set<Poll>();
     public DbSet<PollQuestion> PollQuestions => Set<PollQuestion>();
     public DbSet<PollResponse> PollResponses => Set<PollResponse>();
@@ -105,6 +105,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .WithMany()
             .HasForeignKey(pa => pa.AssetId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<UserStarredAsset>()
+            .HasIndex(s => new { s.UserId, s.AssetId })
+            .IsUnique();
 
         // Seed assets
         builder.Entity<Asset>().HasData(

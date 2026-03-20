@@ -14,6 +14,16 @@
           <span class="ticker-muted">{{ asset.symbol }}</span>
         }
       </h1>
+      <button
+        class="star-btn"
+        type="button"
+        [disabled]="starring"
+        [class.starred]="isStarred"
+        (click)="toggleStar()"
+        [title]="isStarred ? 'Unstar asset' : 'Star asset'"
+      >
+        <span class="material-icons">{{ isStarred ? 'star' : 'star_border' }}</span>
+      </button>
     </div>
 
     @if (chartSeries.length) {
@@ -308,36 +318,36 @@
                   @if (row.holding) {
                     <td
                       class="num-col"
-                      [class.positive]="row.holding.marketDelta >= 1"
-                      [class.negative]="row.holding.marketDelta < 1"
+                      [class.positive]="row.holding.marketDelta >= 0"
+                      [class.negative]="row.holding.marketDelta < 0"
                     >
                       {{ row.holding.marketDelta | number: '1.2-2' }}
                     </td>
                     <td
                       class="num-col"
-                      [class.positive]="row.holding.fundamentalDelta >= 1"
-                      [class.negative]="row.holding.fundamentalDelta < 1"
+                      [class.positive]="row.holding.fundamentalDelta >= 0"
+                      [class.negative]="row.holding.fundamentalDelta < 0"
                     >
                       {{ row.holding.fundamentalDelta | number: '1.2-2' }}
                     </td>
                     <td
                       class="num-col"
-                      [class.positive]="row.holding.publicSentimentDelta >= 1"
-                      [class.negative]="row.holding.publicSentimentDelta < 1"
+                      [class.positive]="row.holding.publicSentimentDelta >= 0"
+                      [class.negative]="row.holding.publicSentimentDelta < 0"
                     >
                       {{ row.holding.publicSentimentDelta | number: '1.2-2' }}
                     </td>
                     <td
                       class="num-col"
-                      [class.positive]="row.holding.memberSentimentDelta >= 1"
-                      [class.negative]="row.holding.memberSentimentDelta < 1"
+                      [class.positive]="row.holding.memberSentimentDelta >= 0"
+                      [class.negative]="row.holding.memberSentimentDelta < 0"
                     >
                       {{ row.holding.memberSentimentDelta | number: '1.2-2' }}
                     </td>
                     <td
                       class="num-col"
-                      [class.positive]="row.holding.institutionalOrderFlowDelta >= 1"
-                      [class.negative]="row.holding.institutionalOrderFlowDelta < 1"
+                      [class.positive]="row.holding.institutionalOrderFlowDelta >= 0"
+                      [class.negative]="row.holding.institutionalOrderFlowDelta < 0"
                     >
                       {{ row.holding.institutionalOrderFlowDelta | number: '1.2-2' }}
                     </td>

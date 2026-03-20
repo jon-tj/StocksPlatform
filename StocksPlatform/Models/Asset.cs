@@ -103,7 +103,7 @@ public class PortfolioAsset
     public DateTime? FractionExpiry { get; set; }
 }
 
-public class UserPortfolio
+public class UserStarredAsset
 {
     public int Id { get; set; }
     public string UserId { get; set; } = string.Empty;

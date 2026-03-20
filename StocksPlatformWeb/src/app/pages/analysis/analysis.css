@@ -74,6 +74,35 @@ h1 {
   gap: 0.75rem;
 }
 
+.star-btn {
+  margin-left: auto;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.star-btn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  border-color: var(--color-accent, #6366f1);
+}
+
+.star-btn.starred {
+  color: var(--color-accent, #6366f1);
+  border-color: color-mix(in srgb, var(--color-accent, #6366f1) 65%, var(--color-border) 35%);
+}
+
+.star-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
 .asset-icon {
   width: 2.5rem;
   height: 2.5rem;

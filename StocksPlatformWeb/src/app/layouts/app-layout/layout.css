@@ -69,6 +69,15 @@
   gap: 0.1rem;
 }
 
+.starred-link {
+  border-color: color-mix(in srgb, var(--color-accent, #6366f1) 30%, transparent 70%);
+}
+
+.starred-link .recent-name::before {
+  content: '★ ';
+  color: var(--color-accent, #6366f1);
+}
+
 .recent-name {
   font-size: 0.84rem;
   font-weight: 600;

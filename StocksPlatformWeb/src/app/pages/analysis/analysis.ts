@@ -51,6 +51,8 @@ export class Analysis implements OnInit, OnDestroy {
   chartSeries: PriceSeries[] = [];
   loading = true;
   recomputing = false;
+  starring = false;
+  isStarred = false;
   error: string | null = null;
   selectedMetric: DeltaMetricKey | null = null;
   detailsLoading = false;
@@ -131,6 +133,8 @@ export class Analysis implements OnInit, OnDestroy {
     this.selectedMetric = null;
     this.detailsLoading = false;
     this.institutionalSnapshots = [];
+    this.isStarred = false;
+    this.starring = false;
 
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -139,9 +143,11 @@ export class Analysis implements OnInit, OnDestroy {
       asset: this.assetService.getAssetDetails(assetId),
       delta: this.assetService.getLatestDelta(assetId),
       history: this.assetService.getHistory(assetId, oneYearAgo),
+      starred: this.assetService.isAssetStarred(assetId),
     }).subscribe({
-      next: ({ asset, delta, history }) => {
+      next: ({ asset, delta, history, starred }) => {
         this.asset = asset;
+        this.isStarred = starred;
         this.titleService.setTitle(`${asset.name} | StocksPlatform`);
         if (asset.broker?.toLowerCase().includes('nordnet') && asset.brokerSymbol) {
           this.tickerUrl = `https://www.nordnet.no/aksjer/kurser/${asset.brokerSymbol}`;
@@ -184,6 +190,25 @@ export class Analysis implements OnInit, OnDestroy {
       error: () => {
         this.error = 'Failed to load asset data.';
         this.loading = false;
+      },
+    });
+  }
+
+  toggleStar(): void {
+    if (!this.assetId || this.starring) return;
+
+    this.starring = true;
+    const op = this.isStarred
+      ? this.assetService.unstarAsset(this.assetId)
+      : this.assetService.starAsset(this.assetId);
+
+    op.subscribe({
+      next: () => {
+        this.isStarred = !this.isStarred;
+        this.starring = false;
+      },
+      error: () => {
+        this.starring = false;
       },
     });
   }
