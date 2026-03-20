@@ -13,6 +13,8 @@ interface RecentAsset {
   symbol?: string;
 }
 
+type DragList = 'starred' | 'recent';
+
 const RECENT_ASSETS_KEY = 'sp.recentAssets';
 const RECENT_ASSETS_LIMIT = 5;
 
@@ -39,6 +41,9 @@ export class AppLayout implements OnInit, OnDestroy {
   starredAssets: RecentAsset[] = [];
   recentAssets: RecentAsset[] = [];
   currentAnalysisAssetId: string | null = null;
+  draggedAsset: RecentAsset | null = null;
+  draggedFrom: DragList | null = null;
+  dropTarget: DragList | null = null;
 
   get recentAssetsDeduped(): RecentAsset[] {
     const starredIds = new Set(this.starredAssets.map(a => a.id));
@@ -115,6 +120,67 @@ export class AppLayout implements OnInit, OnDestroy {
 
   openRecentAsset(assetId: string) {
     this.router.navigate(['/analysis', assetId]);
+  }
+
+  onAssetDragStart(asset: RecentAsset, from: DragList, event: DragEvent): void {
+    this.draggedAsset = asset;
+    this.draggedFrom = from;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', asset.id);
+    }
+  }
+
+  onAssetDragEnd(): void {
+    this.draggedAsset = null;
+    this.draggedFrom = null;
+    this.dropTarget = null;
+  }
+
+  onDragOver(event: DragEvent, target: DragList): void {
+    event.preventDefault();
+    this.dropTarget = target;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onDragLeave(target: DragList): void {
+    if (this.dropTarget === target) {
+      this.dropTarget = null;
+    }
+  }
+
+  onDrop(event: DragEvent, target: DragList): void {
+    event.preventDefault();
+
+    const asset = this.draggedAsset;
+    const from = this.draggedFrom;
+
+    this.dropTarget = null;
+
+    if (!asset || !from || from === target) return;
+
+    if (target === 'starred') {
+      if (this.starredAssets.some(a => a.id === asset.id)) return;
+
+      this.assetService.starAsset(asset.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.addRecentAsset(asset);
+        },
+        error: () => { },
+      });
+      return;
+    }
+
+    if (!this.starredAssets.some(a => a.id === asset.id)) return;
+
+    this.assetService.unstarAsset(asset.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.addRecentAsset(asset);
+      },
+      error: () => { },
+    });
   }
 
   isActiveAsset(assetId: string): boolean {

@@ -62,13 +62,20 @@
 
         <section class="sidebar-section">
           <h3 class="sidebar-title">Starred Assets</h3>
+          <div
+            class="sidebar-dropzone"
+            [class.drop-active]="dropTarget === 'starred'"
+            (dragover)="onDragOver($event, 'starred')"
+            (dragleave)="onDragLeave('starred')"
+            (drop)="onDrop($event, 'starred')"
+          >
           @if (starredAssets.length === 0) {
             <p class="sidebar-empty">No starred assets yet.</p>
           } @else {
             <ul class="recent-list">
               @for (asset of starredAssets; track asset.id) {
                 <li>
-                  <button class="sidebar-link recent-link starred-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" type="button" (click)="openRecentAsset(asset.id)">
+                  <button class="sidebar-link recent-link starred-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" [class.dragging-item]="draggedAsset?.id === asset.id" draggable="true" (dragstart)="onAssetDragStart(asset, 'starred', $event)" (dragend)="onAssetDragEnd()" type="button" (click)="openRecentAsset(asset.id)">
                     <span class="recent-name">{{ asset.name }}</span>
                     <span class="recent-meta muted">{{ asset.symbol || asset.id.slice(0, 8) }}</span>
                   </button>
@@ -76,17 +83,25 @@
               }
             </ul>
           }
+          </div>
         </section>
 
         <section class="sidebar-section">
           <h3 class="sidebar-title">Recent Assets</h3>
+          <div
+            class="sidebar-dropzone"
+            [class.drop-active]="dropTarget === 'recent'"
+            (dragover)="onDragOver($event, 'recent')"
+            (dragleave)="onDragLeave('recent')"
+            (drop)="onDrop($event, 'recent')"
+          >
           @if (recentAssetsDeduped.length === 0) {
             <p class="sidebar-empty">No recent analysis yet.</p>
           } @else {
             <ul class="recent-list">
               @for (asset of recentAssetsDeduped; track asset.id) {
                 <li>
-                  <button class="sidebar-link recent-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" type="button" (click)="openRecentAsset(asset.id)">
+                  <button class="sidebar-link recent-link" [class.active-sidebar-link]="isActiveAsset(asset.id)" [class.dragging-item]="draggedAsset?.id === asset.id" draggable="true" (dragstart)="onAssetDragStart(asset, 'recent', $event)" (dragend)="onAssetDragEnd()" type="button" (click)="openRecentAsset(asset.id)">
                     <span class="recent-name">{{ asset.name }}</span>
                     <span class="recent-meta muted">{{ asset.symbol || asset.id.slice(0, 8) }}</span>
                   </button>
@@ -94,6 +109,7 @@
               }
             </ul>
           }
+          </div>
         </section>
       </aside>
     }
