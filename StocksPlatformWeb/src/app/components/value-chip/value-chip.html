@@ -1,16 +1,7 @@
-@if (displayAmount() !== null) {
-  <span class="value-chip" [class.value-chip-converted]="wasConverted()">
-    @if (wasConverted()) {
-      <span class="value-approx" title="Converted from {{ currency() }}">~</span>
-    }
-    <span class="value-amount">{{ displayAmount() | number: format() }}</span>
-    <span class="value-currency">{{ displayCurrency() }}</span>
-  </span>
-} @else if (amount() !== null) {
-  <!-- Amount provided but rates unavailable: show selected currency label with original amount -->
-  <span class="value-chip value-chip-no-rates" title="Exchange rate unavailable; showing unconverted amount">
+@if (amount() !== null) {
+  <span class="value-chip">
     <span class="value-amount">{{ amount() | number: format() }}</span>
-    <span class="value-currency">{{ displayCurrency() }}</span>
+    <span class="value-currency">{{ currency() }}</span>
   </span>
 } @else {
   <span class="value-chip value-chip-empty">—</span>

@@ -71,6 +71,9 @@ public class Asset
 
     /// <summary>Total number of shares outstanding.</summary>
     public long? NumberShares { get; set; }
+
+    /// <summary>ISO 4217 currency code prices are denominated in, e.g. "NOK", "USD". Populated from Yahoo Finance metadata.</summary>
+    public string? Currency { get; set; }
 }
 
 /// <summary>

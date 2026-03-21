@@ -6,12 +6,6 @@
   white-space: nowrap;
 }
 
-.value-approx {
-  font-size: 0.85em;
-  color: var(--color-text-muted);
-  letter-spacing: -0.02em;
-}
-
 .value-amount {
   font-weight: 500;
 }

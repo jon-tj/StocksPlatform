@@ -88,7 +88,22 @@ public class YahooPriceService(AppDbContext db, HttpClient http, ILogger<YahooPr
         logger.LogInformation("EnsureDailyBarsAsync: fetching {Mode} bars for {Ticker} (assetId={AssetId})",
             isIncremental ? "incremental 1mo" : "full 10yr", ticker, assetId);
 
-        var points = await FetchDailyAsync(ticker, period1, period2);
+        var url = $"{BaseUrl}/{ticker}?period1={period1}&period2={period2}"
+                + "&interval=1d&includePrePost=true&events=div%7Csplit%7Cearn&lang=en-US&region=US";
+        var chartResult = await FetchChartAsync(url);
+
+        // Persist currency from Yahoo metadata onto the asset (only when it changes).
+        if (chartResult?.Meta?.Currency is { Length: > 0 } yahooCurrency)
+        {
+            var assetToUpdate = await db.Assets.FindAsync(assetId);
+            if (assetToUpdate is not null && assetToUpdate.Currency != yahooCurrency)
+            {
+                assetToUpdate.Currency = yahooCurrency;
+                logger.LogInformation("EnsureDailyBarsAsync: setting currency={Currency} for assetId={AssetId}", yahooCurrency, assetId);
+            }
+        }
+
+        var points = ParseDailyPoints(chartResult);
         if (points is null || points.Length == 0)
         {
             logger.LogWarning("EnsureDailyBarsAsync: Yahoo returned no data for {Ticker}", ticker);
@@ -188,6 +203,17 @@ public class YahooPriceService(AppDbContext db, HttpClient http, ILogger<YahooPr
         var result = await FetchChartAsync(url);
         if (result is null) return;
 
+        // Persist currency from Yahoo metadata onto the asset (only when it changes).
+        if (result.Meta?.Currency is { Length: > 0 } yahooCurrency)
+        {
+            var assetToUpdate = await db.Assets.FindAsync(assetId);
+            if (assetToUpdate is not null && assetToUpdate.Currency != yahooCurrency)
+            {
+                assetToUpdate.Currency = yahooCurrency;
+                logger.LogInformation("EnsureIntradayBarsAsync: setting currency={Currency} for assetId={AssetId}", yahooCurrency, assetId);
+            }
+        }
+
         var now = DateTime.UtcNow;
         var cutoff = now.AddDays(-6);
 
@@ -248,8 +274,17 @@ public class YahooPriceService(AppDbContext db, HttpClient http, ILogger<YahooPr
                 var url = $"{BaseUrl}/{ticker}?period1={period1}&period2={period2}"
                         + "&interval=1d&includePrePost=true&events=div%7Csplit%7Cearn&lang=en-US&region=US";
                 var result = await FetchChartAsync(url);
-                if (result?.Meta?.RegularMarketPrice is { } livePrice)
-                    return (decimal)livePrice;
+                if (result?.Meta is { } meta)
+                {
+                    if (meta.Currency is { Length: > 0 } yahooCurrency && asset.Currency != yahooCurrency)
+                    {
+                        asset.Currency = yahooCurrency;
+                        await db.SaveChangesAsync();
+                        logger.LogInformation("TryFetchLivePriceAsync: set currency={Currency} for assetId={AssetId}", yahooCurrency, assetId);
+                    }
+                    if (meta.RegularMarketPrice is { } livePrice)
+                        return (decimal)livePrice;
+                }
             }
         }
         return null;
@@ -274,13 +309,8 @@ public class YahooPriceService(AppDbContext db, HttpClient http, ILogger<YahooPr
         return symbol.Replace(".", "-") + suffix;
     }
 
-    private async Task<(DateTime date, decimal price, long? volume)[]?> FetchDailyAsync(
-        string ticker, long period1, long period2)
+    private static (DateTime date, decimal price, long? volume)[]? ParseDailyPoints(YahooChartResult? result)
     {
-        var url = $"{BaseUrl}/{ticker}?period1={period1}&period2={period2}"
-                + "&interval=1d&includePrePost=true&events=div%7Csplit%7Cearn&lang=en-US&region=US";
-
-        var result = await FetchChartAsync(url);
         if (result is null) return null;
 
         var closes = result.Indicators?.Quote?.FirstOrDefault()?.Close;
@@ -353,7 +383,8 @@ internal record YahooChartResult(
 );
 
 internal record YahooMeta(
-    [property: JsonPropertyName("regularMarketPrice")] double? RegularMarketPrice
+    [property: JsonPropertyName("regularMarketPrice")] double? RegularMarketPrice,
+    [property: JsonPropertyName("currency")] string? Currency
 );
 
 internal record YahooIndicators(

@@ -25,6 +25,7 @@ export interface AssetDetails {
   address1?: string;
   address2?: string;
   numberShares?: number;
+  currency?: string;
 }
 
 export interface AssetDelta {
