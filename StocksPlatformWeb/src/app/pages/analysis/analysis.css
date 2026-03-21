@@ -326,6 +326,37 @@ h1 {
   margin-bottom: 0.875rem;
 }
 
+.aggregate-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.2rem;
+}
+
+.agg-tab {
+  padding: 0.2rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.agg-tab:hover {
+  color: var(--color-text-primary);
+}
+
+.agg-tab-active {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
 .holdings-header .card-title {
   margin-bottom: 0;
 }
@@ -369,6 +400,7 @@ h1 {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
+  table-layout: fixed;
 }
 
 .holdings-table thead tr {
@@ -414,10 +446,37 @@ h1 {
   text-overflow: ellipsis;
 }
 
+.agg-label-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.agg-icon-stack {
+  display: flex;
+}
+
+.agg-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  object-fit: contain;
+  margin-right: -0.35rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.agg-icon-stack .agg-icon:last-child {
+  margin-right: 0;
+}
+
 .holdings-table td {
   padding: 0.625rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
+  height: 3rem;
 }
 
 .holdings-table tbody tr:last-child td {

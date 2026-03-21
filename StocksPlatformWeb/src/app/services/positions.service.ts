@@ -13,6 +13,7 @@ export interface Position {
   returnPercent: number;
   iconUrl?: string;
   sector?: string;
+  region?: string;
 }
 
 export interface PositionsResponse {

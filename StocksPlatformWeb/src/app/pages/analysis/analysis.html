@@ -277,6 +277,11 @@
       <section class="card">
         <div class="holdings-header">
           <h2 class="card-title">Holdings</h2>
+          <nav class="aggregate-tabs">
+            <button class="agg-tab" [class.agg-tab-active]="aggregateBy === 'asset'" (click)="aggregateBy = 'asset'" type="button">Asset</button>
+            <button class="agg-tab" [class.agg-tab-active]="aggregateBy === 'sector'" (click)="aggregateBy = 'sector'" type="button">Sector</button>
+            <button class="agg-tab" [class.agg-tab-active]="aggregateBy === 'region'" (click)="aggregateBy = 'region'" type="button">Region</button>
+          </nav>
           <div class="holdings-search">
             <svg
               class="holdings-search-icon"
@@ -300,7 +305,21 @@
           </div>
         </div>
         <div class="table-wrap">
+          @if (aggregateBy === 'asset') {
           <table class="holdings-table">
+            <colgroup>
+              <col style="width:18%">
+              <col style="width:10%">
+              <col style="width:8%">
+              <col style="width:8%">
+              <col style="width:9%">
+              <col style="width:9%">
+              <col style="width:8%">
+              <col style="width:8%">
+              <col style="width:7%">
+              <col style="width:8%">
+              <col style="width:7%">
+            </colgroup>
             <thead>
               <tr>
                 <th class="th-sortable" (click)="toggleSort('name')">Asset <span class="sort-icon">{{ sortCol === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
@@ -324,7 +343,7 @@
                       <app-asset-chip [name]="row.position.name" [symbol]="row.position.symbol" [iconUrl]="row.position.iconUrl" />
                     </a>
                   </td>
-                  <td class="sector-col muted">{{ row.position.sector ?? '—' }}</td>
+                  <td class="sector-col muted">{{ row.position.sector ?? '—' | sectorLabel }}</td>
                   @if (row.holding) {
                     <td
                       class="num-col"
@@ -394,6 +413,66 @@
               }
             </tbody>
           </table>
+          } @else {
+          <table class="holdings-table">
+            <colgroup>
+              <col style="width:18%">
+              <col style="width:10%">
+              <col style="width:8%">
+              <col style="width:8%">
+              <col style="width:9%">
+              <col style="width:9%">
+              <col style="width:8%">
+              <col style="width:8%">
+              <col style="width:7%">
+              <col style="width:8%">
+              <col style="width:7%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="th-sortable" (click)="toggleAggSort('label')">{{ aggregateBy === 'sector' ? 'Sector' : 'Region' }} <span class="sort-icon">{{ aggSortCol === 'label' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('count')">Assets <span class="sort-icon">{{ aggSortCol === 'count' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('market')">Market <span class="sort-icon">{{ aggSortCol === 'market' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('fundamental')">Fundamental <span class="sort-icon">{{ aggSortCol === 'fundamental' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('public-sentiment')">Pub. Sentiment <span class="sort-icon">{{ aggSortCol === 'public-sentiment' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('member-sentiment')">Mbr. Sentiment <span class="sort-icon">{{ aggSortCol === 'member-sentiment' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('inst-flow')">Inst. Flow <span class="sort-icon">{{ aggSortCol === 'inst-flow' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('pattern')">Pattern <span class="sort-icon">{{ aggSortCol === 'pattern' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('score')">Avg. Score <span class="sort-icon">{{ aggSortCol === 'score' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('target')">Target % <span class="sort-icon">{{ aggSortCol === 'target' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleAggSort('current')">Current % <span class="sort-icon">{{ aggSortCol === 'current' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of aggregatedRows; track row.label) {
+                <tr>
+                  <td>
+                    <div class="agg-label-cell">
+                      @if (aggregateBy === 'sector' && row.iconUrls.length > 0) {
+                        <div class="agg-icon-stack">
+                          @for (url of row.iconUrls; track url) {
+                            <img class="agg-icon" [src]="url" [alt]="row.label" />
+                          }
+                        </div>
+                      }
+                      <span>{{ aggregateBy === 'sector' ? (row.label | sectorLabel) : row.label }}</span>
+                    </div>
+                  </td>
+                  <td class="num-col muted">{{ row.count }}</td>
+                  <td class="num-col" [class.positive]="row.market >= 0" [class.negative]="row.market < 0">{{ row.market | number: '1.2-2' }}</td>
+                  <td class="num-col" [class.positive]="row.fundamental >= 0" [class.negative]="row.fundamental < 0">{{ row.fundamental | number: '1.2-2' }}</td>
+                  <td class="num-col" [class.positive]="row.publicSentiment >= 0" [class.negative]="row.publicSentiment < 0">{{ row.publicSentiment | number: '1.2-2' }}</td>
+                  <td class="num-col" [class.positive]="row.memberSentiment >= 0" [class.negative]="row.memberSentiment < 0">{{ row.memberSentiment | number: '1.2-2' }}</td>
+                  <td class="num-col" [class.positive]="row.instFlow >= 0" [class.negative]="row.instFlow < 0">{{ row.instFlow | number: '1.2-2' }}</td>
+                  <td class="num-col" [class.positive]="row.pattern >= 0" [class.negative]="row.pattern < 0">{{ row.pattern | number: '1.2-2' }}</td>
+                  <td class="num-col score-col" [class.positive]="row.score >= 1" [class.negative]="row.score < 1">{{ row.score | number: '1.2-2' }}</td>
+                  <td class="num-col">{{ (row.targetFraction * 100) | number: '1.1-1' }}%</td>
+                  <td class="num-col muted">{{ (row.currentFraction * 100) | number: '1.1-1' }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          }
         </div>
       </section>
     }

@@ -38,6 +38,25 @@ export type SortCol =
   | 'market' | 'fundamental' | 'public-sentiment' | 'member-sentiment'
   | 'inst-flow' | 'pattern' | 'score' | 'target' | 'current';
 
+export type AggregateBy = 'asset' | 'sector' | 'region';
+
+export type AggSortCol = 'label' | 'count' | 'market' | 'fundamental' | 'public-sentiment' | 'member-sentiment' | 'inst-flow' | 'pattern' | 'score' | 'target' | 'current';
+
+export interface AggregateRow {
+  label: string;
+  count: number;
+  iconUrls: string[];
+  market: number;
+  fundamental: number;
+  publicSentiment: number;
+  memberSentiment: number;
+  instFlow: number;
+  pattern: number;
+  score: number;
+  targetFraction: number;
+  currentFraction: number;
+}
+
 @Component({
   selector: 'app-analysis',
   imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip, ValueChip, GainChip],
@@ -59,6 +78,9 @@ export class Analysis implements OnInit, OnDestroy {
   holdingsFilter = '';
   sortCol: SortCol | null = 'score';
   sortDir: 'asc' | 'desc' = 'desc';
+  aggregateBy: AggregateBy = 'asset';
+  aggSortCol: AggSortCol = 'score';
+  aggSortDir: 'asc' | 'desc' = 'desc';
   chartSeries: PriceSeries[] = [];
   loading = true;
   recomputing = false;
@@ -122,6 +144,73 @@ export class Analysis implements OnInit, OnDestroy {
       this.sortCol = col;
       this.sortDir = col === 'name' || col === 'sector' ? 'asc' : 'desc';
     }
+  }
+
+  toggleAggSort(col: AggSortCol): void {
+    if (this.aggSortCol === col) {
+      this.aggSortDir = this.aggSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.aggSortCol = col;
+      this.aggSortDir = col === 'label' ? 'asc' : 'desc';
+    }
+  }
+
+  get aggregatedRows(): AggregateRow[] {
+    const sourceRows = this.filteredChildren;
+    if (this.aggregateBy === 'asset') return [];
+
+    const groups = new Map<string, ChildRow[]>();
+    for (const row of sourceRows) {
+      const key = (this.aggregateBy === 'sector'
+        ? row.position.sector
+        : row.position.region) ?? '—';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(row);
+    }
+
+    const result: AggregateRow[] = [];
+    for (const [label, rows] of groups) {
+      const withHolding = rows.filter(r => r.holding !== null);
+      const avg = (fn: (r: ChildRow) => number) =>
+        withHolding.length ? withHolding.reduce((s, r) => s + fn(r), 0) / withHolding.length : 0;
+
+      result.push({
+        label,
+        count: rows.length,
+        iconUrls: rows.map(r => r.position.iconUrl).filter((u): u is string => !!u).slice(0, 4),
+        market:         avg(r => r.holding!.marketDelta),
+        fundamental:    avg(r => r.holding!.fundamentalDelta),
+        publicSentiment: avg(r => r.holding!.publicSentimentDelta),
+        memberSentiment: avg(r => r.holding!.memberSentimentDelta),
+        instFlow:       avg(r => r.holding!.institutionalOrderFlowDelta),
+        pattern:        avg(r => r.holding!.patternDelta),
+        score:          avg(r => r.holding!.combinedScore),
+        targetFraction: rows.reduce((s, r) => s + (r.holding?.targetFraction ?? 0), 0),
+        currentFraction: rows.reduce((s, r) => s + (r.position.fraction ?? 0), 0),
+      });
+    }
+
+    return result.sort((a, b) => {
+      const dir = this.aggSortDir === 'asc' ? 1 : -1;
+      let av: string | number;
+      let bv: string | number;
+      switch (this.aggSortCol) {
+        case 'label':       av = a.label;           bv = b.label;           break;
+        case 'count':       av = a.count;           bv = b.count;           break;
+        case 'market':      av = a.market;          bv = b.market;          break;
+        case 'fundamental': av = a.fundamental;     bv = b.fundamental;     break;
+        case 'public-sentiment': av = a.publicSentiment; bv = b.publicSentiment; break;
+        case 'member-sentiment': av = a.memberSentiment; bv = b.memberSentiment; break;
+        case 'inst-flow':   av = a.instFlow;        bv = b.instFlow;        break;
+        case 'pattern':     av = a.pattern;         bv = b.pattern;         break;
+        case 'score':       av = a.score;           bv = b.score;           break;
+        case 'target':      av = a.targetFraction;  bv = b.targetFraction;  break;
+        case 'current':     av = a.currentFraction; bv = b.currentFraction; break;
+        default:            av = a.score;           bv = b.score;
+      }
+      if (typeof av === 'string' && typeof bv === 'string') return dir * av.localeCompare(bv);
+      return dir * ((av as number) - (bv as number));
+    });
   }
 
   protected tickerUrl: string | null = null;
