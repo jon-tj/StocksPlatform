@@ -564,6 +564,13 @@ export class Analysis implements OnInit, OnDestroy {
     });
   }
 
+  get orderTotals(): { invested: number; remainder: number } {
+    const rows = this.orderRows;
+    const invested = rows.reduce((s, r) => s + r.positionValue, 0);
+    const remainder = Math.round(this.orderMoney - rows.reduce((s, r) => s + r.total * r.price, 0));
+    return { invested, remainder };
+  }
+
   exportOrderCsv(): void {
     const rows = this.orderRows.filter(r => !this.hideZeroDelta || r.delta !== 0);
     const header = 'Name,Symbol,Price,Target%,Total,Value,Current,Delta';

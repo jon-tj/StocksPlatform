@@ -468,6 +468,20 @@
             } @else {
               <p class="muted order-empty">No holdings with target weights available.</p>
             }
+            <div class="order-summary">
+              <div class="order-summary-item">
+                <span class="order-summary-label">Total invested</span>
+                <span class="order-summary-value">{{ orderTotals.invested | number: '1.0-0' }} NOK</span>
+              </div>
+              <div class="order-summary-item">
+                <span class="order-summary-label">Portfolio value</span>
+                <span class="order-summary-value">{{ orderMoney | number: '1.0-0' }} NOK</span>
+              </div>
+              <div class="order-summary-item">
+                <span class="order-summary-label">Remainder</span>
+                <app-gain-chip [value]="orderTotals.remainder" suffix=" NOK" [showPrefix]="false" [bold]="true" />
+              </div>
+            </div>
             <div class="order-helper-actions">
               <button class="order-export-btn" type="button" (click)="exportOrderCsv()">Export CSV</button>
               <div class="order-helper-actions-right">
