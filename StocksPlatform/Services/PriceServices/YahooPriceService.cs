@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StocksPlatform.Data;
@@ -119,7 +120,58 @@ public class YahooPriceService(AppDbContext db, HttpClient http, ILogger<YahooPr
         else
             meta.LastDailyFetchAt = now;
 
-        await db.SaveChangesAsync();
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsDailyHistoryUniqueViolation(ex) || IsAssetHistoryMetaUniqueViolation(ex))
+        {
+            // Concurrent requests can race on inserting the same daily rows and/or meta row.
+            // Re-read and apply values as updates, then retry once.
+            logger.LogWarning(ex,
+                "EnsureDailyBarsAsync: unique key race for asset {AssetId}; retrying as update",
+                assetId);
+
+            var latestByDate = points
+                .GroupBy(p => p.date)
+                .ToDictionary(g => g.Key, g => g.Last());
+
+            var dates = latestByDate.Keys.ToArray();
+            var freshRows = await db.AssetDailyHistory
+                .Where(b => b.AssetId == assetId && dates.Contains(b.Timestamp))
+                .ToListAsync();
+
+            foreach (var row in freshRows)
+            {
+                var latest = latestByDate[row.Timestamp];
+                row.Price = latest.price;
+                row.Volume = latest.volume;
+            }
+
+            // Drop duplicate pending daily inserts that now exist in DB.
+            var pendingDaily = db.ChangeTracker.Entries<AssetDailyHistory>()
+                .Where(e => e.State == EntityState.Added
+                         && e.Entity.AssetId == assetId
+                         && latestByDate.ContainsKey(e.Entity.Timestamp))
+                .ToList();
+            foreach (var e in pendingDaily)
+                e.State = EntityState.Detached;
+
+            // Drop duplicate pending meta insert and upsert existing meta row.
+            var pendingMeta = db.ChangeTracker.Entries<AssetPriceMeta>()
+                .Where(e => e.State == EntityState.Added && e.Entity.AssetId == assetId)
+                .ToList();
+            foreach (var e in pendingMeta)
+                e.State = EntityState.Detached;
+
+            var existingMeta = await db.AssetHistoryMeta.FirstOrDefaultAsync(m => m.AssetId == assetId);
+            if (existingMeta is null)
+                db.AssetHistoryMeta.Add(new AssetPriceMeta { AssetId = assetId, LastDailyFetchAt = now });
+            else
+                existingMeta.LastDailyFetchAt = now;
+
+            await db.SaveChangesAsync();
+        }
     }
 
     public async Task EnsureIntradayBarsAsync(Guid assetId, string symbol, string? exchange = null)
@@ -269,6 +321,20 @@ public class YahooPriceService(AppDbContext db, HttpClient http, ILogger<YahooPr
 
         var body = await response.Content.ReadFromJsonAsync<YahooChartResponse>();
         return body?.Chart?.Result?.FirstOrDefault();
+    }
+
+    private static bool IsDailyHistoryUniqueViolation(DbUpdateException ex)
+    {
+        return ex.InnerException is SqliteException sqliteEx
+            && sqliteEx.SqliteErrorCode == 19
+            && sqliteEx.Message.Contains("AssetDailyHistory.AssetId, AssetDailyHistory.Timestamp", StringComparison.Ordinal);
+    }
+
+    private static bool IsAssetHistoryMetaUniqueViolation(DbUpdateException ex)
+    {
+        return ex.InnerException is SqliteException sqliteEx
+            && sqliteEx.SqliteErrorCode == 19
+            && sqliteEx.Message.Contains("AssetHistoryMeta.AssetId", StringComparison.Ordinal);
     }
 }
 
