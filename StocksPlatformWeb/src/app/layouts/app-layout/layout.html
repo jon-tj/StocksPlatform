@@ -21,13 +21,7 @@
           <ul class="search-dropdown">
             @for (asset of searchResults; track asset.id) {
               <li class="search-dropdown-item" (mousedown)="selectAsset(asset)">
-                @if (asset.iconUrl) {
-                  <img class="search-item-icon" [src]="asset.iconUrl" [alt]="asset.name" />
-                } @else {
-                  <span class="search-item-icon-placeholder"></span>
-                }
-                <span class="search-item-symbol">{{ asset.symbol }}</span>
-                <span class="search-item-name">{{ asset.name }}</span>
+                <app-asset-chip [name]="asset.name" [iconUrl]="asset.iconUrl" [type]="asset.type" [symbol]="asset.symbol" [sector]="asset.sector" />
                 <span class="search-item-meta">
                   @if (asset.country) { <span>{{ asset.country }}</span> }
                   @if (asset.sector) { <span>{{ asset.sector | sectorLabel }}</span> }

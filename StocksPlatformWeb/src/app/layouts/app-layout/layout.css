@@ -266,7 +266,7 @@ nav {
 .search-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  justify-content: space-between;
   padding: 0.5rem 0.875rem;
   cursor: pointer;
   font-size: 0.8125rem;
@@ -275,36 +275,6 @@ nav {
 
 .search-dropdown-item:hover {
   background: var(--color-border);
-}
-
-.search-item-symbol {
-  font-weight: 600;
-  min-width: 3.5rem;
-  flex-shrink: 0;
-}
-
-.search-item-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  object-fit: contain;
-  flex-shrink: 0;
-  background: var(--color-border);
-}
-
-.search-item-icon-placeholder {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  background: var(--color-border);
-  flex-shrink: 0;
-}
-
-.search-item-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .search-item-meta {
