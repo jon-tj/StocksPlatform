@@ -98,6 +98,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
     await CurrencyPairSeeder.SeedAsync(db);
     await NordnetTickerSeeder.SeedAsync(db);
+    await SpFiveHundredSeeder.SeedAsync(db);
 }
 
 app.Run();

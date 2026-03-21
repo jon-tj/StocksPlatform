@@ -3,7 +3,7 @@ using StocksPlatform.Data;
 
 namespace StocksPlatform.Services.Analysis;
 
-public class PatternDeltaService(AppDbContext db) : IAssetDeltaProvider
+public class PatternDeltaService(AppDbContext db, OnnxPriceModelRegistry modelRegistry) : IAssetDeltaProvider
 {
     private const int WindowDays = 30;
     private const int DropDays = 3;
@@ -24,6 +24,34 @@ public class PatternDeltaService(AppDbContext db) : IAssetDeltaProvider
             .ToListAsync();
 
         if (dailyPrices.Count < 5) return 0.0;
+
+        // --- ML inference path ---
+        if (modelRegistry.HasModels && dailyPrices.Count >= OnnxPriceModelRegistry.WindowSize + 1)
+        {
+            var symbol = await db.Assets
+                .Where(a => a.Id == assetId)
+                .Select(a => a.Symbol)
+                .FirstOrDefaultAsync();
+
+            if (symbol is not null)
+            {
+                var logReturns = BuildLogReturns(dailyPrices);
+
+                // 1. Try models for this exact symbol
+                var upProb = modelRegistry.RunInference(symbol, logReturns);
+
+                // 2. Fall back to the closest correlated symbol that has models
+                if (upProb is null)
+                {
+                    var closest = modelRegistry.FindClosestSymbolWithModels(symbol);
+                    if (closest is not null)
+                        upProb = modelRegistry.RunInference(closest.Value.Symbol, logReturns);
+                }
+
+                if (upProb is not null)
+                    return (double)upProb.Value;
+            }
+        }
 
         bool isIncreasing = dailyPrices.Last() > dailyPrices.First();
         double wSum = 0, weightedSqErr = 0;

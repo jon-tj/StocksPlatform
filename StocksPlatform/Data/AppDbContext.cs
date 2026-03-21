@@ -26,9 +26,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
     // Stable, deterministic asset IDs derived from a fixed namespace + name.
     // Equivalent to UUID v5 (SHA-1 name-based) — same input always yields same GUID.
-    public static readonly Guid MainPortfolioId    = Guid.Empty;
-    public static readonly Guid OslBigPortfolioId  = AssetGuid("OSLB.PF");
-    public static readonly Guid OslSmallPortfolioId = AssetGuid("OSLS.PF");
+    public static readonly Guid MainPortfolioId         = Guid.Empty;
+    public static readonly Guid OslBigPortfolioId       = AssetGuid("OSLB.PF");
+    public static readonly Guid OslSmallPortfolioId     = AssetGuid("OSLS.PF");
+    public static readonly Guid SpFiveHundredPortfolioId = AssetGuid("SP500.PF");
 
     /// <summary>
     /// Produces a deterministic GUID from a name string using SHA-1,
