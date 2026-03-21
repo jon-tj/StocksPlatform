@@ -22,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<AssetPriceMeta> AssetHistoryMeta => Set<AssetPriceMeta>();
     public DbSet<FundHoldingSnapshot> FundHoldingSnapshots => Set<FundHoldingSnapshot>();
     public DbSet<FundPortfolioMeta> FundPortfolioMetas => Set<FundPortfolioMeta>();
+    public DbSet<PortfolioRemainderValue> PortfolioRemainderValues => Set<PortfolioRemainderValue>();
 
     // Stable, deterministic asset IDs derived from a fixed namespace + name.
     // Equivalent to UUID v5 (SHA-1 name-based) — same input always yields same GUID.

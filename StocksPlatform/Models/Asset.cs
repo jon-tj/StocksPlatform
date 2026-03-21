@@ -91,7 +91,7 @@ public class PortfolioAsset
     public Guid AssetId { get; set; }
     public Asset Asset { get; set; } = null!;
 
-    /// <summary>Number of units/shares held.</summary>
+    /// <summary>Number of units/shares held. Stored as double to allow fractional quantities (e.g. cash positions).</summary>
     public uint Quantity { get; set; }
 
     /// <summary>
@@ -112,4 +112,15 @@ public class UserStarredAsset
     public int Id { get; set; }
     public string UserId { get; set; } = string.Empty;
     public Guid AssetId { get; set; }
+}
+
+/// <summary>
+/// Stores the uninvested cash remainder for a portfolio after pro-rata share allocation.
+/// This value is added back when calculating portfolio value so rounding losses don't compound.
+/// </summary>
+public class PortfolioRemainderValue
+{
+    public int Id { get; set; }
+    public Guid PortfolioId { get; set; }
+    public double Value { get; set; }
 }

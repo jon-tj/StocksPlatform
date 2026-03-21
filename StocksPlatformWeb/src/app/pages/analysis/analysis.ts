@@ -42,6 +42,21 @@ export type AggregateBy = 'asset' | 'sector' | 'region';
 
 export type AggSortCol = 'label' | 'count' | 'market' | 'fundamental' | 'public-sentiment' | 'member-sentiment' | 'inst-flow' | 'pattern' | 'score' | 'target' | 'current';
 
+export type OrderMode = 'buy' | 'update';
+
+export interface OrderRow {
+  assetId: string;
+  name: string;
+  symbol: string;
+  iconUrl?: string;
+  price: number;
+  targetPct: number;
+  total: number;
+  positionValue: number;
+  current: number;
+  delta: number;
+}
+
 export interface AggregateRow {
   label: string;
   count: number;
@@ -81,6 +96,12 @@ export class Analysis implements OnInit, OnDestroy {
   aggregateBy: AggregateBy = 'asset';
   aggSortCol: AggSortCol = 'score';
   aggSortDir: 'asc' | 'desc' = 'desc';
+  showOrderHelper = false;
+  orderMode: OrderMode = 'buy';
+  orderMoney = 0;
+  orderSaving = false;
+  hideZeroDelta = false;
+  portfolioRemainder = 0;
   chartSeries: PriceSeries[] = [];
   loading = true;
   recomputing = false;
@@ -279,6 +300,12 @@ export class Analysis implements OnInit, OnDestroy {
     this.selectedMetric = null;
     this.detailsLoading = false;
     this.institutionalSnapshots = [];
+    this.showOrderHelper = false;
+    this.orderMode = 'buy';
+    this.orderMoney = 0;
+    this.orderSaving = false;
+    this.hideZeroDelta = false;
+    this.portfolioRemainder = 0;
     this.isStarred = false;
     this.starring = false;
     this.livePrice = null;
@@ -320,13 +347,15 @@ export class Analysis implements OnInit, OnDestroy {
           forkJoin({
             positions: this.positionsService.getPortfolioPositions(assetId),
             holdings: this.assetService.getHoldings(assetId),
+            remainder: this.positionsService.getPortfolioRemainder(assetId),
           }).subscribe({
-            next: ({ positions, holdings }) => {
+            next: ({ positions, holdings, remainder }) => {
               const holdingMap = new Map(holdings.map((h) => [h.assetId, h]));
               this.children = positions.map((p) => ({
                 position: p,
                 holding: holdingMap.get(p.assetId) ?? null,
               }));
+              this.portfolioRemainder = remainder;
               this.startLivePriceStream(assetId, this.children.map(c => c.position.assetId));
               this.loading = false;
             },
@@ -477,6 +506,126 @@ export class Analysis implements OnInit, OnDestroy {
 
   openChildAnalysis(assetId: string): void {
     this.router.navigate(['/analysis', assetId]);
+  }
+
+  get orderRows(): OrderRow[] {
+    const money = Math.max(0, Math.round(this.orderMoney));
+    const baseRows = this.children
+      .filter(r => r.holding !== null)
+      .map(r => {
+        const live = this.liveByAssetId.get(this.normalizeAssetId(r.position.assetId));
+        const price = live?.price ?? 0;
+        const tf = r.holding!.targetFraction;
+        const nokAlloc = tf * money;
+        const exact = price > 0 ? nokAlloc / price : 0;
+        const initial = Math.floor(exact);
+        return {
+          assetId: r.position.assetId,
+          name: r.position.name,
+          symbol: r.position.symbol,
+          iconUrl: r.position.iconUrl,
+          price,
+          targetPct: tf * 100,
+          initial,
+          fractionalPart: exact - initial,
+          current: this.orderMode === 'update' ? r.position.quantity : 0,
+        };
+      });
+
+    // Distribute remaining NOK as +1 share in descending fractional-part order,
+    // only if we can still afford the share at its price.
+    let remainingNok = money - baseRows.reduce((s, r) => s + r.initial * r.price, 0);
+    const ranked = [...baseRows]
+      .map((r, i) => ({ i, fp: r.fractionalPart, price: r.price }))
+      .sort((a, b) => b.fp - a.fp);
+    const residualSet = new Set<number>();
+    for (const { i, price } of ranked) {
+      if (price > 0 && remainingNok >= price) {
+        residualSet.add(i);
+        remainingNok -= price;
+      }
+    }
+
+    return baseRows.map((r, i) => {
+      const residual = residualSet.has(i) ? 1 : 0;
+      const total = r.initial + residual;
+      return {
+        assetId: r.assetId,
+        name: r.name,
+        symbol: r.symbol,
+        iconUrl: r.iconUrl,
+        price: r.price,
+        targetPct: r.targetPct,
+        total,
+        positionValue: Math.round(total * r.price),
+        current: r.current,
+        delta: total - r.current,
+      };
+    });
+  }
+
+  exportOrderCsv(): void {
+    const rows = this.orderRows.filter(r => !this.hideZeroDelta || r.delta !== 0);
+    const header = 'Name,Symbol,Price,Target%,Total,Value,Current,Delta';
+    const lines = rows.map(r =>
+      `"${r.name}","${r.symbol}",${r.price.toFixed(2)},${r.targetPct.toFixed(2)},${r.total},${r.positionValue},${r.current},${r.delta}`
+    );
+    const csv = [header, ...lines].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `order-helper-${this.asset?.name ?? 'portfolio'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  openOrderHelper(): void {
+    this.showOrderHelper = true;
+    this.orderMoney = this.computePortfolioValue();
+  }
+
+  switchOrderMode(mode: OrderMode): void {
+    this.orderMode = mode;
+    this.orderMoney = mode === 'update' ? this.computePortfolioValue() : 0;
+  }
+
+  private computePortfolioValue(): number {
+    return Math.round(
+      this.portfolioRemainder +
+      this.children.reduce((sum, r) => {
+        const live = this.liveByAssetId.get(this.normalizeAssetId(r.position.assetId));
+        return sum + (live ? live.price * r.position.quantity : 0);
+      }, 0)
+    );
+  }
+
+  closeAndUpdateOrder(): void {
+    if (!this.assetId || this.orderSaving) return;
+    const rows = this.orderRows;
+    const updates = rows.map(r => ({ assetId: r.assetId, quantity: r.total }));
+    const newRemainder = Math.round(
+      this.orderMoney - rows.reduce((s, r) => s + r.total * r.price, 0)
+    );
+    this.orderSaving = true;
+    this.positionsService.updatePortfolioQuantities(this.assetId, updates).subscribe({
+      next: () => {
+        // Update in-memory quantities so the holdings table and order helper reflect the new state
+        const quantityMap = new Map(updates.map(u => [u.assetId, u.quantity]));
+        for (const child of this.children) {
+          const newQty = quantityMap.get(child.position.assetId);
+          if (newQty !== undefined) {
+            child.position = { ...child.position, quantity: newQty };
+          }
+        }
+        // Persist the undeployable cash remainder so portfolio value stays stable
+        this.portfolioRemainder = newRemainder;
+        this.positionsService.setPortfolioRemainder(this.assetId!, newRemainder).subscribe();
+        this.showOrderHelper = false;
+        this.orderSaving = false;
+      },
+      error: () => { this.orderSaving = false; },
+    });
   }
 
   ngOnDestroy(): void {

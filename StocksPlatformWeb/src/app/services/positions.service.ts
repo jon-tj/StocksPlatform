@@ -32,4 +32,16 @@ export class PositionsService {
   getPortfolioPositions(portfolioId: string): Observable<Position[]> {
     return this.http.get<Position[]>(`${API}/api/positions/${portfolioId}`);
   }
+
+  updatePortfolioQuantities(portfolioId: string, updates: { assetId: string; quantity: number }[]): Observable<void> {
+    return this.http.patch<void>(`${API}/api/positions/${portfolioId}/quantities`, updates);
+  }
+
+  getPortfolioRemainder(portfolioId: string): Observable<number> {
+    return this.http.get<number>(`${API}/api/positions/${portfolioId}/remainder`);
+  }
+
+  setPortfolioRemainder(portfolioId: string, value: number): Observable<void> {
+    return this.http.put<void>(`${API}/api/positions/${portfolioId}/remainder`, value);
+  }
 }
