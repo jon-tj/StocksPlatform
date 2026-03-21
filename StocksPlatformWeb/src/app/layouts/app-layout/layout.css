@@ -231,10 +231,10 @@ nav {
 }
 
 .search-icon {
-  width: 14px;
-  height: 14px;
+  font-size: 1.1rem;
   flex-shrink: 0;
   color: var(--color-text-muted);
+  user-select: none;
 }
 
 .search-input {

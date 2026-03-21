@@ -588,6 +588,7 @@ export class Analysis implements OnInit, OnDestroy {
   }
 
   openOrderHelper(): void {
+    this.orderMode = 'update';
     this.showOrderHelper = true;
     this.orderMoney = this.computePortfolioValue();
   }
