@@ -2,7 +2,7 @@
   @if (iconUrl()) {
     <img class="chip-icon" [src]="iconUrl()" [alt]="name()" />
   } @else {
-    <span class="chip-icon-placeholder"></span>
+    <span class="chip-icon-placeholder material-icons">{{ fallbackIcon() }}</span>
   }
   <span class="chip-name">{{ name() }}</span>
   @if (symbol()) {

@@ -15,6 +15,8 @@ interface RecentAsset {
   symbol?: string;
   iconUrl?: string;
   currency?: string;
+  type?: string;
+  sector?: string;
 }
 
 type DragList = 'starred' | 'recent';
@@ -133,7 +135,7 @@ export class AppLayout implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.searchResults = [];
     this.showSearchDropdown = false;
-    this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol, iconUrl: asset.iconUrl });
+    this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol, iconUrl: asset.iconUrl, currency: asset.currency, type: asset.type, sector: asset.sector });
     this.router.navigate(['/analysis', asset.id]);
   }
 
@@ -276,7 +278,7 @@ export class AppLayout implements OnInit, OnDestroy {
     this.addRecentAsset(existing ?? { id: assetId, name: assetId.slice(0, 8) });
     // Always fetch fresh to ensure iconUrl and other fields are up to date
     this.assetService.getAssetDetails(assetId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (asset) => this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol, iconUrl: asset.iconUrl, currency: asset.currency }),
+      next: (asset) => this.addRecentAsset({ id: asset.id, name: asset.name, symbol: asset.symbol, iconUrl: asset.iconUrl, currency: asset.currency, type: asset.type, sector: asset.sector }),
       error: () => { },
     });
   }
@@ -296,6 +298,8 @@ export class AppLayout implements OnInit, OnDestroy {
           symbol: a.symbol,
           iconUrl: a.iconUrl,
           currency: a.currency,
+          type: a.type,
+          sector: a.sector,
         }));
       },
       error: () => {
