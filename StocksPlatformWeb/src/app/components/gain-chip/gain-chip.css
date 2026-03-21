@@ -1,0 +1,9 @@
+.gain-chip {
+  font-variant-numeric: tabular-nums;
+}
+
+.gain-strong-pos { color: #00ca4a; }
+.gain-muted-pos  { color: #489248; }
+.gain-neutral    { color: var(--color-text-muted); }
+.gain-muted-neg  { color: #944b4b; }
+.gain-strong-neg { color: #ff4848; }

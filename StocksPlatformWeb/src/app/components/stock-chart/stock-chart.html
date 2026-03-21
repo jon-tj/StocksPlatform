@@ -16,11 +16,7 @@
         <span class="sc-legend-dot" [style.background]="getColor(i)"></span>
         @if (s.name) {<span>{{ s.name }}</span>}
         <span class="sc-legend-price" [class.pos]="mode() === 'returns' && getLivePrice(s) >= 0" [class.neg]="mode() === 'returns' && getLivePrice(s) < 0">{{ mode() === 'returns' && getLivePrice(s) >= 0 ? '+' : '' }}{{ getLivePrice(s) | number: '1.2-2' }}</span>
-        <span
-          class="sc-legend-val"
-          [class.pos]="getLiveValue(s) >= 0"
-          [class.neg]="getLiveValue(s) < 0"
-        >{{ getLiveValue(s) >= 0 ? '+' : '' }}{{ getLiveValue(s) | number: '1.2-2' }}%</span>
+        <app-gain-chip [value]="getLiveValue(s)" />
       </span>
     }
   </div>

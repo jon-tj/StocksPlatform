@@ -1,0 +1,5 @@
+@if (value !== null) {
+  <span class="gain-chip" [class]="gainClass">{{ value >= 0 ? '+' : '' }}{{ value | number: format }}%</span>
+} @else {
+  <span class="gain-chip gain-neutral">—</span>
+}

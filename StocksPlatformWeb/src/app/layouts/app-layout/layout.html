@@ -74,13 +74,7 @@
                     @if (getSidebarLive(asset.id); as live) {
                       <span class="recent-live">
                         <app-value-chip [amount]="live.price" [currency]="asset.currency ?? 'USD'" format="1.2-2" />
-                        <span
-                          class="recent-day"
-                          [class.recent-day-positive]="live.dayGainPercent !== null && live.dayGainPercent >= 0"
-                          [class.recent-day-negative]="live.dayGainPercent !== null && live.dayGainPercent < 0"
-                        >
-                          {{ live.dayGainPercent !== null ? ((live.dayGainPercent >= 0 ? '+' : '') + (live.dayGainPercent | number: '1.2-2') + '%') : '—' }}
-                        </span>
+                        <app-gain-chip class="recent-day" [value]="live.dayGainPercent" />
                       </span>
                     }
                   </button>
@@ -133,13 +127,7 @@
                     @if (getSidebarLive(asset.id); as live) {
                       <span class="recent-live">
                         <app-value-chip [amount]="live.price" [currency]="asset.currency ?? 'USD'" format="1.2-2" />
-                        <span
-                          class="recent-day"
-                          [class.recent-day-positive]="live.dayGainPercent !== null && live.dayGainPercent >= 0"
-                          [class.recent-day-negative]="live.dayGainPercent !== null && live.dayGainPercent < 0"
-                        >
-                          {{ live.dayGainPercent !== null ? ((live.dayGainPercent >= 0 ? '+' : '') + (live.dayGainPercent | number: '1.2-2') + '%') : '—' }}
-                        </span>
+                        <app-gain-chip class="recent-day" [value]="live.dayGainPercent" />
                       </span>
                     }
                   </button>

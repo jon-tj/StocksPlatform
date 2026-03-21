@@ -17,13 +17,7 @@
       @if (livePrice) {
         <div class="live-badge">
           <app-value-chip [amount]="livePrice.price" [currency]="asset.currency ?? 'USD'" format="1.2-2" />
-          <span
-            class="live-gain"
-            [class.positive]="livePrice.dayGainPercent !== null && livePrice.dayGainPercent >= 0"
-            [class.negative]="livePrice.dayGainPercent !== null && livePrice.dayGainPercent < 0"
-          >
-            {{ livePrice.dayGainPercent !== null ? ((livePrice.dayGainPercent >= 0 ? '+' : '') + (livePrice.dayGainPercent | number: '1.2-2') + '%') : '—' }}
-          </span>
+          <app-gain-chip class="live-gain" [value]="livePrice.dayGainPercent" />
         </div>
       }
       <button

@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnDestroy, ViewChild, computed, input, output, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { GainChip } from '../gain-chip/gain-chip';
 
 export interface PriceSeries {
   name?: string;
@@ -11,7 +12,7 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#818cf8'];
 
 @Component({
   selector: 'app-stock-chart',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, GainChip],
   templateUrl: './stock-chart.html',
   styleUrl: './stock-chart.css',
 })

@@ -18,6 +18,7 @@ import { StockChart, PriceSeries } from '../../components/stock-chart/stock-char
 import { SectorLabelPipe } from '../../pipes/sector-label.pipe';
 import { AssetChip } from '../../components/asset-chip/asset-chip';
 import { ValueChip } from '../../components/value-chip/value-chip';
+import { GainChip } from '../../components/gain-chip/gain-chip';
 
 export interface ChildRow {
   position: Position;
@@ -39,7 +40,7 @@ export type SortCol =
 
 @Component({
   selector: 'app-analysis',
-  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip, ValueChip],
+  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip, ValueChip, GainChip],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })

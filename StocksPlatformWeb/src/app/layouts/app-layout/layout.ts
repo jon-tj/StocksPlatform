@@ -9,6 +9,7 @@ import { ThemeService } from '../../services/theme.service';
 import { DecimalPipe } from '@angular/common';
 import { AssetChip } from '../../components/asset-chip/asset-chip';
 import { ValueChip } from '../../components/value-chip/value-chip';
+import { GainChip } from '../../components/gain-chip/gain-chip';
 interface RecentAsset {
   id: string;
   name: string;
@@ -28,7 +29,7 @@ const RECENT_SORT_MODE_KEY = 'sp.recentSortMode';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe, DecimalPipe, AssetChip, ValueChip],
+  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe, DecimalPipe, AssetChip, ValueChip, GainChip],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
