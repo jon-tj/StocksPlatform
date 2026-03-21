@@ -155,8 +155,8 @@
                     @for (row of institutionalSnapshots; track row.date) {
                       <tr>
                         <td>{{ row.date | date: 'mediumDate' }}</td>
-                        <td class="num-col">{{ row.meanFundPercentage | number: '1.2-2' }}</td>
-                        <td class="num-col">{{ row.medianFundPercentage | number: '1.2-2' }}</td>
+                        <td class="num-col">{{ row.meanFundPercentage | number: '1.2-5' }}</td>
+                        <td class="num-col">{{ row.medianFundPercentage | number: '1.2-5' }}</td>
                         <td class="num-col">{{ row.numFundsRepresented }}</td>
                       </tr>
                     }
