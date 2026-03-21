@@ -57,7 +57,8 @@ public class PatternDeltaService(AppDbContext db) : IAssetDeltaProvider
             weightedSqErr += Math.Pow(lastDecline - optimalDecline, 2) * wLast;
             wSum += wLast;
         }
-        double wmse = wSum > 0 ? weightedSqErr / (wSum*dailyPrices.Last()*dailyPrices.First()) : 1.0;
+        double priceProduct = wSum * dailyPrices.Last() * dailyPrices.First();
+        double wmse = priceProduct != 0 ? weightedSqErr / priceProduct : 1.0;
         return 1.0 - Math.Min(1.0, Math.Sqrt(wmse) / 0.1); // score between 0 and 1, with 10 % RMSE as tolerance
     }
 }

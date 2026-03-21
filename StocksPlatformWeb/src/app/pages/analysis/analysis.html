@@ -191,13 +191,14 @@
     </section>
 
     @if (
+      asset.type !== 'Portfolio' && (
       asset.symbol ||
       asset.market ||
       asset.broker ||
       asset.country ||
       asset.region ||
       asset.sector ||
-      asset.subsector
+      asset.subsector)
     ) {
       <section class="card info-card">
         <h2 class="card-title">{{ asset.type }} Details</h2>

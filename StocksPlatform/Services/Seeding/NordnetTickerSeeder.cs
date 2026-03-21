@@ -411,6 +411,7 @@ public static class NordnetTickerSeeder
 
         await db.SaveChangesAsync();
         await SeedMainPortfolioAsync(db);
+        await SeedOslPortfoliosAsync(db);
     }
 
     private static async Task SeedMainPortfolioAsync(AppDbContext db)
@@ -478,6 +479,76 @@ public static class NordnetTickerSeeder
                 Fraction = null,
                 FractionExpiry = null,
             });
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedOslPortfoliosAsync(AppDbContext db)
+    {
+        var oslBigId   = AppDbContext.OslBigPortfolioId;
+        var oslSmallId = AppDbContext.OslSmallPortfolioId;
+
+        // Upsert the portfolio asset records themselves
+        var portfolioIds = new[] { oslBigId, oslSmallId };
+        var existingPortfolioIds = await db.Assets
+            .Where(a => portfolioIds.Contains(a.Id))
+            .Select(a => a.Id)
+            .ToListAsync();
+
+        if (!existingPortfolioIds.Contains(oslBigId))
+            db.Assets.Add(new Asset { Id = oslBigId,   Name = "OSL Big",   Type = AssetType.Portfolio, Symbol = "OSLB.PF" });
+        if (!existingPortfolioIds.Contains(oslSmallId))
+            db.Assets.Add(new Asset { Id = oslSmallId, Name = "OSL Small", Type = AssetType.Portfolio, Symbol = "OSLS.PF" });
+        await db.SaveChangesAsync();
+
+        // All Norwegian NordNet stocks with a known popularity, best → least popular
+        var norStocks = await db.Assets
+            .Where(a => a.Broker == "NordNet" && a.Country == "Norway" && a.Popularity != null)
+            .OrderByDescending(a => a.Popularity)
+            .Select(a => a.Id)
+            .ToListAsync();
+
+        // Ceiling-divide: OSL Big gets the extra stock when the count is odd
+        int half = (norStocks.Count + 1) / 2;
+        var bigIds   = norStocks.Take(half).ToHashSet();
+        var smallIds = norStocks.Skip(half).ToHashSet();
+
+        await SeedEqualWeightPortfolioAsync(db, oslBigId,   bigIds);
+        await SeedEqualWeightPortfolioAsync(db, oslSmallId, smallIds);
+    }
+
+    private static async Task SeedEqualWeightPortfolioAsync(AppDbContext db, Guid portfolioId, HashSet<Guid> assetIds)
+    {
+        var existing = await db.PortfolioAssets
+            .Where(pa => pa.PortfolioId == portfolioId)
+            .ToListAsync();
+
+        var toRemove = existing.Where(pa => !assetIds.Contains(pa.AssetId)).ToList();
+        if (toRemove.Count > 0)
+            db.PortfolioAssets.RemoveRange(toRemove);
+
+        var existingByAssetId = existing.ToDictionary(pa => pa.AssetId);
+
+        foreach (var assetId in assetIds)
+        {
+            if (existingByAssetId.TryGetValue(assetId, out var row))
+            {
+                row.Quantity = 1;
+                row.Fraction = null;
+                row.FractionExpiry = null;
+            }
+            else
+            {
+                db.PortfolioAssets.Add(new PortfolioAsset
+                {
+                    PortfolioId = portfolioId,
+                    AssetId     = assetId,
+                    Quantity    = 1,
+                    Fraction    = null,
+                    FractionExpiry = null,
+                });
+            }
         }
 
         await db.SaveChangesAsync();

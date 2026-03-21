@@ -179,12 +179,12 @@ export class Analysis implements OnInit, OnDestroy {
 
         if (asset.type === 'Portfolio') {
           forkJoin({
-            resp: this.positionsService.getPositions(),
+            positions: this.positionsService.getPortfolioPositions(assetId),
             holdings: this.assetService.getHoldings(assetId),
           }).subscribe({
-            next: ({ resp, holdings }) => {
+            next: ({ positions, holdings }) => {
               const holdingMap = new Map(holdings.map((h) => [h.assetId, h]));
-              this.children = resp.positions.map((p) => ({
+              this.children = positions.map((p) => ({
                 position: p,
                 holding: holdingMap.get(p.assetId) ?? null,
               }));
@@ -266,15 +266,15 @@ export class Analysis implements OnInit, OnDestroy {
     {
       forkJoin({
         delta: this.assetService.refreshLatestDelta(this.assetId),
-        resp: this.positionsService.getPositions(),
+        positions: this.positionsService.getPortfolioPositions(this.assetId),
         holdings: this.assetService.getHoldings(this.assetId),
       }).subscribe({
-        next: ({ delta, resp, holdings }) => {
+        next: ({ delta, positions, holdings }) => {
           this.delta = delta;
           this.latestDelta = delta;
 
           var holdingMap = new Map(holdings.map((h) => [h.assetId, h]));
-          this.children = resp.positions.map((p) => ({
+          this.children = positions.map((p) => ({
             position: p,
             holding: holdingMap.get(p.assetId) ?? null,
           }));

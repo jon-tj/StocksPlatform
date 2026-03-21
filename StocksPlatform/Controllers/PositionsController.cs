@@ -77,6 +77,27 @@ public class PositionsController(AppDbContext db, UserManager<AppUser> userManag
         )).ToArray();
     }
 
+    // GET /api/positions/{portfolioId}
+    // Returns children of any portfolio, without poll gate (used by the analysis view).
+    [HttpGet("{portfolioId:guid}")]
+    public async Task<ActionResult<PositionDto[]>> GetPortfolioPositions(Guid portfolioId)
+    {
+        var asset = await db.Assets.FindAsync(portfolioId);
+        if (asset is null) return NotFound();
+        if (asset.Type != AssetType.Portfolio) return BadRequest("Asset is not a portfolio.");
+
+        var rows = await fractionService.GetFreshChildrenAsync(portfolioId);
+        return Ok(rows.Select(pa => new PositionDto(
+            pa.Asset.Id,
+            pa.Asset.Symbol ?? pa.Asset.Name,
+            pa.Asset.Name,
+            pa.Quantity,
+            pa.Fraction,
+            0.0,
+            pa.Asset.IconUrl
+        )).ToArray());
+    }
+
     private async Task<PositionDto[]> GetMockPositions()
     {
         var real = await GetRealPositions();

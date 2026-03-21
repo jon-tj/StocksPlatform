@@ -26,4 +26,8 @@ export class PositionsService {
   getPositions(): Observable<PositionsResponse> {
     return this.http.get<PositionsResponse>(`${API}/api/positions`);
   }
+
+  getPortfolioPositions(portfolioId: string): Observable<Position[]> {
+    return this.http.get<Position[]>(`${API}/api/positions/${portfolioId}`);
+  }
 }
