@@ -386,6 +386,34 @@ h1 {
   white-space: nowrap;
 }
 
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.th-sortable:hover {
+  color: var(--color-text-primary);
+}
+
+.sort-icon {
+  font-style: normal;
+  margin-left: 0.25rem;
+  opacity: 0.5;
+  font-size: 0.65rem;
+}
+
+.th-sortable:hover .sort-icon,
+.th-sortable.sorted .sort-icon {
+  opacity: 1;
+}
+
+.sector-col {
+  font-size: 0.8125rem;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .holdings-table td {
   padding: 0.625rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
@@ -405,7 +433,12 @@ h1 {
 }
 
 .num-col {
-  text-align: right;
+  text-align: center;
+}
+
+.holdings-table th.num-col,
+.holdings-table td.num-col {
+  text-align: center;
 }
 
 .score-col {

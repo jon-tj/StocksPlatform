@@ -32,6 +32,11 @@ export type DeltaMetricKey =
   | 'institutional-order-flow'
   | 'pattern';
 
+export type SortCol =
+  | 'name' | 'sector'
+  | 'market' | 'fundamental' | 'public-sentiment' | 'member-sentiment'
+  | 'inst-flow' | 'pattern' | 'score' | 'target' | 'current';
+
 @Component({
   selector: 'app-analysis',
   imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip, ValueChip],
@@ -51,6 +56,8 @@ export class Analysis implements OnInit, OnDestroy {
   private latestDelta: AssetDelta | null = null;
   children: ChildRow[] = [];
   holdingsFilter = '';
+  sortCol: SortCol | null = 'score';
+  sortDir: 'asc' | 'desc' = 'desc';
   chartSeries: PriceSeries[] = [];
   loading = true;
   recomputing = false;
@@ -67,11 +74,53 @@ export class Analysis implements OnInit, OnDestroy {
 
   get filteredChildren(): ChildRow[] {
     const q = this.holdingsFilter.trim().toLowerCase();
-    if (!q) return this.children;
-    return this.children.filter(row =>
-      row.position.symbol?.toLowerCase().includes(q) ||
-      row.position.name?.toLowerCase().includes(q)
-    );
+    const filtered = q
+      ? this.children.filter(row =>
+          row.position.symbol?.toLowerCase().includes(q) ||
+          row.position.name?.toLowerCase().includes(q) ||
+          row.position.sector?.toLowerCase().includes(q)
+        )
+      : this.children;
+
+    if (!this.sortCol) return filtered;
+
+    const col = this.sortCol;
+    const dir = this.sortDir === 'asc' ? 1 : -1;
+
+    return [...filtered].sort((a, b) => {
+      let av: string | number | null | undefined;
+      let bv: string | number | null | undefined;
+
+      switch (col) {
+        case 'name':    av = a.position.name;   bv = b.position.name;   break;
+        case 'sector':  av = a.position.sector; bv = b.position.sector; break;
+        case 'market':  av = a.holding?.marketDelta; bv = b.holding?.marketDelta; break;
+        case 'fundamental': av = a.holding?.fundamentalDelta; bv = b.holding?.fundamentalDelta; break;
+        case 'public-sentiment': av = a.holding?.publicSentimentDelta; bv = b.holding?.publicSentimentDelta; break;
+        case 'member-sentiment': av = a.holding?.memberSentimentDelta; bv = b.holding?.memberSentimentDelta; break;
+        case 'inst-flow': av = a.holding?.institutionalOrderFlowDelta; bv = b.holding?.institutionalOrderFlowDelta; break;
+        case 'pattern': av = a.holding?.patternDelta; bv = b.holding?.patternDelta; break;
+        case 'score':   av = a.holding?.combinedScore; bv = b.holding?.combinedScore; break;
+        case 'target':  av = a.holding?.targetFraction; bv = b.holding?.targetFraction; break;
+        case 'current': av = a.position.fraction; bv = b.position.fraction; break;
+      }
+
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;  // nulls last
+      if (bv == null) return -1;
+      if (typeof av === 'string' && typeof bv === 'string')
+        return dir * av.localeCompare(bv);
+      return dir * ((av as number) - (bv as number));
+    });
+  }
+
+  toggleSort(col: SortCol): void {
+    if (this.sortCol === col) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortCol = col;
+      this.sortDir = col === 'name' || col === 'sector' ? 'asc' : 'desc';
+    }
   }
 
   protected tickerUrl: string | null = null;

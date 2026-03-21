@@ -309,16 +309,17 @@
           <table class="holdings-table">
             <thead>
               <tr>
-                <th>Asset</th>
-                <th class="num-col">Market</th>
-                <th class="num-col">Fundamental</th>
-                <th class="num-col">Pub. Sentiment</th>
-                <th class="num-col">Mbr. Sentiment</th>
-                <th class="num-col">Inst. Flow</th>
-                <th class="num-col">Pattern</th>
-                <th class="num-col">Score</th>
-                <th class="num-col">Target %</th>
-                <th class="num-col">Current %</th>
+                <th class="th-sortable" (click)="toggleSort('name')">Asset <span class="sort-icon">{{ sortCol === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="th-sortable" (click)="toggleSort('sector')">Sector <span class="sort-icon">{{ sortCol === 'sector' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('market')">Market <span class="sort-icon">{{ sortCol === 'market' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('fundamental')">Fundamental <span class="sort-icon">{{ sortCol === 'fundamental' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('public-sentiment')">Pub. Sentiment <span class="sort-icon">{{ sortCol === 'public-sentiment' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('member-sentiment')">Mbr. Sentiment <span class="sort-icon">{{ sortCol === 'member-sentiment' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('inst-flow')">Inst. Flow <span class="sort-icon">{{ sortCol === 'inst-flow' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('pattern')">Pattern <span class="sort-icon">{{ sortCol === 'pattern' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('score')">Score <span class="sort-icon">{{ sortCol === 'score' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('target')">Target % <span class="sort-icon">{{ sortCol === 'target' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+                <th class="num-col th-sortable" (click)="toggleSort('current')">Current % <span class="sort-icon">{{ sortCol === 'current' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -329,6 +330,7 @@
                       <app-asset-chip [name]="row.position.name" [symbol]="row.position.symbol" [iconUrl]="row.position.iconUrl" />
                     </a>
                   </td>
+                  <td class="sector-col muted">{{ row.position.sector ?? '—' }}</td>
                   @if (row.holding) {
                     <td
                       class="num-col"
@@ -380,7 +382,7 @@
                       {{ row.holding.combinedScore | number: '1.2-2' }}
                     </td>
                   } @else {
-                    <td class="num-col muted" colspan="7">—</td>
+                    <td class="num-col muted" colspan="8">—</td>
                   }
                   <td class="num-col">
                     {{

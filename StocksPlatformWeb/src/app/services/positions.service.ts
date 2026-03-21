@@ -12,6 +12,7 @@ export interface Position {
   fraction: number;
   returnPercent: number;
   iconUrl?: string;
+  sector?: string;
 }
 
 export interface PositionsResponse {
