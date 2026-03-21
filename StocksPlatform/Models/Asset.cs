@@ -6,6 +6,7 @@ public enum AssetType
     Stock = 1,
     Commodity = 2,
     Crypto = 3,
+    Currency = 4,
 }
 
 public class Asset

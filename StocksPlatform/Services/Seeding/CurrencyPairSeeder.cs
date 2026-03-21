@@ -51,7 +51,7 @@ public static class CurrencyPairSeeder
                 if (string.IsNullOrWhiteSpace(asset.Sector)) asset.Sector = "Foreign Exchange";
                 if (string.IsNullOrWhiteSpace(asset.Subsector)) asset.Subsector = "Major Currency Pairs";
                 if (string.IsNullOrWhiteSpace(asset.Broker)) asset.Broker = "Yahoo";
-                if (asset.Type != AssetType.Stock) asset.Type = AssetType.Stock;
+                if (asset.Type != AssetType.Currency) asset.Type = AssetType.Currency;
                 continue;
             }
 
@@ -59,7 +59,7 @@ public static class CurrencyPairSeeder
             {
                 Id = AppDbContext.AssetGuid($"fx-{symbol.ToLowerInvariant()}"),
                 Name = name,
-                Type = AssetType.Stock,
+                Type = AssetType.Currency,
                 Symbol = symbol,
                 Market = null,
                 Broker = "Yahoo",
