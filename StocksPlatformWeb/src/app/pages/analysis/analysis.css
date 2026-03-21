@@ -487,7 +487,8 @@ h1 {
   cursor: pointer;
 }
 
-.child-row-link:hover td {
+.child-row-link:hover td,
+.holdings-table tbody tr.agg-row:hover td {
   background: color-mix(in srgb, var(--color-surface) 92%, var(--color-accent, #6366f1) 8%);
 }
 

@@ -445,7 +445,7 @@
             </thead>
             <tbody>
               @for (row of aggregatedRows; track row.label) {
-                <tr>
+                <tr class="agg-row">
                   <td>
                     <div class="agg-label-cell">
                       @if (aggregateBy === 'sector' && row.iconUrls.length > 0) {
