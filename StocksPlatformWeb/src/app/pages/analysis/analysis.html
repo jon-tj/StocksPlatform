@@ -59,67 +59,32 @@
       <div class="delta-grid">
         <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('market')" (click)="selectMetric('market')" type="button">
           <span class="delta-label">Market</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.marketDelta >= 0"
-            [class.negative]="delta && delta.marketDelta < 0"
-            >{{ delta ? (delta.marketDelta | number: '1.2-2') : 'N/A' }}</span
-          >
+          <app-gain-chip class="delta-value" [value]="delta?.marketDelta ?? null" suffix="" [showPrefix]="false" />
         </button>
         <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('public-sentiment')" (click)="selectMetric('public-sentiment')" type="button">
           <span class="delta-label">Public Sentiment</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.publicSentimentDelta >= 0"
-            [class.negative]="delta && delta.publicSentimentDelta < 0"
-            >{{ delta ? (delta.publicSentimentDelta | number: '1.2-2') : 'N/A' }}</span
-          >
+          <app-gain-chip class="delta-value" [value]="delta?.publicSentimentDelta ?? null" suffix="" [showPrefix]="false" />
         </button>
         <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('member-sentiment')" (click)="selectMetric('member-sentiment')" type="button">
           <span class="delta-label">Member Sentiment</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.memberSentimentDelta >= 0"
-            [class.negative]="delta && delta.memberSentimentDelta < 0"
-            >{{ delta ? (delta.memberSentimentDelta | number: '1.2-2') : 'N/A' }}</span
-          >
+          <app-gain-chip class="delta-value" [value]="delta?.memberSentimentDelta ?? null" suffix="" [showPrefix]="false" />
         </button>
         <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('fundamental')" (click)="selectMetric('fundamental')" type="button">
           <span class="delta-label">Fundamental</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.fundamentalDelta >= 0"
-            [class.negative]="delta && delta.fundamentalDelta < 0"
-            >{{ delta ? (delta.fundamentalDelta | number: '1.2-2') : 'N/A' }}</span
-          >
+          <app-gain-chip class="delta-value" [value]="delta?.fundamentalDelta ?? null" suffix="" [showPrefix]="false" />
         </button>
         <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('institutional-order-flow')" (click)="selectMetric('institutional-order-flow')" type="button">
           <span class="delta-label">Inst. Order Flow</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.institutionalOrderFlowDelta >= 0"
-            [class.negative]="delta && delta.institutionalOrderFlowDelta < 0"
-            >{{ delta ? (delta.institutionalOrderFlowDelta | number: '1.2-2') : 'N/A' }}</span
-          >
+          <app-gain-chip class="delta-value" [value]="delta?.institutionalOrderFlowDelta ?? null" suffix="" [showPrefix]="false" />
         </button>
         <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('pattern')" (click)="selectMetric('pattern')" type="button">
           <span class="delta-label">Pattern</span>
-          <span
-            class="delta-value"
-            [class.positive]="delta && delta.patternDelta >= 0"
-            [class.negative]="delta && delta.patternDelta < 0"
-            >{{ delta ? (delta.patternDelta | number: '1.2-2') : 'N/A' }}</span
-          >
+          <app-gain-chip class="delta-value" [value]="delta?.patternDelta ?? null" suffix="" [showPrefix]="false" />
         </button>
         @if (delta && delta.pairDelta !== null) {
           <div class="delta-item">
             <span class="delta-label">Pair</span>
-            <span
-              class="delta-value"
-              [class.positive]="delta.pairDelta! >= 0"
-              [class.negative]="delta.pairDelta! < 0"
-              >{{ delta.pairDelta | number: '1.2-2' }}</span
-            >
+            <app-gain-chip class="delta-value" [value]="delta.pairDelta" suffix="" [showPrefix]="false" />
           </div>
         }
       </div>
@@ -345,55 +310,13 @@
                   </td>
                   <td class="sector-col muted">{{ row.position.sector ?? '—' | sectorLabel }}</td>
                   @if (row.holding) {
-                    <td
-                      class="num-col"
-                      [class.positive]="row.holding.marketDelta >= 0"
-                      [class.negative]="row.holding.marketDelta < 0"
-                    >
-                      {{ row.holding.marketDelta | number: '1.2-2' }}
-                    </td>
-                    <td
-                      class="num-col"
-                      [class.positive]="row.holding.fundamentalDelta >= 0"
-                      [class.negative]="row.holding.fundamentalDelta < 0"
-                    >
-                      {{ row.holding.fundamentalDelta | number: '1.2-2' }}
-                    </td>
-                    <td
-                      class="num-col"
-                      [class.positive]="row.holding.publicSentimentDelta >= 0"
-                      [class.negative]="row.holding.publicSentimentDelta < 0"
-                    >
-                      {{ row.holding.publicSentimentDelta | number: '1.2-2' }}
-                    </td>
-                    <td
-                      class="num-col"
-                      [class.positive]="row.holding.memberSentimentDelta >= 0"
-                      [class.negative]="row.holding.memberSentimentDelta < 0"
-                    >
-                      {{ row.holding.memberSentimentDelta | number: '1.2-2' }}
-                    </td>
-                    <td
-                      class="num-col"
-                      [class.positive]="row.holding.institutionalOrderFlowDelta >= 0"
-                      [class.negative]="row.holding.institutionalOrderFlowDelta < 0"
-                    >
-                      {{ row.holding.institutionalOrderFlowDelta | number: '1.2-2' }}
-                    </td>
-                    <td
-                      class="num-col"
-                      [class.positive]="row.holding.patternDelta >= 1"
-                      [class.negative]="row.holding.patternDelta < 1"
-                    >
-                      {{ row.holding.patternDelta | number: '1.2-2' }}
-                    </td>
-                    <td
-                      class="num-col score-col"
-                      [class.positive]="row.holding.combinedScore >= 1"
-                      [class.negative]="row.holding.combinedScore < 1"
-                    >
-                      {{ row.holding.combinedScore | number: '1.2-2' }}
-                    </td>
+                    <td class="num-col"><app-gain-chip [value]="row.holding.marketDelta" suffix="" [showPrefix]="false" /></td>
+                    <td class="num-col"><app-gain-chip [value]="row.holding.fundamentalDelta" suffix="" [showPrefix]="false" /></td>
+                    <td class="num-col"><app-gain-chip [value]="row.holding.publicSentimentDelta" suffix="" [showPrefix]="false" /></td>
+                    <td class="num-col"><app-gain-chip [value]="row.holding.memberSentimentDelta" suffix="" [showPrefix]="false" /></td>
+                    <td class="num-col"><app-gain-chip [value]="row.holding.institutionalOrderFlowDelta" suffix="" [showPrefix]="false" /></td>
+                    <td class="num-col"><app-gain-chip [value]="row.holding.patternDelta" suffix="" [showPrefix]="false" /></td>
+                    <td class="num-col score-col"><app-gain-chip [value]="row.holding.combinedScore" suffix="" [showPrefix]="false" [bold]="true" /></td>
                   } @else {
                     <td class="num-col muted" colspan="8">—</td>
                   }
@@ -459,13 +382,13 @@
                     </div>
                   </td>
                   <td class="num-col muted">{{ row.count }}</td>
-                  <td class="num-col" [class.positive]="row.market >= 0" [class.negative]="row.market < 0">{{ row.market | number: '1.2-2' }}</td>
-                  <td class="num-col" [class.positive]="row.fundamental >= 0" [class.negative]="row.fundamental < 0">{{ row.fundamental | number: '1.2-2' }}</td>
-                  <td class="num-col" [class.positive]="row.publicSentiment >= 0" [class.negative]="row.publicSentiment < 0">{{ row.publicSentiment | number: '1.2-2' }}</td>
-                  <td class="num-col" [class.positive]="row.memberSentiment >= 0" [class.negative]="row.memberSentiment < 0">{{ row.memberSentiment | number: '1.2-2' }}</td>
-                  <td class="num-col" [class.positive]="row.instFlow >= 0" [class.negative]="row.instFlow < 0">{{ row.instFlow | number: '1.2-2' }}</td>
-                  <td class="num-col" [class.positive]="row.pattern >= 0" [class.negative]="row.pattern < 0">{{ row.pattern | number: '1.2-2' }}</td>
-                  <td class="num-col score-col" [class.positive]="row.score >= 1" [class.negative]="row.score < 1">{{ row.score | number: '1.2-2' }}</td>
+                  <td class="num-col"><app-gain-chip [value]="row.market" suffix="" [showPrefix]="false" /></td>
+                  <td class="num-col"><app-gain-chip [value]="row.fundamental" suffix="" [showPrefix]="false" /></td>
+                  <td class="num-col"><app-gain-chip [value]="row.publicSentiment" suffix="" [showPrefix]="false" /></td>
+                  <td class="num-col"><app-gain-chip [value]="row.memberSentiment" suffix="" [showPrefix]="false" /></td>
+                  <td class="num-col"><app-gain-chip [value]="row.instFlow" suffix="" [showPrefix]="false" /></td>
+                  <td class="num-col"><app-gain-chip [value]="row.pattern" suffix="" [showPrefix]="false" /></td>
+                  <td class="num-col score-col"><app-gain-chip [value]="row.score" suffix="" [showPrefix]="false" [bold]="true" /></td>
                   <td class="num-col">{{ (row.targetFraction * 100) | number: '1.1-1' }}%</td>
                   <td class="num-col muted">{{ (row.currentFraction * 100) | number: '1.1-1' }}%</td>
                 </tr>

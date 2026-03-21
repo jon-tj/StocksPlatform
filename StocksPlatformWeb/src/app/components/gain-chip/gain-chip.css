@@ -7,3 +7,5 @@
 .gain-neutral    { color: var(--color-text-muted); }
 .gain-muted-neg  { color: #944b4b; }
 .gain-strong-neg { color: #ff4848; }
+
+.gain-bold { font-weight: 700; }

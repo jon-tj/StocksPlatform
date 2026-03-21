@@ -10,6 +10,9 @@ import { DecimalPipe } from '@angular/common';
 export class GainChip {
   @Input() value: number | null = null;
   @Input() format = '1.2-2';
+  @Input() suffix = '%';
+  @Input() bold = false;
+  @Input() showPrefix = true;
 
   get gainClass(): string {
     if (this.value === null || Math.abs(this.value) < 0.01) return 'gain-neutral';
