@@ -15,6 +15,7 @@ public class AnalysisService(
     FractionService fractionService,
     FundInstitutionalService fundInstitutionalService,
     PatternDeltaService patternDeltaService,
+    PublicSentimentDeltaService publicSentimentDeltaService,
     YahooPriceService yahooPriceService,
     E24PriceService e24PriceService)
 {
@@ -351,8 +352,9 @@ public class AnalysisService(
     private async Task<AssetDelta> ComputeLeafAsync(Guid assetId, DateTime date)
     {
         await EnsureDailyHistoryFreshAsync(assetId);
-        var institutionalDelta = await fundInstitutionalService.GetInstitutionalDeltaAsync(assetId);
-        var patternDelta = await patternDeltaService.ComputeAsync(assetId, date);
+        var institutionalDelta    = await fundInstitutionalService.GetInstitutionalDeltaAsync(assetId);
+        var patternDelta          = await patternDeltaService.ComputeAsync(assetId, date);
+        var publicSentimentDelta  = await publicSentimentDeltaService.ComputeAsync(assetId, date);
 
         return new AssetDelta
         {
@@ -361,7 +363,7 @@ public class AnalysisService(
             MarketDelta = 1.0,
             PairDelta = null,
             PairAssetId = null,
-            PublicSentimentDelta = 1.0,
+            PublicSentimentDelta = publicSentimentDelta,
             MemberSentimentDelta = 1.0,
             FundamentalDelta = 1.0,
             InstitutionalOrderFlowDelta = institutionalDelta,

@@ -40,6 +40,7 @@ builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsPro
 builder.Services.AddScoped<FundInstitutionalService>();
 builder.Services.AddSingleton<StocksPlatform.Services.Analysis.OnnxPriceModelRegistry>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.PatternDeltaService>();
+builder.Services.AddScoped<StocksPlatform.Services.Analysis.PublicSentimentDeltaService>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.AnalysisService>();
 builder.Services.AddHttpClient<PublicSentimentService>(client =>
 {
