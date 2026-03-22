@@ -24,6 +24,9 @@ public class OrderBookPollingService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Seed in-memory state from the database so increments are correct after a restart
+        await InitializeLastVolAsync(stoppingToken);
+
         // Stagger first run so startup isn't flooded with HTTP calls
         await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
 
@@ -32,6 +35,28 @@ public class OrderBookPollingService(
             await PollAllAsync(stoppingToken);
             await Task.Delay(Interval, stoppingToken);
         }
+    }
+
+    private async Task InitializeLastVolAsync(CancellationToken ct)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var latest = await db.OrderBookSnapshots
+            .GroupBy(o => new { o.AssetId, o.Level, o.Side })
+            .Select(g => new
+            {
+                g.Key.AssetId,
+                g.Key.Level,
+                g.Key.Side,
+                NewVol = g.OrderByDescending(o => o.Timestamp).First().NewVol,
+            })
+            .ToListAsync(ct);
+
+        foreach (var s in latest)
+            _lastVol[(s.AssetId, s.Level, s.Side)] = s.NewVol;
+
+        logger.LogInformation("OrderBook: seeded _lastVol with {Count} entries from database", latest.Count);
     }
 
     private async Task PollAllAsync(CancellationToken ct)
