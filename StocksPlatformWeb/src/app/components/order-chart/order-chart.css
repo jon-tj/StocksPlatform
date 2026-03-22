@@ -47,11 +47,11 @@
 }
 
 .oc-ob-table tbody tr:hover {
-  background: var(--color-surface-hover, rgba(255,255,255,0.04));
+  background: var(--color-surface-hover);
 }
 
-.oc-ob-bid { color: #4ade80; font-weight: 500; }
-.oc-ob-ask { color: #f87171; font-weight: 500; }
+.oc-ob-bid { color: var(--color-positive); font-weight: 500; }
+.oc-ob-ask { color: var(--color-negative); font-weight: 500; }
 .oc-bid-vol, .oc-ask-vol { color: var(--color-text-muted); }
 
 .oc-header {
@@ -64,7 +64,6 @@
 .oc-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-text-primary);
 }
 
 .oc-time-range {
@@ -87,8 +86,8 @@
   flex-shrink: 0;
 }
 
-.oc-bid-dot { background: #4ade80; }
-.oc-ask-dot { background: #f87171; }
+.oc-bid-dot { background: var(--color-positive); }
+.oc-ask-dot { background: var(--color-negative); }
 
 .oc-legend-label {
   font-size: 0.8125rem;
@@ -112,7 +111,7 @@
   height: 1.375rem;
   border-radius: 0.3rem;
   border: 1px solid var(--color-border);
-  background: var(--color-bg, #18181b);
+  background: var(--color-surface);
   color: var(--color-text-muted);
   font-size: 0.875rem;
   line-height: 1;
@@ -122,7 +121,7 @@
 }
 
 .oc-size-btn:hover:not(:disabled) {
-  background: var(--color-surface-hover, rgba(255,255,255,0.08));
+  background: var(--color-surface-hover);
   color: var(--color-text-primary);
 }
 

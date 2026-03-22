@@ -30,6 +30,7 @@ a {
 
 .pos { color: #10b981 !important; }
 .neg { color: #ef4444 !important; }
+.muted { color: var(--color-text-muted); }
 
 /* Routed component hosts must fill the .app-content flex column */
 .app-content > *:not(router-outlet) {

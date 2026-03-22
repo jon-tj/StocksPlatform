@@ -2,10 +2,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-.gain-strong-pos { color: #00ca4a; }
-.gain-muted-pos  { color: #489248; }
+.gain-strong-pos { color: var(--color-gain-strong-pos); }
+.gain-muted-pos  { color: var(--color-gain-muted-pos); }
 .gain-neutral    { color: var(--color-text-muted); }
-.gain-muted-neg  { color: #944b4b; }
-.gain-strong-neg { color: #ff4848; }
+.gain-muted-neg  { color: var(--color-gain-muted-neg); }
+.gain-strong-neg { color: var(--color-gain-strong-neg); }
 
 .gain-bold { font-weight: 700; }

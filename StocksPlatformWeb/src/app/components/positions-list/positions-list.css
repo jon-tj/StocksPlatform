@@ -25,7 +25,6 @@
 
 .pl-table td {
   padding: 0.7rem 0.5rem;
-  color: var(--color-text-primary);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -39,7 +38,7 @@
 
 .pl-ticker {
   background: var(--color-surface-muted);
-  color: #818cf8;
+  color: var(--color-accent-light);
   font-size: 0.6875rem;
   font-weight: 700;
   font-family: monospace;
@@ -74,7 +73,6 @@
 
 .pl-overlay strong {
   font-size: 0.9375rem;
-  color: var(--color-text-primary);
 }
 
 .pl-overlay span {
@@ -85,7 +83,7 @@
 
 .pl-btn-poll {
   margin-top: 0.5rem;
-  background: #6366f1;
+  background: var(--color-accent);
   color: white;
   border: none;
   border-radius: 8px;
@@ -98,11 +96,7 @@
 }
 
 .pl-btn-poll:hover {
-  background: #4f46e5;
-}
-
-.pl-table tbody tr:last-child td {
-  border-bottom: none;
+  background: var(--color-accent-hover);
 }
 
 .pl-row-link {
@@ -121,5 +115,5 @@
 
 .pl-footer a {
   font-size: 0.8125rem;
-  color: #818cf8;
+  color: var(--color-accent-light);
 }

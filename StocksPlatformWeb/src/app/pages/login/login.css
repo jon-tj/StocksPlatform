@@ -24,7 +24,7 @@
 .brand-icon {
   width: 48px;
   height: 48px;
-  background: #6366f1;
+  background: var(--color-accent);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -38,7 +38,6 @@
 .brand h1 {
   font-size: 1.375rem;
   font-weight: 700;
-  color: var(--color-text-primary);
   margin-bottom: 0.25rem;
 }
 
@@ -76,8 +75,8 @@
 }
 
 .field input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 15%, transparent);
 }
 
 .field input:disabled {
@@ -89,7 +88,7 @@
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: 8px;
-  color: #f87171;
+  color: var(--color-negative);
   font-size: 0.875rem;
   padding: 0.625rem 0.875rem;
   margin-bottom: 1rem;
@@ -97,7 +96,7 @@
 
 .btn-primary {
   width: 100%;
-  background: #6366f1;
+  background: var(--color-accent);
   color: white;
   border: none;
   border-radius: 8px;
@@ -114,7 +113,7 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--color-accent-hover);
 }
 
 .btn-primary:disabled {
@@ -130,12 +129,12 @@
 }
 
 .footer-link a {
-  color: #818cf8;
+  color: var(--color-accent-light);
   font-weight: 500;
 }
 
 .footer-link a:hover {
-  color: #a5b4fc;
+  color: color-mix(in srgb, var(--color-accent-light) 70%, white);
 }
 
 .spinner {

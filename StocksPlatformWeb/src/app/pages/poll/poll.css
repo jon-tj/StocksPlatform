@@ -3,16 +3,10 @@
   display: flex;
   justify-content: center;
   padding: 2rem 1rem;
-  color: var(--color-text-primary);
-  font-family: inherit;
-}
-
-.muted {
-  color: var(--color-text-muted);
 }
 
 .error {
-  color: #f87171;
+  color: var(--color-negative);
   font-size: 0.875rem;
 }
 
@@ -51,9 +45,8 @@
 
 .poll-header a,
 a {
-  color: #818cf8;
+  color: var(--color-accent-light);
   font-size: 0.875rem;
-  text-decoration: none;
 }
 
 form {
@@ -91,7 +84,6 @@ form {
 .question-text {
   font-size: 0.9375rem;
   line-height: 1.5;
-  color: var(--color-text-primary);
 }
 
 /* Binary yes/no */
@@ -114,13 +106,13 @@ form {
 }
 
 .binary-btn:hover {
-  border-color: #818cf8;
+  border-color: var(--color-accent-light);
   color: var(--color-text-primary);
 }
 
 .binary-btn.selected {
-  background: #818cf8;
-  border-color: #818cf8;
+  background: var(--color-accent-light);
+  border-color: var(--color-accent-light);
   color: #fff;
 }
 
@@ -133,14 +125,14 @@ form {
 
 .probability-input input[type="range"] {
   flex: 1;
-  accent-color: #818cf8;
+  accent-color: var(--color-accent-light);
   cursor: pointer;
 }
 
 .probability-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #818cf8;
+  color: var(--color-accent-light);
   min-width: 3ch;
   text-align: right;
 }
@@ -149,7 +141,7 @@ form {
 .submit-btn {
   padding: 0.75rem 2rem;
   border-radius: 0.5rem;
-  background: #818cf8;
+  background: var(--color-accent-light);
   color: #fff;
   font-size: 0.9375rem;
   font-weight: 600;
