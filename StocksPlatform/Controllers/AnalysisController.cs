@@ -26,6 +26,27 @@ public class AnalysisController(AppDbContext db, AnalysisService analysisService
         double Weight
     );
 
+    public record FundamentalSnapshotDto(
+        DateTime Date,
+        double? TrailingEps,
+        double? NormalizedEps,
+        double? TrailingRevenue,
+        double? TrailingEbitda,
+        double? TrailingOperatingIncome,
+        double? TrailingNetIncome,
+        double? TrailingDividendPerShare,
+        double? RevenueGrowthRate,
+        double? CurrentPrice,
+        double? GrahamValue,
+        double? DcfValue,
+        double? EarningsMultipleValue,
+        double? ConsensusValue,
+        double? PeerMeanPe,
+        string? PeerSymbols,
+        double? AssetCurrentPe,
+        double FundamentalDelta
+    );
+
     public record DeltaDto(
         Guid AssetId,
         string AssetName,
@@ -153,6 +174,39 @@ public class AnalysisController(AppDbContext db, AnalysisService analysisService
 
         var rows = await analysisService.GetBnbSnapshotsAsync(assetId);
         return Ok(rows.Select(r => new BullBearCertificateDto(r.Direction, r.Gearing, r.Holders, r.Weight)).ToArray());
+    }
+
+    // GET /api/analysis/{assetId}/fundamental-snapshot
+    // Returns the most recently persisted fundamental valuation snapshot for the asset.
+    // Returns 204 No Content when no snapshot has been computed yet.
+    [HttpGet("{assetId:guid}/fundamental-snapshot")]
+    public async Task<ActionResult<FundamentalSnapshotDto>> GetFundamentalSnapshot(Guid assetId)
+    {
+        var asset = await db.Assets.FindAsync(assetId);
+        if (asset is null) return NotFound();
+
+        var snap = await analysisService.GetFundamentalSnapshotAsync(assetId);
+        if (snap is null) return NoContent();
+
+        return Ok(new FundamentalSnapshotDto(
+            snap.Date,
+            snap.TrailingEps,
+            snap.NormalizedEps,
+            snap.TrailingRevenue,
+            snap.TrailingEbitda,
+            snap.TrailingOperatingIncome,
+            snap.TrailingNetIncome,
+            snap.TrailingDividendPerShare,
+            snap.RevenueGrowthRate,
+            snap.CurrentPrice,
+            snap.GrahamValue,
+            snap.DcfValue,
+            snap.EarningsMultipleValue,
+            snap.ConsensusValue,
+            snap.PeerMeanPe,
+            snap.PeerSymbols,
+            snap.AssetCurrentPe,
+            snap.FundamentalDelta));
     }
 
     private static DeltaDto ToDto(AssetDelta d, string assetName) => new(

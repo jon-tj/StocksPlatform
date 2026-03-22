@@ -17,6 +17,7 @@ public class AnalysisService(
     PatternDeltaService patternDeltaService,
     PublicSentimentDeltaService publicSentimentDeltaService,
     BullBearDeltaService bullBearDeltaService,
+    FundamentalDeltaService fundamentalDeltaService,
     YahooPriceService yahooPriceService,
     E24PriceService e24PriceService)
 {
@@ -156,6 +157,9 @@ public class AnalysisService(
         var sum = exps.Sum();
         return exps.Select(e => e / sum).ToArray();
     }
+
+    public Task<FundamentalSnapshot?> GetFundamentalSnapshotAsync(Guid assetId) =>
+        fundamentalDeltaService.GetLatestSnapshotAsync(assetId);
 
     public Task<List<BullBearCertificateSnapshot>> GetBnbSnapshotsAsync(Guid assetId) =>
         bullBearDeltaService.GetLatestSnapshotsAsync(assetId);
@@ -362,6 +366,7 @@ public class AnalysisService(
         var patternDelta          = await patternDeltaService.ComputeAsync(assetId, date);
         var publicSentimentDelta  = await publicSentimentDeltaService.ComputeAsync(assetId, date);
         var bnbDelta              = await bullBearDeltaService.ComputeAsync(assetId);
+        var fundamentalDelta      = await fundamentalDeltaService.ComputeAsync(assetId);
 
         return new AssetDelta
         {
@@ -372,7 +377,7 @@ public class AnalysisService(
             PairAssetId = null,
             PublicSentimentDelta = publicSentimentDelta,
             MemberSentimentDelta = 1.0,
-            FundamentalDelta = 1.0,
+            FundamentalDelta = fundamentalDelta,
             InstitutionalOrderFlowDelta = institutionalDelta,
             PatternDelta = patternDelta,
             BnbDelta = bnbDelta,

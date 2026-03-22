@@ -183,6 +183,152 @@
                 </table>
               </div>
             }
+          } @else if (selectedMetric === 'fundamental') {
+            <div class="delta-details-header">
+              <h3 class="delta-details-title">Fundamental Valuation</h3>
+              <button class="delta-details-close" type="button" (click)="clearMetricSelection()" aria-label="Close details">&times;</button>
+            </div>
+
+            @if (detailsLoading) {
+              <p class="muted">Loading fundamental data…</p>
+            } @else if (!fundamentalSnapshot) {
+              <p class="muted">No fundamental snapshot available. Trigger a delta refresh to compute one.</p>
+            } @else {
+              <!-- Valuation estimates -->
+              <h4 class="snapshot-section-title">Intrinsic Value Estimates</h4>
+              <div class="snapshot-wrap">
+                <table class="snapshot-table">
+                  <thead>
+                    <tr>
+                      <th>Model</th>
+                      <th class="r">Est. Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @if (fundamentalSnapshot.grahamValue !== null) {
+                      <tr>
+                        <td>Benjamin Graham <span class="formula-hint">(EPS × (8.5 + 2g) × 4.4/Y)</span></td>
+                        <td class="r">{{ fundamentalSnapshot.grahamValue | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.dcfValue !== null) {
+                      <tr>
+                        <td>DCF <span class="formula-hint">(5‑yr stage, 9 % WACC)</span></td>
+                        <td class="r">{{ fundamentalSnapshot.dcfValue | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.earningsMultipleValue !== null) {
+                      <tr>
+                        <td>Earnings Multiple <span class="formula-hint">(EPS × peer P/E)</span></td>
+                        <td class="r">{{ fundamentalSnapshot.earningsMultipleValue | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.consensusValue !== null) {
+                      <tr class="consensus-row">
+                        <td><strong>Consensus (avg)</strong></td>
+                        <td class="r"><strong>{{ fundamentalSnapshot.consensusValue | number: '1.2-2' }}</strong></td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.currentPrice !== null) {
+                      <tr>
+                        <td>Current Price</td>
+                        <td class="r">{{ fundamentalSnapshot.currentPrice | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- P/E context -->
+              <h4 class="snapshot-section-title">P/E Context</h4>
+              <div class="snapshot-wrap">
+                <table class="snapshot-table">
+                  <thead>
+                    <tr>
+                      <th>Metric</th>
+                      <th class="r">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @if (fundamentalSnapshot.assetCurrentPe !== null) {
+                      <tr>
+                        <td>Asset P/E (trailing)</td>
+                        <td class="r">{{ fundamentalSnapshot.assetCurrentPe | number: '1.1-1' }}x</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.peerMeanPe !== null) {
+                      <tr>
+                        <td>Peer Mean P/E</td>
+                        <td class="r">{{ fundamentalSnapshot.peerMeanPe | number: '1.1-1' }}x</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.peerSymbols) {
+                      <tr>
+                        <td>Peers used</td>
+                        <td class="r peer-symbols">{{ fundamentalSnapshot.peerSymbols }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Key financials -->
+              <h4 class="snapshot-section-title">Key Financials (trailing)</h4>
+              <div class="snapshot-wrap">
+                <table class="snapshot-table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th class="r">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @if (fundamentalSnapshot.trailingEps !== null) {
+                      <tr>
+                        <td>EPS <span class="formula-hint">(trailing diluted)</span></td>
+                        <td class="r">{{ fundamentalSnapshot.trailingEps | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.normalizedEps !== null) {
+                      <tr>
+                        <td>EPS <span class="formula-hint">(normalized)</span></td>
+                        <td class="r">{{ fundamentalSnapshot.normalizedEps | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.trailingRevenue !== null) {
+                      <tr>
+                        <td>Revenue</td>
+                        <td class="r">{{ fundamentalSnapshot.trailingRevenue | number: '1.0-0' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.trailingEbitda !== null) {
+                      <tr>
+                        <td>EBITDA</td>
+                        <td class="r">{{ fundamentalSnapshot.trailingEbitda | number: '1.0-0' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.trailingNetIncome !== null) {
+                      <tr>
+                        <td>Net Income</td>
+                        <td class="r">{{ fundamentalSnapshot.trailingNetIncome | number: '1.0-0' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.trailingDividendPerShare !== null) {
+                      <tr>
+                        <td>Dividend / Share</td>
+                        <td class="r">{{ fundamentalSnapshot.trailingDividendPerShare | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                    @if (fundamentalSnapshot.revenueGrowthRate !== null) {
+                      <tr>
+                        <td>Revenue CAGR <span class="formula-hint">(used as g)</span></td>
+                        <td class="r">{{ fundamentalSnapshot.revenueGrowthRate * 100 | number: '1.1-1' }} %</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           } @else {
             <div class="delta-details-header">
               <h3 class="delta-details-title">Metric Details</h3>

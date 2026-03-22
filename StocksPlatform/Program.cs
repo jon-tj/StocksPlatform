@@ -46,6 +46,11 @@ builder.Services.AddHttpClient<StocksPlatform.Services.Analysis.BullBearDeltaSer
     client.Timeout = TimeSpan.FromSeconds(15);
 });
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.BullBearDeltaService>();
+builder.Services.AddHttpClient<StocksPlatform.Services.Analysis.FundamentalDeltaService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddScoped<StocksPlatform.Services.Analysis.FundamentalDeltaService>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.AnalysisService>();
 builder.Services.AddHttpClient<PublicSentimentService>(client =>
 {

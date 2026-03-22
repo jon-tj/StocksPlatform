@@ -9,6 +9,7 @@ import {
   AssetDetails,
   AssetDelta,
   FundHoldingSnapshot,
+  FundamentalSnapshot,
   LivePrice,
   PublicSentiment,
   OrderBookLevel,
@@ -59,6 +60,7 @@ export class Analysis implements OnInit, OnDestroy {
   detailsLoading = false;
   institutionalSnapshots: FundHoldingSnapshot[] = [];
   bnbCertificates: BullBearCertificate[] = [];
+  fundamentalSnapshot: FundamentalSnapshot | null = null;
   livePrice: LivePrice | null = null;
   liveByAssetId = new Map<string, LivePrice>();
   sentiment: PublicSentiment | null = null;
@@ -134,6 +136,7 @@ export class Analysis implements OnInit, OnDestroy {
     this.detailsLoading = false;
     this.institutionalSnapshots = [];
     this.bnbCertificates = [];
+    this.fundamentalSnapshot = null;
     this.portfolioRemainder = 0;
     this.isStarred = false;
     this.starring = false;
@@ -319,6 +322,22 @@ export class Analysis implements OnInit, OnDestroy {
     this.selectedMetric = metric;
     this.institutionalSnapshots = [];
     this.bnbCertificates = [];
+    this.fundamentalSnapshot = null;
+
+    if (metric === 'fundamental') {
+      this.detailsLoading = true;
+      this.assetService.getFundamentalSnapshot(this.assetId).subscribe({
+        next: (snap) => {
+          this.fundamentalSnapshot = snap;
+          this.detailsLoading = false;
+        },
+        error: () => {
+          this.fundamentalSnapshot = null;
+          this.detailsLoading = false;
+        },
+      });
+      return;
+    }
 
     if (metric === 'institutional-order-flow') {
       this.detailsLoading = true;
@@ -358,6 +377,7 @@ export class Analysis implements OnInit, OnDestroy {
     this.detailsLoading = false;
     this.institutionalSnapshots = [];
     this.bnbCertificates = [];
+    this.fundamentalSnapshot = null;
   }
 
   isMetricSelected(metric: DeltaMetricKey): boolean {

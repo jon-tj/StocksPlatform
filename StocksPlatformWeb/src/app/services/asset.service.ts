@@ -96,6 +96,28 @@ export interface BullBearCertificate {
   weight: number;
 }
 
+export interface FundamentalSnapshot {
+  date: string;
+  trailingEps: number | null;
+  normalizedEps: number | null;
+  trailingRevenue: number | null;
+  trailingEbitda: number | null;
+  trailingOperatingIncome: number | null;
+  trailingNetIncome: number | null;
+  trailingDividendPerShare: number | null;
+  revenueGrowthRate: number | null;
+  currentPrice: number | null;
+  grahamValue: number | null;
+  dcfValue: number | null;
+  earningsMultipleValue: number | null;
+  consensusValue: number | null;
+  peerMeanPe: number | null;
+  /** JSON-encoded string array of peer ticker symbols, e.g. '["AAPL","MSFT"]' */
+  peerSymbols: string | null;
+  assetCurrentPe: number | null;
+  fundamentalDelta: number;
+}
+
 export interface OrderBookSnapshotDto {
   timestamp: string;
   level: number;
@@ -164,6 +186,15 @@ export class AssetService {
 
   getBnbSnapshots(assetId: string): Observable<BullBearCertificate[]> {
     return this.http.get<BullBearCertificate[]>(`${API}/api/analysis/${assetId}/bnb-snapshots`);
+  }
+
+  getFundamentalSnapshot(assetId: string): Observable<FundamentalSnapshot | null> {
+    return this.http
+      .get<FundamentalSnapshot>(`${API}/api/analysis/${assetId}/fundamental-snapshot`, { observe: 'response' })
+      .pipe(
+        map(resp => resp.status === 204 ? null : resp.body),
+        catchError(() => of(null)),
+      );
   }
 
   getLivePrice(assetId: string): Observable<LivePrice> {

@@ -26,6 +26,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<OrderBookSnapshot> OrderBookSnapshots => Set<OrderBookSnapshot>();
     public DbSet<SentimentReading>  SentimentReadings  => Set<SentimentReading>();
     public DbSet<BullBearCertificateSnapshot> BullBearCertificateSnapshots => Set<BullBearCertificateSnapshot>();
+    public DbSet<FundamentalSnapshot> FundamentalSnapshots => Set<FundamentalSnapshot>();
 
     // Stable, deterministic asset IDs derived from a fixed namespace + name.
     // Equivalent to UUID v5 (SHA-1 name-based) — same input always yields same GUID.
@@ -119,6 +120,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
         builder.Entity<OrderBookSnapshot>()
             .HasIndex(o => new { o.AssetId, o.Timestamp });
+
+        builder.Entity<FundamentalSnapshot>()
+            .HasIndex(s => new { s.AssetId, s.Date })
+            .IsUnique();
 
         builder.Entity<BullBearCertificateSnapshot>()
             .HasIndex(s => new { s.AssetId, s.Date });

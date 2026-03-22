@@ -81,6 +81,24 @@ public sealed class OnnxPriceModelRegistry : IDisposable
     }
 
     /// <summary>
+    /// Returns the top <paramref name="topN"/> symbols from the correlation matrix
+    /// that are most correlated with <paramref name="symbol"/>, sorted descending by correlation.
+    /// Returns an empty list when the symbol is not in the matrix.
+    /// </summary>
+    public List<(string Symbol, float Correlation)> GetTopCorrelated(string symbol, int topN = 5)
+    {
+        if (!_correlation.TryGetValue(symbol, out var row))
+            return [];
+
+        return row
+            .Where(kv => !string.Equals(kv.Key, symbol, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(kv => kv.Value)
+            .Take(topN)
+            .Select(kv => (kv.Key, kv.Value))
+            .ToList();
+    }
+
+    /// <summary>
     /// Runs all models for <paramref name="symbol"/> against the supplied log-return
     /// window and returns the average probability of an upward move (index 1 of softmax output).
     /// Returns <c>null</c> if the symbol has no loaded models.
