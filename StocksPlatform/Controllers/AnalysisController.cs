@@ -19,6 +19,13 @@ public class AnalysisController(AppDbContext db, AnalysisService analysisService
         int NumFundsRepresented
     );
 
+    public record BullBearCertificateDto(
+        string Direction,
+        double Gearing,
+        int Holders,
+        double Weight
+    );
+
     public record DeltaDto(
         Guid AssetId,
         string AssetName,
@@ -31,6 +38,7 @@ public class AnalysisController(AppDbContext db, AnalysisService analysisService
         double FundamentalDelta,
         double InstitutionalOrderFlowDelta,
         double PatternDelta,
+        double BnbDelta,
         double CombinedScore
     );
 
@@ -46,6 +54,7 @@ public class AnalysisController(AppDbContext db, AnalysisService analysisService
         double FundamentalDelta,
         double InstitutionalOrderFlowDelta,
         double PatternDelta,
+        double BnbDelta,
         double CombinedScore,
         double TargetFraction
     );
@@ -134,17 +143,29 @@ public class AnalysisController(AppDbContext db, AnalysisService analysisService
         return Ok(rows);
     }
 
+    // GET /api/analysis/{assetId}/bnb-snapshots
+    // Returns the most recently persisted bull/bear certificate rows for the asset.
+    [HttpGet("{assetId:guid}/bnb-snapshots")]
+    public async Task<ActionResult<BullBearCertificateDto[]>> GetBnbSnapshots(Guid assetId)
+    {
+        var asset = await db.Assets.FindAsync(assetId);
+        if (asset is null) return NotFound();
+
+        var rows = await analysisService.GetBnbSnapshotsAsync(assetId);
+        return Ok(rows.Select(r => new BullBearCertificateDto(r.Direction, r.Gearing, r.Holders, r.Weight)).ToArray());
+    }
+
     private static DeltaDto ToDto(AssetDelta d, string assetName) => new(
         d.AssetId, assetName, d.Date,
         d.MarketDelta, d.PairDelta, d.PairAssetId,
         d.PublicSentimentDelta, d.MemberSentimentDelta,
         d.FundamentalDelta, d.InstitutionalOrderFlowDelta,
-        d.PatternDelta, AnalysisService.Score(d));
+        d.PatternDelta, d.BnbDelta, AnalysisService.Score(d));
 
     private static HoldingDto ToHoldingDto(AssetDelta d, string assetName, double score, double targetFraction) => new(
         d.AssetId, assetName, d.Date,
         d.MarketDelta, d.PairDelta, d.PairAssetId,
         d.PublicSentimentDelta, d.MemberSentimentDelta,
         d.FundamentalDelta, d.InstitutionalOrderFlowDelta,
-        d.PatternDelta, score, targetFraction);
+        d.PatternDelta, d.BnbDelta, score, targetFraction);
 }

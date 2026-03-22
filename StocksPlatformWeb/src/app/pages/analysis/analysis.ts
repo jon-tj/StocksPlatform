@@ -12,6 +12,7 @@ import {
   LivePrice,
   PublicSentiment,
   OrderBookLevel,
+  BullBearCertificate,
 } from '../../services/asset.service';
 import { PositionsService } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
@@ -27,7 +28,8 @@ export type DeltaMetricKey =
   | 'member-sentiment'
   | 'fundamental'
   | 'institutional-order-flow'
-  | 'pattern';
+  | 'pattern'
+  | 'bnb';
 
 @Component({
   selector: 'app-analysis',
@@ -56,6 +58,7 @@ export class Analysis implements OnInit, OnDestroy {
   selectedMetric: DeltaMetricKey | null = null;
   detailsLoading = false;
   institutionalSnapshots: FundHoldingSnapshot[] = [];
+  bnbCertificates: BullBearCertificate[] = [];
   livePrice: LivePrice | null = null;
   liveByAssetId = new Map<string, LivePrice>();
   sentiment: PublicSentiment | null = null;
@@ -130,6 +133,7 @@ export class Analysis implements OnInit, OnDestroy {
     this.selectedMetric = null;
     this.detailsLoading = false;
     this.institutionalSnapshots = [];
+    this.bnbCertificates = [];
     this.portfolioRemainder = 0;
     this.isStarred = false;
     this.starring = false;
@@ -313,30 +317,47 @@ export class Analysis implements OnInit, OnDestroy {
     }
 
     this.selectedMetric = metric;
+    this.institutionalSnapshots = [];
+    this.bnbCertificates = [];
 
-    if (metric !== 'institutional-order-flow') {
-      this.detailsLoading = false;
-      this.institutionalSnapshots = [];
+    if (metric === 'institutional-order-flow') {
+      this.detailsLoading = true;
+      this.assetService.getInstitutionalSnapshots(this.assetId).subscribe({
+        next: (rows) => {
+          this.institutionalSnapshots = rows;
+          this.detailsLoading = false;
+        },
+        error: () => {
+          this.institutionalSnapshots = [];
+          this.detailsLoading = false;
+        },
+      });
       return;
     }
 
-    this.detailsLoading = true;
-    this.assetService.getInstitutionalSnapshots(this.assetId).subscribe({
-      next: (rows) => {
-        this.institutionalSnapshots = rows;
-        this.detailsLoading = false;
-      },
-      error: () => {
-        this.institutionalSnapshots = [];
-        this.detailsLoading = false;
-      },
-    });
+    if (metric === 'bnb') {
+      this.detailsLoading = true;
+      this.assetService.getBnbSnapshots(this.assetId).subscribe({
+        next: (rows) => {
+          this.bnbCertificates = rows;
+          this.detailsLoading = false;
+        },
+        error: () => {
+          this.bnbCertificates = [];
+          this.detailsLoading = false;
+        },
+      });
+      return;
+    }
+
+    this.detailsLoading = false;
   }
 
   clearMetricSelection(): void {
     this.selectedMetric = null;
     this.detailsLoading = false;
     this.institutionalSnapshots = [];
+    this.bnbCertificates = [];
   }
 
   isMetricSelected(metric: DeltaMetricKey): boolean {

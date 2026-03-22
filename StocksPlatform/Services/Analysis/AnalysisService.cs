@@ -16,6 +16,7 @@ public class AnalysisService(
     FundInstitutionalService fundInstitutionalService,
     PatternDeltaService patternDeltaService,
     PublicSentimentDeltaService publicSentimentDeltaService,
+    BullBearDeltaService bullBearDeltaService,
     YahooPriceService yahooPriceService,
     E24PriceService e24PriceService)
 {
@@ -146,7 +147,7 @@ public class AnalysisService(
 
     public static double Score(AssetDelta d) =>
         (d.MarketDelta + d.PublicSentimentDelta + d.MemberSentimentDelta +
-         d.FundamentalDelta + d.InstitutionalOrderFlowDelta + d.PatternDelta) / 6.0;
+         d.FundamentalDelta + d.InstitutionalOrderFlowDelta + d.PatternDelta + d.BnbDelta) / 7.0;
 
     public static double[] Softmax(double[] scores)
     {
@@ -155,6 +156,9 @@ public class AnalysisService(
         var sum = exps.Sum();
         return exps.Select(e => e / sum).ToArray();
     }
+
+    public Task<List<BullBearCertificateSnapshot>> GetBnbSnapshotsAsync(Guid assetId) =>
+        bullBearDeltaService.GetLatestSnapshotsAsync(assetId);
 
     // -------------------------------------------------------------------------
     // Private orchestration
@@ -213,6 +217,7 @@ public class AnalysisService(
         row.FundamentalDelta = fresh.FundamentalDelta;
         row.InstitutionalOrderFlowDelta = fresh.InstitutionalOrderFlowDelta;
         row.PatternDelta = fresh.PatternDelta;
+        row.BnbDelta = fresh.BnbDelta;
         row.ExpiresAt = fresh.ExpiresAt;
         cache[(row.AssetId, row.Date.Date)] = row;
         await RebalanceDirectParentsIfNeededAsync(row.AssetId, row.Date, cache, childrenCache, parentCache, propagateToParents);
@@ -340,6 +345,7 @@ public class AnalysisService(
             FundamentalDelta = Wavg(d => d.FundamentalDelta),
             InstitutionalOrderFlowDelta = Wavg(d => d.InstitutionalOrderFlowDelta),
             PatternDelta = Wavg(d => d.PatternDelta),
+            BnbDelta = Wavg(d => d.BnbDelta),
             ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
         };
     }
@@ -355,6 +361,7 @@ public class AnalysisService(
         var institutionalDelta    = await fundInstitutionalService.GetInstitutionalDeltaAsync(assetId);
         var patternDelta          = await patternDeltaService.ComputeAsync(assetId, date);
         var publicSentimentDelta  = await publicSentimentDeltaService.ComputeAsync(assetId, date);
+        var bnbDelta              = await bullBearDeltaService.ComputeAsync(assetId);
 
         return new AssetDelta
         {
@@ -368,6 +375,7 @@ public class AnalysisService(
             FundamentalDelta = 1.0,
             InstitutionalOrderFlowDelta = institutionalDelta,
             PatternDelta = patternDelta,
+            BnbDelta = bnbDelta,
             ExpiresAt = DateTime.UtcNow.Date.AddDays(1),
         };
     }

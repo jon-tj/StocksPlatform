@@ -81,6 +81,12 @@
           <span class="delta-label">Pattern</span>
           <app-gain-chip class="delta-value" [value]="delta?.patternDelta ?? null" suffix="" [showPrefix]="false" />
         </button>
+        @if (delta) {
+          <button class="delta-item delta-item-btn" [class.delta-item-selected]="isMetricSelected('bnb')" (click)="selectMetric('bnb')" type="button">
+            <span class="delta-label">Bull/Bear</span>
+            <app-gain-chip class="delta-value" [value]="delta.bnbDelta" suffix="" [showPrefix]="false" />
+          </button>
+        }
         @if (delta && delta.pairDelta !== null) {
           <div class="delta-item">
             <span class="delta-label">Pair</span>
@@ -138,6 +144,45 @@
               Pattern delta captures how closely recent price action resembles the model's target
               accumulation shape, with stronger scores when the latest movement aligns with the expected pattern.
             </p>
+          } @else if (selectedMetric === 'bnb') {
+            <div class="delta-details-header">
+              <h3 class="delta-details-title">Bull/Bear Sentiment</h3>
+              <button class="delta-details-close" type="button" (click)="clearMetricSelection()" aria-label="Close details">&times;</button>
+            </div>
+            <p class="muted">
+              Derived from Nordnet bull/bear certificates for this underlying.
+              Weight = <code>holders^0.7 × gearing</code>.
+              Score = <code>Σ(long weights) / Σ(all weights) × 2 − 1</code>.
+            </p>
+
+            @if (detailsLoading) {
+              <p class="muted">Loading certificate data…</p>
+            } @else if (bnbCertificates.length === 0) {
+              <p class="muted">No certificate data available.</p>
+            } @else {
+              <div class="snapshot-wrap">
+                <table class="snapshot-table">
+                  <thead>
+                    <tr>
+                      <th>Direction</th>
+                      <th class="r">Gearing</th>
+                      <th class="r">Holders</th>
+                      <th class="r">Weight</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of bnbCertificates; track $index) {
+                      <tr>
+                        <td [class.bull]="row.direction === 'Long'" [class.bear]="row.direction !== 'Long'">{{ row.direction }}</td>
+                        <td class="r">{{ row.gearing | number: '1.0-1' }}x</td>
+                        <td class="r">{{ row.holders | number }}</td>
+                        <td class="r">{{ row.weight | number: '1.0-0' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           } @else {
             <div class="delta-details-header">
               <h3 class="delta-details-title">Metric Details</h3>

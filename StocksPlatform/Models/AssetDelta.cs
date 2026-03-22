@@ -55,6 +55,15 @@ public class AssetDelta
     public double PatternDelta { get; set; } = 1.0;
 
     /// <summary>
+    /// Bull/bear certificate sentiment delta for Nordnet stocks.
+    /// Derived from the weighted ratio of long vs short open interest across all listed
+    /// bull/bear certificates for this underlying.
+    /// Range: −1.0 (all-short) to +1.0 (all-long), neutral at 0.0.
+    /// 0.0 is returned for non-Nordnet assets or when no certificates exist.
+    /// </summary>
+    public double BnbDelta { get; set; } = 0.0;
+
+    /// <summary>
     /// UTC timestamp after which this snapshot should be recomputed.
     /// Null means it has never been computed (legacy rows).
     /// </summary>

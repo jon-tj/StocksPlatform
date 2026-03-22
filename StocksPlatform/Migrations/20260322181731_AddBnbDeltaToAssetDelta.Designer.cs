@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StocksPlatform.Data;
 
@@ -10,9 +11,11 @@ using StocksPlatform.Data;
 namespace StocksPlatform.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260322181731_AddBnbDeltaToAssetDelta")]
+    partial class AddBnbDeltaToAssetDelta
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
@@ -452,38 +455,6 @@ namespace StocksPlatform.Migrations
                     b.ToTable("AssetHistoryMeta");
                 });
 
-            modelBuilder.Entity("StocksPlatform.Models.BullBearCertificateSnapshot", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("AssetId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Direction")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("Gearing")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("Holders")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<double>("Weight")
-                        .HasColumnType("REAL");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssetId", "Date");
-
-                    b.ToTable("BullBearCertificateSnapshots");
-                });
-
             modelBuilder.Entity("StocksPlatform.Models.FundHoldingSnapshot", b =>
                 {
                     b.Property<int>("Id")
@@ -828,17 +799,6 @@ namespace StocksPlatform.Migrations
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.AssetPriceMeta", b =>
-                {
-                    b.HasOne("StocksPlatform.Models.Asset", "Asset")
-                        .WithMany()
-                        .HasForeignKey("AssetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Asset");
-                });
-
-            modelBuilder.Entity("StocksPlatform.Models.BullBearCertificateSnapshot", b =>
                 {
                     b.HasOne("StocksPlatform.Models.Asset", "Asset")
                         .WithMany()

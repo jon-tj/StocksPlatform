@@ -14,13 +14,11 @@ public class PatternDeltaService(AppDbContext db, OnnxPriceModelRegistry modelRe
 
     public async Task<double> ComputeAsync(Guid assetId, DateTime date)
     {
-        var since = date.Date.AddDays(-WindowDays);
-
         var dailyPrices = await db.AssetDailyHistory
-            .Where(h => h.AssetId == assetId
-                     && h.Timestamp >= since)
+            .Where(h => h.AssetId == assetId)
             .OrderBy(h => h.Timestamp)
             .Select(h => (double)h.Price)
+            .Take(WindowDays + 1)
             .ToListAsync();
 
         if (dailyPrices.Count < 5) return 0.0;
@@ -49,44 +47,40 @@ public class PatternDeltaService(AppDbContext db, OnnxPriceModelRegistry modelRe
                 }
 
                 if (upProb is not null)
-                    return (double)upProb.Value;
+                    return (double)upProb.Value * 2 - 1; // scale [0,1] → [-1,1]
             }
         }
 
-        bool isIncreasing = dailyPrices.Last() > dailyPrices.First();
-        double wSum = 0, weightedSqErr = 0;
+        return 0.0;
+    }
 
-        if (isIncreasing)
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Converts a price series into the last <see cref="OnnxPriceModelRegistry.WindowSize"/>
+    /// log-return values (float32) expected by the ONNX models.
+    /// </summary>
+    private static float[] BuildLogReturns(List<double> prices)
+    {
+        int n = OnnxPriceModelRegistry.WindowSize;
+        // Take the last (n+1) prices so we get exactly n log-returns
+        int start = Math.Max(0, prices.Count - n - 1);
+        var window = prices.Skip(start).ToList();
+
+        var returns = new float[Math.Min(n, window.Count - 1)];
+        for (int i = 0; i < returns.Length; i++)
+            returns[i] = (float)Math.Log(window[i + 1] / window[i]);
+
+        // If shorter than n (shouldn't happen given the guard above), pad with zeros
+        if (returns.Length < n)
         {
-            for (int i = 1; i < dailyPrices.Count; i++)
-            {
-                double t = (double)i / Math.Max(dailyPrices.Count - 1, 1); // 0 → 1
-                double w = Math.Exp(WeightAlpha * t); // heavier weight toward recent increases
-                wSum += w;
-                double uniformDecline = (dailyPrices.Last() - dailyPrices.First()) * (1 - t);
-                double err = dailyPrices[i] - dailyPrices[i - 1] - uniformDecline;
-                weightedSqErr += w * err * err;
-            }
+            var padded = new float[n];
+            Array.Copy(returns, 0, padded, n - returns.Length, returns.Length);
+            return padded;
         }
-        else
-        {
-            for (int i = 1; i < dailyPrices.Count - 1; i++)
-            {
-                double t = (double)i / Math.Max(dailyPrices.Count - 1, 1); // 0 → 1
-                double w = Math.Exp(WeightAlpha * t); // heavier weight toward recent declines
-                wSum += w;
-                double uniformDecrease = -dailyPrices.First() * 0.001;
-                double err = dailyPrices[i] - dailyPrices[i - 1] - uniformDecrease;
-                weightedSqErr += w * err * err;
-            }
-            double lastDecline = dailyPrices.Last() - dailyPrices[^2];
-            double optimalDecline = dailyPrices.Last() * 0.1; // ideal 10 % drop on the last day
-            double wLast = Math.Exp(WeightAlpha); // weight for the last decline
-            weightedSqErr += Math.Pow(lastDecline - optimalDecline, 2) * wLast;
-            wSum += wLast;
-        }
-        double priceProduct = wSum * dailyPrices.Last() * dailyPrices.First();
-        double wmse = priceProduct != 0 ? weightedSqErr / priceProduct : 1.0;
-        return 1.0 - Math.Min(1.0, Math.Sqrt(wmse) / 0.1); // score between 0 and 1, with 10 % RMSE as tolerance
+
+        return returns;
     }
 }

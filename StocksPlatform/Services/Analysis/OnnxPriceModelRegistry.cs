@@ -110,7 +110,7 @@ public sealed class OnnxPriceModelRegistry : IDisposable
         using var results = session.Run(inputs);
         var output = results[0].AsEnumerable<float>().ToArray();
         // output shape: [1, 2] → [down_prob, up_prob]
-        return output.Length >= 2 ? output[1] : 0.5f;
+        return output.Length >= 2 ? output[1] / (output[0] + output[1]) : 0.5f;
     }
 
     // -------------------------------------------------------------------------
@@ -124,14 +124,14 @@ public sealed class OnnxPriceModelRegistry : IDisposable
 
         var grouped = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var file in Directory.GetFiles(priceDir, "model_*.onnx"))
+        foreach (var file in Directory.GetFiles(priceDir, "*_model_*.onnx"))
         {
-            var stem = Path.GetFileNameWithoutExtension(file); // model_{symbol}_{i}
+            var stem = Path.GetFileNameWithoutExtension(file); // {symbol}_model_{i}
             var parts = stem.Split('_');
             if (parts.Length < 3) continue;
 
-            // parts[0] = "model", parts[^1] = index, parts[1..^1] = symbol (handles underscores in tickers)
-            var sym = string.Join("_", parts[1..^1]);
+            // parts[^2] = "model", parts[^1] = index, parts[0..^2] = symbol (handles underscores in tickers)
+            var sym = string.Join("_", parts[0..^2]);
             if (!grouped.TryGetValue(sym, out var list))
             {
                 list = [];

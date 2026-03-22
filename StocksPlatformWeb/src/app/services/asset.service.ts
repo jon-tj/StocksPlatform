@@ -40,6 +40,7 @@ export interface AssetDelta {
   fundamentalDelta: number;
   institutionalOrderFlowDelta: number;
   patternDelta: number;
+  bnbDelta: number;
   combinedScore: number;
 }
 
@@ -86,6 +87,13 @@ export interface OrderBookLevel {
   bidVol: number;
   ask: number;
   askVol: number;
+}
+
+export interface BullBearCertificate {
+  direction: string;
+  gearing: number;
+  holders: number;
+  weight: number;
 }
 
 export interface OrderBookSnapshotDto {
@@ -152,6 +160,10 @@ export class AssetService {
 
   getInstitutionalSnapshots(assetId: string): Observable<FundHoldingSnapshot[]> {
     return this.http.get<FundHoldingSnapshot[]>(`${API}/api/analysis/${assetId}/institutional-snapshots`);
+  }
+
+  getBnbSnapshots(assetId: string): Observable<BullBearCertificate[]> {
+    return this.http.get<BullBearCertificate[]>(`${API}/api/analysis/${assetId}/bnb-snapshots`);
   }
 
   getLivePrice(assetId: string): Observable<LivePrice> {

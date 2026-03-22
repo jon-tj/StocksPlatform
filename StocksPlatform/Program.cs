@@ -41,6 +41,11 @@ builder.Services.AddScoped<FundInstitutionalService>();
 builder.Services.AddSingleton<StocksPlatform.Services.Analysis.OnnxPriceModelRegistry>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.PatternDeltaService>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.PublicSentimentDeltaService>();
+builder.Services.AddHttpClient<StocksPlatform.Services.Analysis.BullBearDeltaService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
+builder.Services.AddScoped<StocksPlatform.Services.Analysis.BullBearDeltaService>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.AnalysisService>();
 builder.Services.AddHttpClient<PublicSentimentService>(client =>
 {

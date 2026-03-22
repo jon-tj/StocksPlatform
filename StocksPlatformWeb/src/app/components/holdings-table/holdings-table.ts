@@ -24,6 +24,7 @@ interface AggregateRow {
   memberSentiment: number;
   instFlow: number;
   pattern: number;
+  bnb: number;
   score: number;
   targetFraction: number;
   currentFraction: number;
@@ -32,9 +33,9 @@ interface AggregateRow {
 type SortCol =
   | 'name' | 'sector'
   | 'market' | 'fundamental' | 'public-sentiment' | 'member-sentiment'
-  | 'inst-flow' | 'pattern' | 'score' | 'target' | 'current';
+  | 'inst-flow' | 'pattern' | 'bnb' | 'score' | 'target' | 'current';
 
-type AggSortCol = 'label' | 'count' | 'market' | 'fundamental' | 'public-sentiment' | 'member-sentiment' | 'inst-flow' | 'pattern' | 'score' | 'target' | 'current';
+type AggSortCol = 'label' | 'count' | 'market' | 'fundamental' | 'public-sentiment' | 'member-sentiment' | 'inst-flow' | 'pattern' | 'bnb' | 'score' | 'target' | 'current';
 
 type AggregateBy = 'asset' | 'sector' | 'region';
 
@@ -90,6 +91,7 @@ export class HoldingsTable {
         case 'member-sentiment': av = a.holding?.memberSentimentDelta; bv = b.holding?.memberSentimentDelta; break;
         case 'inst-flow': av = a.holding?.institutionalOrderFlowDelta; bv = b.holding?.institutionalOrderFlowDelta; break;
         case 'pattern': av = a.holding?.patternDelta; bv = b.holding?.patternDelta; break;
+        case 'bnb':     av = a.holding?.bnbDelta;     bv = b.holding?.bnbDelta;     break;
         case 'score':   av = a.holding?.combinedScore; bv = b.holding?.combinedScore; break;
         case 'target':  av = a.holding?.targetFraction; bv = b.holding?.targetFraction; break;
         case 'current': av = a.position.fraction; bv = b.position.fraction; break;
@@ -150,6 +152,7 @@ export class HoldingsTable {
         memberSentiment: avg(r => r.holding!.memberSentimentDelta),
         instFlow:        avg(r => r.holding!.institutionalOrderFlowDelta),
         pattern:         avg(r => r.holding!.patternDelta),
+        bnb:             avg(r => r.holding!.bnbDelta),
         score:           avg(r => r.holding!.combinedScore),
         targetFraction:  rows.reduce((s, r) => s + (r.holding?.targetFraction ?? 0), 0),
         currentFraction: rows.reduce((s, r) => s + (r.position.fraction ?? 0), 0),
@@ -169,6 +172,7 @@ export class HoldingsTable {
         case 'member-sentiment': av = a.memberSentiment; bv = b.memberSentiment; break;
         case 'inst-flow':   av = a.instFlow;        bv = b.instFlow;        break;
         case 'pattern':     av = a.pattern;         bv = b.pattern;         break;
+        case 'bnb':         av = a.bnb;             bv = b.bnb;             break;
         case 'score':       av = a.score;           bv = b.score;           break;
         case 'target':      av = a.targetFraction;  bv = b.targetFraction;  break;
         case 'current':     av = a.currentFraction; bv = b.currentFraction; break;

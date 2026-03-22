@@ -22,14 +22,15 @@
   <table class="holdings-table">
     <colgroup>
       <col style="width:18%">
-      <col style="width:10%">
-      <col style="width:8%">
-      <col style="width:8%">
       <col style="width:9%">
-      <col style="width:9%">
+      <col style="width:7%">
+      <col style="width:8%">
       <col style="width:8%">
       <col style="width:8%">
       <col style="width:7%">
+      <col style="width:7%">
+      <col style="width:7%">
+      <col style="width:6%">
       <col style="width:8%">
       <col style="width:7%">
     </colgroup>
@@ -43,6 +44,7 @@
         <th class="num-col th-sortable" (click)="toggleSort('member-sentiment')">Mbr. Sentiment <span class="sort-icon">{{ sortCol === 'member-sentiment' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleSort('inst-flow')">Inst. Flow <span class="sort-icon">{{ sortCol === 'inst-flow' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleSort('pattern')">Pattern <span class="sort-icon">{{ sortCol === 'pattern' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+        <th class="num-col th-sortable" (click)="toggleSort('bnb')">Bull/Bear <span class="sort-icon">{{ sortCol === 'bnb' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleSort('score')">Score <span class="sort-icon">{{ sortCol === 'score' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleSort('target')">Target % <span class="sort-icon">{{ sortCol === 'target' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleSort('current')">Current % <span class="sort-icon">{{ sortCol === 'current' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
@@ -64,9 +66,10 @@
             <td class="num-col"><app-gain-chip [value]="row.holding.memberSentimentDelta" suffix="" [showPrefix]="false" /></td>
             <td class="num-col"><app-gain-chip [value]="row.holding.institutionalOrderFlowDelta" suffix="" [showPrefix]="false" /></td>
             <td class="num-col"><app-gain-chip [value]="row.holding.patternDelta" suffix="" [showPrefix]="false" /></td>
+            <td class="num-col"><app-gain-chip [value]="row.holding.bnbDelta" suffix="" [showPrefix]="false" /></td>
             <td class="num-col score-col"><app-gain-chip [value]="row.holding.combinedScore" suffix="" [showPrefix]="false" [bold]="true" /></td>
           } @else {
-            <td class="num-col muted" colspan="8">—</td>
+            <td class="num-col muted" colspan="9">—</td>
           }
           <td class="num-col">
             {{ row.holding ? (row.holding.targetFraction * 100 | number: '1.1-1') + '%' : '—' }}
@@ -82,14 +85,15 @@
   <table class="holdings-table">
     <colgroup>
       <col style="width:18%">
-      <col style="width:10%">
-      <col style="width:8%">
-      <col style="width:8%">
       <col style="width:9%">
-      <col style="width:9%">
+      <col style="width:7%">
+      <col style="width:8%">
       <col style="width:8%">
       <col style="width:8%">
       <col style="width:7%">
+      <col style="width:7%">
+      <col style="width:7%">
+      <col style="width:6%">
       <col style="width:8%">
       <col style="width:7%">
     </colgroup>
@@ -103,6 +107,7 @@
         <th class="num-col th-sortable" (click)="toggleAggSort('member-sentiment')">Mbr. Sentiment <span class="sort-icon">{{ aggSortCol === 'member-sentiment' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleAggSort('inst-flow')">Inst. Flow <span class="sort-icon">{{ aggSortCol === 'inst-flow' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleAggSort('pattern')">Pattern <span class="sort-icon">{{ aggSortCol === 'pattern' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
+        <th class="num-col th-sortable" (click)="toggleAggSort('bnb')">Bull/Bear <span class="sort-icon">{{ aggSortCol === 'bnb' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleAggSort('score')">Avg. Score <span class="sort-icon">{{ aggSortCol === 'score' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleAggSort('target')">Target % <span class="sort-icon">{{ aggSortCol === 'target' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
         <th class="num-col th-sortable" (click)="toggleAggSort('current')">Current % <span class="sort-icon">{{ aggSortCol === 'current' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
@@ -130,6 +135,7 @@
           <td class="num-col"><app-gain-chip [value]="row.memberSentiment" suffix="" [showPrefix]="false" /></td>
           <td class="num-col"><app-gain-chip [value]="row.instFlow" suffix="" [showPrefix]="false" /></td>
           <td class="num-col"><app-gain-chip [value]="row.pattern" suffix="" [showPrefix]="false" /></td>
+          <td class="num-col"><app-gain-chip [value]="row.bnb" suffix="" [showPrefix]="false" /></td>
           <td class="num-col score-col"><app-gain-chip [value]="row.score" suffix="" [showPrefix]="false" [bold]="true" /></td>
           <td class="num-col">{{ (row.targetFraction * 100) | number: '1.1-1' }}%</td>
           <td class="num-col muted">{{ (row.currentFraction * 100) | number: '1.1-1' }}%</td>
