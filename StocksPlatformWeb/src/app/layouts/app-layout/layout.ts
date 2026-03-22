@@ -29,7 +29,7 @@ const RECENT_SORT_MODE_KEY = 'sp.recentSortMode';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe, DecimalPipe, AssetChip, ValueChip, GainChip],
+  imports: [RouterOutlet, RouterLink, FormsModule, SectorLabelPipe, AssetChip, ValueChip, GainChip],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })

@@ -1,0 +1,92 @@
+<div class="order-modal-backdrop" (click)="closed.emit()">
+  <div class="order-modal" (click)="$event.stopPropagation()">
+    <div class="order-helper-header">
+      <span class="order-helper-title">Order Helper</span>
+      <nav class="aggregate-tabs">
+        <button class="agg-tab" [class.agg-tab-active]="orderMode === 'buy'" (click)="switchOrderMode('buy')" type="button">Buy</button>
+        <button class="agg-tab" [class.agg-tab-active]="orderMode === 'update'" (click)="switchOrderMode('update')" type="button">Update</button>
+      </nav>
+      <button class="order-modal-close" type="button" (click)="closed.emit()" aria-label="Close">&times;</button>
+    </div>
+    <div class="order-helper-inputs">
+      <label class="order-input-label">
+        Portfolio value (NOK)
+        <input class="order-money-input" type="number" min="0" step="1000" [(ngModel)]="orderMoney" />
+      </label>
+      <label class="order-checkbox-label">
+        <input type="checkbox" [(ngModel)]="hideZeroDelta" />
+        Hide unchanged
+      </label>
+    </div>
+    @if (orderRows.length > 0) {
+      <div class="table-wrap order-modal-table">
+        <table class="holdings-table">
+          <colgroup>
+            <col style="width:22%">
+            <col style="width:10%">
+            <col style="width:10%">
+            <col style="width:12%">
+            <col style="width:12%">
+            <col style="width:12%">
+            <col style="width:11%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th class="num-col">Price</th>
+              <th class="num-col">Target %</th>
+              <th class="num-col">Total</th>
+              <th class="num-col">Value (NOK)</th>
+              <th class="num-col">Current</th>
+              <th class="num-col">Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of orderRows; track row.assetId) {
+              @if (!hideZeroDelta || row.delta !== 0) {
+              <tr class="child-row-link" (click)="openChildAnalysis(row.assetId)">
+                <td>
+                  <a class="child-asset-link" [routerLink]="['/analysis', row.assetId]" (click)="$event.stopPropagation()">
+                    <app-asset-chip [name]="row.name" [symbol]="row.symbol" [iconUrl]="row.iconUrl" />
+                  </a>
+                </td>
+                <td class="num-col muted">{{ row.price | number: '1.2-2' }}</td>
+                <td class="num-col muted">{{ row.targetPct | number: '1.1-1' }}%</td>
+                <td class="num-col">{{ row.total | number: '1.0-0' }}</td>
+                <td class="num-col muted">{{ row.positionValue | number: '1.0-0' }}</td>
+                <td class="num-col muted">{{ row.current | number: '1.0-0' }}</td>
+                <td class="num-col score-col"><app-gain-chip [value]="row.delta" suffix="" [showPrefix]="false" [bold]="true" /></td>
+              </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="muted order-empty">No holdings with target weights available.</p>
+    }
+    <div class="order-summary">
+      <div class="order-summary-item">
+        <span class="order-summary-label">Total invested</span>
+        <span class="order-summary-value">{{ orderTotals.invested | number: '1.0-0' }} NOK</span>
+      </div>
+      <div class="order-summary-item">
+        <span class="order-summary-label">Portfolio value</span>
+        <span class="order-summary-value">{{ orderMoney | number: '1.0-0' }} NOK</span>
+      </div>
+      <div class="order-summary-item">
+        <span class="order-summary-label">Remainder</span>
+        <app-gain-chip [value]="orderTotals.remainder" suffix=" NOK" [showPrefix]="false" [bold]="true" />
+      </div>
+    </div>
+    <div class="order-helper-actions">
+      <button class="order-export-btn" type="button" (click)="exportOrderCsv()">Export CSV</button>
+      <div class="order-helper-actions-right">
+        <button class="order-close-btn" type="button" (click)="closed.emit()">Close</button>
+        <button class="order-update-btn" type="button" (click)="closeAndUpdateOrder()" [disabled]="orderSaving">
+          {{ orderSaving ? 'Saving…' : 'Close & Update' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

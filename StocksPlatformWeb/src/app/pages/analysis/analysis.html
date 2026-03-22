@@ -106,23 +106,23 @@
             } @else if (institutionalSnapshots.length === 0) {
               <p class="muted">No data available.</p>
             } @else {
-              <div class="table-wrap">
-                <table class="holdings-table">
+              <div class="snapshot-wrap">
+                <table class="snapshot-table">
                   <thead>
                     <tr>
                       <th>Date</th>
-                      <th class="num-col">Mean %</th>
-                      <th class="num-col">Median %</th>
-                      <th class="num-col">Funds</th>
+                      <th class="r">Mean %</th>
+                      <th class="r">Median %</th>
+                      <th class="r">Funds</th>
                     </tr>
                   </thead>
                   <tbody>
                     @for (row of institutionalSnapshots; track row.date) {
                       <tr>
                         <td>{{ row.date | date: 'mediumDate' }}</td>
-                        <td class="num-col">{{ row.meanFundPercentage | number: '1.2-5' }}</td>
-                        <td class="num-col">{{ row.medianFundPercentage | number: '1.2-5' }}</td>
-                        <td class="num-col">{{ row.numFundsRepresented }}</td>
+                        <td class="r">{{ row.meanFundPercentage | number: '1.2-5' }}</td>
+                        <td class="r">{{ row.medianFundPercentage | number: '1.2-5' }}</td>
+                        <td class="r">{{ row.numFundsRepresented }}</td>
                       </tr>
                     }
                   </tbody>
@@ -318,250 +318,15 @@
 
     @if (asset.type === 'Portfolio' && children.length > 0) {
       <section class="card">
-        <div class="holdings-header">
-          <h2 class="card-title">Holdings</h2>
-          <nav class="aggregate-tabs">
-            <button class="agg-tab" [class.agg-tab-active]="aggregateBy === 'asset'" (click)="aggregateBy = 'asset'" type="button">Asset</button>
-            <button class="agg-tab" [class.agg-tab-active]="aggregateBy === 'sector'" (click)="aggregateBy = 'sector'" type="button">Sector</button>
-            <button class="agg-tab" [class.agg-tab-active]="aggregateBy === 'region'" (click)="aggregateBy = 'region'" type="button">Region</button>
-          </nav>
-          <div class="holdings-search">
-            <span class="material-icons holdings-search-icon">search</span>
-            <input
-              class="holdings-search-input"
-              type="text"
-              placeholder="Filter holdings…"
-              [(ngModel)]="holdingsFilter"
-              autocomplete="off"
-            />
-          </div>
-          <button class="order-helper-open-btn" type="button" (click)="openOrderHelper()">Order Helper</button>
-        </div>
-        <div class="table-wrap">
-          @if (aggregateBy === 'asset') {
-          <table class="holdings-table">
-            <colgroup>
-              <col style="width:18%">
-              <col style="width:10%">
-              <col style="width:8%">
-              <col style="width:8%">
-              <col style="width:9%">
-              <col style="width:9%">
-              <col style="width:8%">
-              <col style="width:8%">
-              <col style="width:7%">
-              <col style="width:8%">
-              <col style="width:7%">
-            </colgroup>
-            <thead>
-              <tr>
-                <th class="th-sortable" (click)="toggleSort('name')">Asset <span class="sort-icon">{{ sortCol === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="th-sortable" (click)="toggleSort('sector')">Sector <span class="sort-icon">{{ sortCol === 'sector' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('market')">Market <span class="sort-icon">{{ sortCol === 'market' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('fundamental')">Fundamental <span class="sort-icon">{{ sortCol === 'fundamental' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('public-sentiment')">Pub. Sentiment <span class="sort-icon">{{ sortCol === 'public-sentiment' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('member-sentiment')">Mbr. Sentiment <span class="sort-icon">{{ sortCol === 'member-sentiment' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('inst-flow')">Inst. Flow <span class="sort-icon">{{ sortCol === 'inst-flow' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('pattern')">Pattern <span class="sort-icon">{{ sortCol === 'pattern' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('score')">Score <span class="sort-icon">{{ sortCol === 'score' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('target')">Target % <span class="sort-icon">{{ sortCol === 'target' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleSort('current')">Current % <span class="sort-icon">{{ sortCol === 'current' ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of filteredChildren; track row.position.assetId) {
-                <tr class="child-row-link" (click)="openChildAnalysis(row.position.assetId)">
-                  <td>
-                    <a class="child-asset-link" [routerLink]="['/analysis', row.position.assetId]" (click)="$event.stopPropagation()">
-                      <app-asset-chip [name]="row.position.name" [symbol]="row.position.symbol" [iconUrl]="row.position.iconUrl" />
-                    </a>
-                  </td>
-                  <td class="sector-col muted">{{ row.position.sector ?? '—' | sectorLabel }}</td>
-                  @if (row.holding) {
-                    <td class="num-col"><app-gain-chip [value]="row.holding.marketDelta" suffix="" [showPrefix]="false" /></td>
-                    <td class="num-col"><app-gain-chip [value]="row.holding.fundamentalDelta" suffix="" [showPrefix]="false" /></td>
-                    <td class="num-col"><app-gain-chip [value]="row.holding.publicSentimentDelta" suffix="" [showPrefix]="false" /></td>
-                    <td class="num-col"><app-gain-chip [value]="row.holding.memberSentimentDelta" suffix="" [showPrefix]="false" /></td>
-                    <td class="num-col"><app-gain-chip [value]="row.holding.institutionalOrderFlowDelta" suffix="" [showPrefix]="false" /></td>
-                    <td class="num-col"><app-gain-chip [value]="row.holding.patternDelta" suffix="" [showPrefix]="false" /></td>
-                    <td class="num-col score-col"><app-gain-chip [value]="row.holding.combinedScore" suffix="" [showPrefix]="false" [bold]="true" /></td>
-                  } @else {
-                    <td class="num-col muted" colspan="8">—</td>
-                  }
-                  <td class="num-col">
-                    {{
-                      row.holding ? (row.holding.targetFraction * 100 | number: '1.1-1') + '%' : '—'
-                    }}
-                  </td>
-                  <td class="num-col muted">
-                    {{
-                      row.position.fraction !== null
-                        ? (row.position.fraction * 100 | number: '1.1-1') + '%'
-                        : '—'
-                    }}
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-          } @else {
-          <table class="holdings-table">
-            <colgroup>
-              <col style="width:18%">
-              <col style="width:10%">
-              <col style="width:8%">
-              <col style="width:8%">
-              <col style="width:9%">
-              <col style="width:9%">
-              <col style="width:8%">
-              <col style="width:8%">
-              <col style="width:7%">
-              <col style="width:8%">
-              <col style="width:7%">
-            </colgroup>
-            <thead>
-              <tr>
-                <th class="th-sortable" (click)="toggleAggSort('label')">{{ aggregateBy === 'sector' ? 'Sector' : 'Region' }} <span class="sort-icon">{{ aggSortCol === 'label' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('count')">Assets <span class="sort-icon">{{ aggSortCol === 'count' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('market')">Market <span class="sort-icon">{{ aggSortCol === 'market' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('fundamental')">Fundamental <span class="sort-icon">{{ aggSortCol === 'fundamental' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('public-sentiment')">Pub. Sentiment <span class="sort-icon">{{ aggSortCol === 'public-sentiment' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('member-sentiment')">Mbr. Sentiment <span class="sort-icon">{{ aggSortCol === 'member-sentiment' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('inst-flow')">Inst. Flow <span class="sort-icon">{{ aggSortCol === 'inst-flow' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('pattern')">Pattern <span class="sort-icon">{{ aggSortCol === 'pattern' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('score')">Avg. Score <span class="sort-icon">{{ aggSortCol === 'score' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('target')">Target % <span class="sort-icon">{{ aggSortCol === 'target' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-                <th class="num-col th-sortable" (click)="toggleAggSort('current')">Current % <span class="sort-icon">{{ aggSortCol === 'current' ? (aggSortDir === 'asc' ? '▲' : '▼') : '⇅' }}</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of aggregatedRows; track row.label) {
-                <tr class="agg-row">
-                  <td>
-                    <div class="agg-label-cell">
-                      @if (aggregateBy === 'sector' && row.iconUrls.length > 0) {
-                        <div class="agg-icon-stack">
-                          @for (url of row.iconUrls; track url) {
-                            <img class="agg-icon" [src]="url" [alt]="row.label" />
-                          }
-                        </div>
-                      }
-                      <span>{{ aggregateBy === 'sector' ? (row.label | sectorLabel) : row.label }}</span>
-                    </div>
-                  </td>
-                  <td class="num-col muted">{{ row.count }}</td>
-                  <td class="num-col"><app-gain-chip [value]="row.market" suffix="" [showPrefix]="false" /></td>
-                  <td class="num-col"><app-gain-chip [value]="row.fundamental" suffix="" [showPrefix]="false" /></td>
-                  <td class="num-col"><app-gain-chip [value]="row.publicSentiment" suffix="" [showPrefix]="false" /></td>
-                  <td class="num-col"><app-gain-chip [value]="row.memberSentiment" suffix="" [showPrefix]="false" /></td>
-                  <td class="num-col"><app-gain-chip [value]="row.instFlow" suffix="" [showPrefix]="false" /></td>
-                  <td class="num-col"><app-gain-chip [value]="row.pattern" suffix="" [showPrefix]="false" /></td>
-                  <td class="num-col score-col"><app-gain-chip [value]="row.score" suffix="" [showPrefix]="false" [bold]="true" /></td>
-                  <td class="num-col">{{ (row.targetFraction * 100) | number: '1.1-1' }}%</td>
-                  <td class="num-col muted">{{ (row.currentFraction * 100) | number: '1.1-1' }}%</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-          }
-        </div>
-
+        <app-holdings-table
+          [children]="children"
+          [liveByAssetId]="liveByAssetId"
+          [portfolioRemainder]="portfolioRemainder"
+          [assetId]="assetId!"
+          [assetName]="asset.name"
+          (portfolioRemainderChange)="portfolioRemainder = $event"
+        />
       </section>
     }
   }
 </main>
-
-@if (showOrderHelper) {
-  <div class="order-modal-backdrop" (click)="showOrderHelper = false">
-    <div class="order-modal" (click)="$event.stopPropagation()">
-      <div class="order-helper-header">
-        <span class="order-helper-title">Order Helper</span>
-        <nav class="aggregate-tabs">
-          <button class="agg-tab" [class.agg-tab-active]="orderMode === 'buy'" (click)="switchOrderMode('buy')" type="button">Buy</button>
-          <button class="agg-tab" [class.agg-tab-active]="orderMode === 'update'" (click)="switchOrderMode('update')" type="button">Update</button>
-        </nav>
-        <button class="order-modal-close" type="button" (click)="showOrderHelper = false" aria-label="Close">&times;</button>
-      </div>
-      <div class="order-helper-inputs">
-        <label class="order-input-label">
-          Portfolio value (NOK)
-          <input class="order-money-input" type="number" min="0" step="1000" [(ngModel)]="orderMoney" />
-        </label>
-        <label class="order-checkbox-label">
-          <input type="checkbox" [(ngModel)]="hideZeroDelta" />
-          Hide unchanged
-        </label>
-      </div>
-      @if (orderRows.length > 0) {
-        <div class="table-wrap order-modal-table">
-          <table class="holdings-table">
-            <colgroup>
-              <col style="width:22%">
-              <col style="width:10%">
-              <col style="width:10%">
-              <col style="width:12%">
-              <col style="width:12%">
-              <col style="width:12%">
-              <col style="width:11%">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>Asset</th>
-                <th class="num-col">Price</th>
-                <th class="num-col">Target %</th>
-                <th class="num-col">Total</th>
-                <th class="num-col">Value (NOK)</th>
-                <th class="num-col">Current</th>
-                <th class="num-col">Delta</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of orderRows; track row.assetId) {
-                @if (!hideZeroDelta || row.delta !== 0) {
-                <tr class="child-row-link" (click)="openChildAnalysis(row.assetId)">
-                  <td>
-                    <a class="child-asset-link" [routerLink]="['/analysis', row.assetId]" (click)="$event.stopPropagation()">
-                      <app-asset-chip [name]="row.name" [symbol]="row.symbol" [iconUrl]="row.iconUrl" />
-                    </a>
-                  </td>
-                  <td class="num-col muted">{{ row.price | number: '1.2-2' }}</td>
-                  <td class="num-col muted">{{ row.targetPct | number: '1.1-1' }}%</td>
-                  <td class="num-col">{{ row.total | number: '1.0-0' }}</td>
-                  <td class="num-col muted">{{ row.positionValue | number: '1.0-0' }}</td>
-                  <td class="num-col muted">{{ row.current | number: '1.0-0' }}</td>
-                  <td class="num-col score-col"><app-gain-chip [value]="row.delta" suffix="" [showPrefix]="false" [bold]="true" /></td>
-                </tr>
-                }
-              }
-            </tbody>
-          </table>
-        </div>
-      } @else {
-        <p class="muted order-empty">No holdings with target weights available.</p>
-      }
-      <div class="order-summary">
-        <div class="order-summary-item">
-          <span class="order-summary-label">Total invested</span>
-          <span class="order-summary-value">{{ orderTotals.invested | number: '1.0-0' }} NOK</span>
-        </div>
-        <div class="order-summary-item">
-          <span class="order-summary-label">Portfolio value</span>
-          <span class="order-summary-value">{{ orderMoney | number: '1.0-0' }} NOK</span>
-        </div>
-        <div class="order-summary-item">
-          <span class="order-summary-label">Remainder</span>
-          <app-gain-chip [value]="orderTotals.remainder" suffix=" NOK" [showPrefix]="false" [bold]="true" />
-        </div>
-      </div>
-      <div class="order-helper-actions">
-        <button class="order-export-btn" type="button" (click)="exportOrderCsv()">Export CSV</button>
-        <div class="order-helper-actions-right">
-          <button class="order-close-btn" type="button" (click)="showOrderHelper = false">Close</button>
-          <button class="order-update-btn" type="button" (click)="closeAndUpdateOrder()" [disabled]="orderSaving">
-            {{ orderSaving ? 'Saving…' : 'Close & Update' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
