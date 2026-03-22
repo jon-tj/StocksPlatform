@@ -78,6 +78,7 @@ export interface PublicSentiment {
   nordnetComments: SentimentItem[];
   nordnetNews: SentimentItem[];
   e24News: SentimentItem[];
+  companyNews: SentimentItem[];
 }
 
 export interface OrderBookLevel {

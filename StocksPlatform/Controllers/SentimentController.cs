@@ -3,19 +3,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StocksPlatform.Data;
 using StocksPlatform.Services;
+using StocksPlatform.Services.CompanyNews;
 
 namespace StocksPlatform.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class SentimentController(AppDbContext db, PublicSentimentService sentiment) : ControllerBase
+public class SentimentController(
+    AppDbContext db,
+    PublicSentimentService sentiment,
+    CompanyNewsFeedService companyNews) : ControllerBase
 {
     public record SentimentItemDto(string Title, string Body, string Date);
     public record PublicSentimentDto(
         List<SentimentItemDto> NordnetComments,
         List<SentimentItemDto> NordnetNews,
-        List<SentimentItemDto> E24News);
+        List<SentimentItemDto> E24News,
+        List<SentimentItemDto> CompanyNews);
 
     // GET /api/sentiment/{assetId}
     // Fetches public sentiment (Nordnet comments + news, E24 news) for the given asset.
@@ -30,8 +35,13 @@ public class SentimentController(AppDbContext db, PublicSentimentService sentime
             ? asset.BrokerSymbol
             : null;
 
-        if (nordnetSlug is null && asset.E24Tag is null)
-            return Ok(new PublicSentimentDto([], [], []));
+        if (nordnetSlug is null && asset.E24Tag is null && !companyNews.Supports(asset.Symbol, asset.Market))
+            return Ok(new PublicSentimentDto([], [], [], []));
+
+        var companyNewsTask = companyNews.Supports(asset.Symbol, asset.Market)
+            ? companyNews.FetchAsync(asset.Symbol!, asset.Market!)
+            : Task.FromResult<List<SentimentItem>>([])
+;
 
         PublicSentiment result;
         if (nordnetSlug is not null)
@@ -40,13 +50,18 @@ public class SentimentController(AppDbContext db, PublicSentimentService sentime
         }
         else
         {
-            var e24News = await sentiment.GetE24NewsAsync(asset.E24Tag!, e24Limit);
+            var e24News = asset.E24Tag is not null
+                ? await sentiment.GetE24NewsAsync(asset.E24Tag, e24Limit)
+                : [];
             result = new PublicSentiment([], [], e24News);
         }
+
+        var companyNewsItems = await companyNewsTask;
 
         return Ok(new PublicSentimentDto(
             result.NordnetComments.Select(c => new SentimentItemDto(c.Title, c.Body, c.Date)).ToList(),
             result.NordnetNews.Select(n => new SentimentItemDto(n.Title, n.Body, n.Date)).ToList(),
-            result.E24News.Select(e => new SentimentItemDto(e.Title, e.Body, e.Date)).ToList()));
+            result.E24News.Select(e => new SentimentItemDto(e.Title, e.Body, e.Date)).ToList(),
+            companyNewsItems.Select(i => new SentimentItemDto(i.Title, i.Body, i.Date)).ToList()));
     }
 }

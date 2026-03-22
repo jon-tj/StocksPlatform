@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using StocksPlatform.Data;
 using StocksPlatform.Services;
 using StocksPlatform.Services.Seeding;
+using StocksPlatform.Services.CompanyNews;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +50,16 @@ builder.Services.AddHttpClient<OrderBookService>(client =>
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 builder.Services.AddHostedService<OrderBookPollingService>();
+
+// Company-specific news feeds
+builder.Services.AddHttpClient("CompanyNews", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(20);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+});
+builder.Services.AddSingleton<ICompanyNewsFeed, EquinorNewsFeed>();
+builder.Services.AddSingleton<CompanyNewsFeedService>();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

@@ -290,7 +290,7 @@ namespace StocksPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assets");
+                    b.ToTable("Assets", (string)null);
 
                     b.HasData(
                         new
@@ -327,7 +327,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("AssetId", "Timestamp")
                         .IsUnique();
 
-                    b.ToTable("AssetDailyHistory");
+                    b.ToTable("AssetDailyHistory", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.AssetDelta", b =>
@@ -374,7 +374,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("AssetId", "Date")
                         .IsUnique();
 
-                    b.ToTable("AssetDeltas");
+                    b.ToTable("AssetDeltas", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.AssetIntradayHistory", b =>
@@ -400,7 +400,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("AssetId", "Timestamp")
                         .IsUnique();
 
-                    b.ToTable("AssetIntradayHistory");
+                    b.ToTable("AssetIntradayHistory", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.AssetPrice", b =>
@@ -426,7 +426,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("AssetId")
                         .IsUnique();
 
-                    b.ToTable("AssetPrices");
+                    b.ToTable("AssetPrices", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.AssetPriceMeta", b =>
@@ -446,7 +446,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("AssetId")
                         .IsUnique();
 
-                    b.ToTable("AssetHistoryMeta");
+                    b.ToTable("AssetHistoryMeta", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.FundHoldingSnapshot", b =>
@@ -475,7 +475,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("AssetId", "Date")
                         .IsUnique();
 
-                    b.ToTable("FundHoldingSnapshots");
+                    b.ToTable("FundHoldingSnapshots", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.FundPortfolioMeta", b =>
@@ -499,7 +499,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("FundIsin")
                         .IsUnique();
 
-                    b.ToTable("FundPortfolioMetas");
+                    b.ToTable("FundPortfolioMetas", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.OrderBookSnapshot", b =>
@@ -535,7 +535,7 @@ namespace StocksPlatform.Migrations
 
                     b.HasIndex("AssetId", "Level", "Side");
 
-                    b.ToTable("OrderBookSnapshots");
+                    b.ToTable("OrderBookSnapshots", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.Poll", b =>
@@ -548,7 +548,7 @@ namespace StocksPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Polls");
+                    b.ToTable("Polls", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.PollQuestion", b =>
@@ -574,7 +574,7 @@ namespace StocksPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PollQuestions");
+                    b.ToTable("PollQuestions", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.PollResponse", b =>
@@ -600,7 +600,7 @@ namespace StocksPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PollResponses");
+                    b.ToTable("PollResponses", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.PortfolioAsset", b =>
@@ -631,7 +631,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("PortfolioId", "AssetId")
                         .IsUnique();
 
-                    b.ToTable("PortfolioAssets");
+                    b.ToTable("PortfolioAssets", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.PortfolioRemainderValue", b =>
@@ -648,7 +648,7 @@ namespace StocksPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PortfolioRemainderValues");
+                    b.ToTable("PortfolioRemainderValues", (string)null);
                 });
 
             modelBuilder.Entity("StocksPlatform.Models.UserStarredAsset", b =>
@@ -669,7 +669,7 @@ namespace StocksPlatform.Migrations
                     b.HasIndex("UserId", "AssetId")
                         .IsUnique();
 
-                    b.ToTable("UserStarredAssets");
+                    b.ToTable("UserStarredAssets", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
