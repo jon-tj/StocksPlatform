@@ -44,6 +44,11 @@ builder.Services.AddHttpClient<PublicSentimentService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddHttpClient<OrderBookService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddHostedService<OrderBookPollingService>();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

@@ -238,6 +238,12 @@
       </section>
     }
 
+    @if (assetId && asset.type !== 'Portfolio') {
+      <section class="card">
+        <app-order-chart [assetId]="assetId" [orderBook]="orderBook" />
+      </section>
+    }
+
     @if (sentimentLoading) {
       <section class="card">
         <p class="muted">Loading sentiment…</p>

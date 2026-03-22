@@ -1,0 +1,112 @@
+<div class="oc-root">
+  <div class="oc-header">
+    <span class="oc-title">Order Book History</span>
+    <span class="oc-time-range">Last {{ hours() }}h</span>
+    <div class="oc-legend">
+      <span class="oc-legend-dot oc-bid-dot"></span>
+      <span class="oc-legend-label">Bid</span>
+      <span class="oc-legend-dot oc-ask-dot"></span>
+      <span class="oc-legend-label">Ask</span>
+    </div>
+    <div class="oc-size-ctrl">
+      <button class="oc-size-btn" type="button" [disabled]="sizeScale() <= sizeMin" (click)="adjustSize(-sizeStep)" title="Decrease circle size">−</button>
+      <span class="oc-size-label">{{ sizeScale() | number:'1.2-2' }}×</span>
+      <button class="oc-size-btn" type="button" [disabled]="sizeScale() >= sizeMax" (click)="adjustSize(sizeStep)" title="Increase circle size">+</button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="oc-muted">Loading…</p>
+  } @else if (!hasData() && !orderBook().length) {
+    <div class="oc-empty">No order book history yet — data is collected every 10 minutes.</div>
+  } @else {
+    <div class="oc-body">
+      @if (hasData()) {
+        <div class="oc-chart-col" #ocChart>
+          <div class="oc-svg-wrap">
+            <svg class="oc-svg" [attr.viewBox]="'0 0 ' + W() + ' ' + H">
+              <!-- Y gridlines + labels (right-side axis) -->
+              @for (tick of yTicks(); track tick.y) {
+                <line class="oc-gridline"
+                  [attr.x1]="padLeft" [attr.x2]="W() - padRight"
+                  [attr.y1]="tick.y"  [attr.y2]="tick.y" />
+                <text class="oc-axis-label"
+                  [attr.x]="W() - padRight + 8" [attr.y]="tick.y + 4"
+                  text-anchor="start">{{ tick.label }}</text>
+              }
+
+              <!-- X gridlines -->
+              @for (tick of xTicks(); track tick.ms) {
+                <line class="oc-gridline"
+                  [attr.x1]="tick.x" [attr.x2]="tick.x"
+                  [attr.y1]="padY"   [attr.y2]="H - padY" />
+              }
+
+              <!-- Tail lines — drawn before circles so circles sit on top -->
+              @for (item of chartItems(); track $index) {
+                <line
+                  [attr.x1]="item.cx"     [attr.y1]="item.cy"
+                  [attr.x2]="item.tailX2" [attr.y2]="item.cy"
+                  [attr.stroke]="item.color"
+                  [attr.stroke-opacity]="item.tailOpacity"
+                  stroke-width="1.5"
+                  stroke-linecap="round" />
+              }
+
+              <!-- Circles -->
+              @for (item of chartItems(); track $index) {
+                <circle
+                  [attr.cx]="item.cx"
+                  [attr.cy]="item.cy"
+                  [attr.r]="item.r"
+                  [attr.fill]="item.color"
+                  [attr.fill-opacity]="item.tailOpacity * 0.65"
+                  [attr.stroke]="item.color"
+                  [attr.stroke-opacity]="item.tailOpacity"
+                  stroke-width="1.5">
+                  <title>{{ item.tooltip }}</title>
+                </circle>
+              }
+
+              <!-- Now-line (right edge = current time) -->
+              <line class="oc-now-line"
+                [attr.x1]="W() - padRight" [attr.x2]="W() - padRight"
+                [attr.y1]="padY"           [attr.y2]="H - padY" />
+            </svg>
+          </div>
+          <!-- X-axis labels -->
+          <div class="oc-x-labels">
+            @for (tick of xTicks(); track tick.ms) {
+              <span [style.left.%]="tick.xPct">{{ tick.label }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      @if (orderBook().length) {
+        <div class="oc-table-col">
+          <table class="oc-ob-table">
+            <thead>
+              <tr>
+                <th class="oc-th-vol">Bid Vol</th>
+                <th class="oc-th-bid">Bid</th>
+                <th class="oc-th-ask">Ask</th>
+                <th class="oc-th-vol">Ask Vol</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (level of orderBook().slice(0, 10); track $index) {
+                <tr>
+                  <td class="oc-bid-vol">{{ level.bidVol | number:'1.0-0' }}</td>
+                  <td class="oc-ob-bid">{{ level.bid | number:'1.2-2' }}</td>
+                  <td class="oc-ob-ask">{{ level.ask | number:'1.2-2' }}</td>
+                  <td class="oc-ask-vol">{{ level.askVol | number:'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

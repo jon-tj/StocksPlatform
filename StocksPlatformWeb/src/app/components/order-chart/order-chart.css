@@ -1,0 +1,200 @@
+.oc-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* Side-by-side chart + table */
+.oc-body {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.oc-chart-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.oc-table-col {
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+/* Embedded order book table */
+.oc-ob-table {
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.oc-ob-table th {
+  padding: 0.25rem 0.625rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  text-align: right;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.oc-ob-table td {
+  padding: 0.2rem 0.625rem;
+  text-align: right;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 35%, transparent);
+}
+
+.oc-ob-table tbody tr:hover {
+  background: var(--color-surface-hover, rgba(255,255,255,0.04));
+}
+
+.oc-ob-bid { color: #4ade80; font-weight: 500; }
+.oc-ob-ask { color: #f87171; font-weight: 500; }
+.oc-bid-vol, .oc-ask-vol { color: var(--color-text-muted); }
+
+.oc-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.oc-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.oc-time-range {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.oc-legend {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.oc-legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.oc-bid-dot { background: #4ade80; }
+.oc-ask-dot { background: #f87171; }
+
+.oc-legend-label {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-right: 0.5rem;
+}
+
+/* Size control */
+.oc-size-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.oc-size-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 0.3rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg, #18181b);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.1s, color 0.1s;
+}
+
+.oc-size-btn:hover:not(:disabled) {
+  background: var(--color-surface-hover, rgba(255,255,255,0.08));
+  color: var(--color-text-primary);
+}
+
+.oc-size-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.oc-size-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.oc-svg-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.oc-svg {
+  width: 100%;
+  height: 300px;
+  display: block;
+  overflow: visible;
+}
+
+.oc-gridline {
+  stroke: color-mix(in srgb, var(--color-border) 72%, transparent);
+  stroke-width: 1;
+}
+
+.oc-axis-label {
+  fill: var(--color-text-muted);
+  font-size: 11px;
+  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
+
+.oc-now-line {
+  stroke: color-mix(in srgb, var(--color-border) 80%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+/* X-axis labels */
+.oc-x-labels {
+  position: relative;
+  height: 1.25rem;
+}
+
+.oc-x-labels span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
+
+/* States */
+.oc-muted {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.oc-empty {
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  border: 1px dashed color-mix(in srgb, var(--color-border) 78%, transparent);
+  border-radius: 0.5rem;
+}

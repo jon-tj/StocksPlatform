@@ -23,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<FundHoldingSnapshot> FundHoldingSnapshots => Set<FundHoldingSnapshot>();
     public DbSet<FundPortfolioMeta> FundPortfolioMetas => Set<FundPortfolioMeta>();
     public DbSet<PortfolioRemainderValue> PortfolioRemainderValues => Set<PortfolioRemainderValue>();
+    public DbSet<OrderBookSnapshot> OrderBookSnapshots => Set<OrderBookSnapshot>();
 
     // Stable, deterministic asset IDs derived from a fixed namespace + name.
     // Equivalent to UUID v5 (SHA-1 name-based) — same input always yields same GUID.
@@ -113,6 +114,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         builder.Entity<UserStarredAsset>()
             .HasIndex(s => new { s.UserId, s.AssetId })
             .IsUnique();
+
+        builder.Entity<OrderBookSnapshot>()
+            .HasIndex(o => new { o.AssetId, o.Timestamp });
+
+        builder.Entity<OrderBookSnapshot>()
+            .HasIndex(o => new { o.AssetId, o.Level, o.Side });
 
         // Seed assets
         builder.Entity<Asset>().HasData(

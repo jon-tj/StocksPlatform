@@ -80,6 +80,22 @@ export interface PublicSentiment {
   e24News: SentimentItem[];
 }
 
+export interface OrderBookLevel {
+  bid: number;
+  bidVol: number;
+  ask: number;
+  askVol: number;
+}
+
+export interface OrderBookSnapshotDto {
+  timestamp: string;
+  level: number;
+  side: 'Bid' | 'Ask';
+  price: number;
+  newVol: number;
+  increment: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AssetService {
   private http = inject(HttpClient);
@@ -162,5 +178,21 @@ export class AssetService {
 
   getSentiment(id: string): Observable<PublicSentiment> {
     return this.http.get<PublicSentiment>(`${API}/api/sentiment/${id}`);
+  }
+
+  getOrderBook(id: string, limit = 20): Observable<OrderBookLevel[]> {
+    return this.http.get<OrderBookLevel[]>(`${API}/api/orderbook/${id}`, { params: { limit } });
+  }
+
+  getOrderBookHistory(
+    id: string,
+    options: { from?: string; to?: string; level?: number; side?: 'Bid' | 'Ask' } = {}
+  ): Observable<OrderBookSnapshotDto[]> {
+    const params: Record<string, string | number> = {};
+    if (options.from)  params['from']  = options.from;
+    if (options.to)    params['to']    = options.to;
+    if (options.level) params['level'] = options.level;
+    if (options.side)  params['side']  = options.side;
+    return this.http.get<OrderBookSnapshotDto[]>(`${API}/api/orderbook/${id}/history`, { params });
   }
 }

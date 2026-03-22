@@ -194,6 +194,55 @@ h1 {
   font-size: 0.8125rem;
 }
 
+/* Order Book */
+.orderbook-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.orderbook-table thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.5rem 0.5rem;
+}
+
+.orderbook-table tbody tr:hover {
+  background: var(--color-surface-hover, rgba(255,255,255,0.04));
+}
+
+.orderbook-table td {
+  padding: 0.25rem 0.5rem;
+}
+
+.ob-bid-vol, .ob-bid {
+  text-align: right;
+}
+
+.ob-ask, .ob-ask-vol {
+  text-align: left;
+}
+
+.ob-bid {
+  color: #4ade80;
+  font-weight: 500;
+  padding-right: 1.5rem;
+}
+
+.ob-ask {
+  color: #f87171;
+  font-weight: 500;
+  padding-left: 1.5rem;
+}
+
+.ob-bid-vol, .ob-ask-vol {
+  color: var(--color-text-muted);
+}
+
 .asset-meta {
   display: flex;
   align-items: center;

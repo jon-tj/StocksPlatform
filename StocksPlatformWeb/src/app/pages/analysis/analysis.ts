@@ -13,9 +13,11 @@ import {
   FundHoldingSnapshot,
   LivePrice,
   PublicSentiment,
+  OrderBookLevel,
 } from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
+import { OrderChart } from '../../components/order-chart/order-chart';
 import { SectorLabelPipe } from '../../pipes/sector-label.pipe';
 import { AssetChip } from '../../components/asset-chip/asset-chip';
 import { ValueChip } from '../../components/value-chip/value-chip';
@@ -75,7 +77,7 @@ export interface AggregateRow {
 
 @Component({
   selector: 'app-analysis',
-  imports: [DecimalPipe, DatePipe, StockChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip, ValueChip, GainChip],
+  imports: [DecimalPipe, DatePipe, StockChart, OrderChart, FormsModule, SectorLabelPipe, RouterLink, AssetChip, ValueChip, GainChip],
   templateUrl: './analysis.html',
   styleUrl: './analysis.css',
 })
@@ -116,6 +118,8 @@ export class Analysis implements OnInit, OnDestroy {
   liveByAssetId = new Map<string, LivePrice>();
   sentiment: PublicSentiment | null = null;
   sentimentLoading = false;
+  orderBook: OrderBookLevel[] = [];
+  orderBookLoading = false;
 
   private liveSub: Subscription | null = null;
 
@@ -315,6 +319,8 @@ export class Analysis implements OnInit, OnDestroy {
     this.liveByAssetId.clear();
     this.sentiment = null;
     this.sentimentLoading = false;
+    this.orderBook = [];
+    this.orderBookLoading = false;
 
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -376,6 +382,13 @@ export class Analysis implements OnInit, OnDestroy {
         this.assetService.getSentiment(assetId).subscribe({
           next: s => { this.sentiment = s; this.sentimentLoading = false; },
           error: () => { this.sentimentLoading = false; },
+        });
+
+        // Load order book independently (OSE/NAS only)
+        this.orderBookLoading = true;
+        this.assetService.getOrderBook(assetId).subscribe({
+          next: levels => { this.orderBook = levels; this.orderBookLoading = false; },
+          error: () => { this.orderBookLoading = false; },
         });
       },
       error: () => {
