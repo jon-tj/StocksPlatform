@@ -68,6 +68,18 @@ export interface AssetHistory {
   times: string[];
 }
 
+export interface SentimentItem {
+  title: string;
+  body: string;
+  date: string;
+}
+
+export interface PublicSentiment {
+  nordnetComments: SentimentItem[];
+  nordnetNews: SentimentItem[];
+  e24News: SentimentItem[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class AssetService {
   private http = inject(HttpClient);
@@ -146,5 +158,9 @@ export class AssetService {
       map(resp => resp.status === 204 ? null : resp.body),
       catchError(() => of(null)),
     );
+  }
+
+  getSentiment(id: string): Observable<PublicSentiment> {
+    return this.http.get<PublicSentiment>(`${API}/api/sentiment/${id}`);
   }
 }

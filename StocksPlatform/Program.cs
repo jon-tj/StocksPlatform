@@ -37,8 +37,13 @@ builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsPro
 builder.Services.AddScoped<StocksPlatform.Services.FundServices.IFundHoldingsProvider>(
     sp => sp.GetRequiredService<StocksPlatform.Services.FundServices.HanEtfFundService>());
 builder.Services.AddScoped<FundInstitutionalService>();
+builder.Services.AddSingleton<StocksPlatform.Services.Analysis.OnnxPriceModelRegistry>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.PatternDeltaService>();
 builder.Services.AddScoped<StocksPlatform.Services.Analysis.AnalysisService>();
+builder.Services.AddHttpClient<PublicSentimentService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>

@@ -374,6 +374,7 @@ public static class NordnetTickerSeeder
                 if (string.IsNullOrWhiteSpace(existing.Address1) && row.Address1 != null)       existing.Address1     = row.Address1;
                 if (string.IsNullOrWhiteSpace(existing.Address2) && row.Address2 != null)       existing.Address2     = row.Address2;
                 if (existing.NumberShares == null && row.NumberShares != null)                  existing.NumberShares  = row.NumberShares;
+                if (string.IsNullOrWhiteSpace(existing.E24Tag) && row.E24Tag != null)           existing.E24Tag        = row.E24Tag;
                 existing.Broker     = "NordNet";
                 existing.Popularity = row.Popularity;
             }
@@ -402,6 +403,7 @@ public static class NordnetTickerSeeder
                     Address1     = row.Address1,
                     Address2     = row.Address2,
                     NumberShares = row.NumberShares,
+                    E24Tag       = row.E24Tag,
                 });
             }
         }
@@ -554,7 +556,7 @@ public static class NordnetTickerSeeder
         await db.SaveChangesAsync();
     }
 
-    private record CsvRow(string BrokerSymbol, int Popularity, string Name, string Isin, string Symbol, string Country, string Region, string? NnxId, string? IconUrl, string? WebsiteUrl, string? Description, string? Ceo, string? Address1, string? Address2, long? NumberShares, string? CsvSector, string? CsvSubsector);
+    private record CsvRow(string BrokerSymbol, int Popularity, string Name, string Isin, string Symbol, string Country, string Region, string? NnxId, string? IconUrl, string? WebsiteUrl, string? Description, string? Ceo, string? Address1, string? Address2, long? NumberShares, string? CsvSector, string? CsvSubsector, string? E24Tag);
 
     private static List<CsvRow> ReadCsv()
     {
@@ -592,6 +594,7 @@ public static class NordnetTickerSeeder
             long? numberShares = cols.Length >= 16 && long.TryParse(cols[15].Trim(), out var ns) ? ns : null;
             var csvSector    = cols.Length >= 17 ? NullIfEmpty(cols[16]) : null;
             var csvSubsector = cols.Length >= 18 ? NullIfEmpty(cols[17]) : null;
+            var e24Tag       = cols.Length >= 19 ? NullIfEmpty(cols[18]) : null;
 
             if (string.IsNullOrWhiteSpace(brokerSymbol) || string.IsNullOrWhiteSpace(isin))
                 continue;
@@ -600,7 +603,7 @@ public static class NordnetTickerSeeder
                 string.IsNullOrWhiteSpace(region) ? "Europe" : region,
                 nnxId,
                 string.IsNullOrWhiteSpace(iconUrl) ? null : iconUrl,
-                websiteUrl, description, ceo, address1, address2, numberShares, csvSector, csvSubsector));
+                websiteUrl, description, ceo, address1, address2, numberShares, csvSector, csvSubsector, e24Tag));
         }
 
         return rows;

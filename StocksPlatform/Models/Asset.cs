@@ -74,6 +74,9 @@ public class Asset
 
     /// <summary>ISO 4217 currency code prices are denominated in, e.g. "NOK", "USD". Populated from Yahoo Finance metadata.</summary>
     public string? Currency { get; set; }
+
+    /// <summary>Tag UUID used to identify this asset in the E24 liveblog API for news/sentiment scraping.</summary>
+    public string? E24Tag { get; set; }
 }
 
 /// <summary>

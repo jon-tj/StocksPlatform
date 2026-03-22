@@ -238,6 +238,61 @@
       </section>
     }
 
+    @if (sentimentLoading) {
+      <section class="card">
+        <p class="muted">Loading sentiment…</p>
+      </section>
+    } @else if (sentiment && (sentiment.nordnetComments.length || sentiment.nordnetNews.length || sentiment.e24News.length)) {
+      <section class="card">
+        <h2 class="card-title">Public Sentiment</h2>
+
+        @if (sentiment.nordnetComments.length) {
+          <h3 class="sentiment-section-title">Nordnet Comments</h3>
+          <ul class="sentiment-list">
+            @for (item of sentiment.nordnetComments; track $index) {
+              <li class="sentiment-item">
+                @if (item.date) {
+                  <span class="sentiment-date">{{ item.date }}</span>
+                }
+                <p class="sentiment-body">{{ item.body }}</p>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (sentiment.nordnetNews.length) {
+          <h3 class="sentiment-section-title">Nordnet News</h3>
+          <ul class="sentiment-list">
+            @for (item of sentiment.nordnetNews; track $index) {
+              <li class="sentiment-item">
+                @if (item.date) {
+                  <span class="sentiment-date">{{ item.date }}</span>
+                }
+                <p class="sentiment-body">{{ item.title }}</p>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (sentiment.e24News.length) {
+          <h3 class="sentiment-section-title">E24 News</h3>
+          <ul class="sentiment-list">
+            @for (item of sentiment.e24News; track $index) {
+              <li class="sentiment-item">
+                @if (item.date) {
+                  <span class="sentiment-date">{{ item.date }}</span>
+                }
+                <p class="sentiment-body">{{ item.title }}</p>
+                @if (item.body) {
+                  <p class="sentiment-body sentiment-body-detail">{{ item.body }}</p>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+
     @if (asset.type === 'Portfolio' && children.length > 0) {
       <section class="card">
         <div class="holdings-header">

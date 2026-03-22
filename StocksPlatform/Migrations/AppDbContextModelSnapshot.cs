@@ -245,6 +245,9 @@ namespace StocksPlatform.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("E24Tag")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("IconUrl")
                         .HasColumnType("TEXT");
 

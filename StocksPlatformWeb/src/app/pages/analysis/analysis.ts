@@ -12,6 +12,7 @@ import {
   HoldingDelta,
   FundHoldingSnapshot,
   LivePrice,
+  PublicSentiment,
 } from '../../services/asset.service';
 import { PositionsService, Position } from '../../services/positions.service';
 import { StockChart, PriceSeries } from '../../components/stock-chart/stock-chart';
@@ -113,6 +114,8 @@ export class Analysis implements OnInit, OnDestroy {
   institutionalSnapshots: FundHoldingSnapshot[] = [];
   livePrice: LivePrice | null = null;
   liveByAssetId = new Map<string, LivePrice>();
+  sentiment: PublicSentiment | null = null;
+  sentimentLoading = false;
 
   private liveSub: Subscription | null = null;
 
@@ -310,6 +313,8 @@ export class Analysis implements OnInit, OnDestroy {
     this.starring = false;
     this.livePrice = null;
     this.liveByAssetId.clear();
+    this.sentiment = null;
+    this.sentimentLoading = false;
 
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -365,6 +370,13 @@ export class Analysis implements OnInit, OnDestroy {
           this.startLivePriceStream(assetId, []);
           this.loading = false;
         }
+
+        // Load sentiment independently so it doesn't block the main view
+        this.sentimentLoading = true;
+        this.assetService.getSentiment(assetId).subscribe({
+          next: s => { this.sentiment = s; this.sentimentLoading = false; },
+          error: () => { this.sentimentLoading = false; },
+        });
       },
       error: () => {
         this.error = 'Failed to load asset data.';

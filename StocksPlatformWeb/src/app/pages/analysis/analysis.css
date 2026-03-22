@@ -149,6 +149,51 @@ h1 {
   margin: 0;
 }
 
+/* Public Sentiment */
+.sentiment-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 1rem 0 0.5rem;
+}
+
+.sentiment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.sentiment-item {
+  padding: 0.625rem 0.75rem;
+  border-left: 2px solid var(--color-border, #2e2e3a);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sentiment-date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.sentiment-body {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.sentiment-body-detail {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
 .asset-meta {
   display: flex;
   align-items: center;
